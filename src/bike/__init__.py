@@ -5,7 +5,7 @@ from logging.handlers import RotatingFileHandler
 from bike.constants import LOG_LOCATION
 
 
-logger = logging.Logger('consensus-display', logging.DEBUG)
+logger = logging.Logger('bike', logging.DEBUG)
 
 os.makedirs(
     os.path.dirname(LOG_LOCATION),

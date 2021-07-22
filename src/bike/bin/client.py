@@ -56,3 +56,11 @@ class BikeClient():
         logger.info('Starting client')
         while True:
             self.capture()
+
+
+def main():
+    BikeClient().run()
+
+
+if __name__ == '__main__':
+    main()
