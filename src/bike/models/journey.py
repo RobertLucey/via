@@ -127,6 +127,7 @@ class Journey():
             for idx, frame in enumerate(reversed(self.frames)):
                 if frame.distance_from_point(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
                     last_frame_away_idx = self.frames - idx
+                    break
 
             if any(
                 [
