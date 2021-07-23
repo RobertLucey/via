@@ -144,8 +144,8 @@ class Journey():
                 break
 
         for idx, frame in enumerate(reversed(self.frames)):
-            if frame.distance_from_point(self.destination_time) > EXCLUDE_METRES_BEGIN_AND_END:
-                last_frame_away_idx = self.frames - idx
+            if frame.distance_from_point(self.destination) > EXCLUDE_METRES_BEGIN_AND_END:
+                last_frame_away_idx = len(self.frames) - idx
                 break
 
         if any(
