@@ -5,6 +5,7 @@ import random
 import shutil
 import os
 import uuid
+import time
 
 from bike.models.journey import Journey
 from bike.models.frame import Frame
@@ -12,7 +13,9 @@ from bike.utils import (
     is_journey_data_file,
     get_data_files,
     journey_from_file,
-    window
+    window,
+    iter_journeys,
+    sleep_until
 )
 
 from bike.constants import (
@@ -20,6 +23,11 @@ from bike.constants import (
     SENT_DATA_DIR,
     DATA_DIR
 )
+
+
+@sleep_until(0.5)
+def sleep_a_bit():
+    return None
 
 
 class UtilTest(TestCase):
@@ -128,3 +136,32 @@ class UtilTest(TestCase):
             list(window([1, 2, 3, 4, 5], n=3)),
             [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
         )
+
+    def test_iter_journeys(self):
+
+        starting_len = len(list(iter_journeys()))
+
+        for i in range(4):
+            journey = Journey()
+            for i in range(1000):
+                journey.append(
+                    Frame(
+                        0 + i,
+                        [random.random(), random.random()],
+                        [random.random(), random.random(), random.random()],
+                    )
+                )
+            journey.save()
+
+        self.assertEqual(
+            len(list(iter_journeys())) - starting_len,
+            4
+        )
+
+    def test_sleep_until(self):
+        st = time.monotonic()
+        sleep_a_bit()
+        et = time.monotonic()
+        taken = et - st
+
+        self.assertTrue(taken >= 0.5)

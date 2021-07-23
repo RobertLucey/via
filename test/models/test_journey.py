@@ -13,6 +13,9 @@ class JourneyTest(TestCase):
     def test_duration(self):
         pass
 
+    def test_cull(self):
+        pass
+
     def test_graph(self):
         with open('test/resources/dublin_route.json') as json_file:
             data = json.load(json_file)
@@ -99,4 +102,42 @@ class JourneyTest(TestCase):
         self.assertEqual(
             journey.get_avg_speed(),
             100
+        )
+
+    def test_origin(self):
+        with open('test/resources/dublin_route.json') as json_file:
+            data = json.load(json_file)
+
+        journey = Journey()
+        for d in data:
+            journey.append(
+                Frame(
+                    d['time'],
+                    (d['lat'], d['lng']),
+                    ()  # acceleration, don't really care at the mo
+                )
+            )
+
+        self.assertEqual(
+            journey.origin.serialize(),
+            {'acc': (), 'gps': (53.3588887, -6.2530891), 'time': 0}
+        )
+
+    def test_destination(self):
+        with open('test/resources/dublin_route.json') as json_file:
+            data = json.load(json_file)
+
+        journey = Journey()
+        for d in data:
+            journey.append(
+                Frame(
+                    d['time'],
+                    (d['lat'], d['lng']),
+                    ()  # acceleration, don't really care at the mo
+                )
+            )
+
+        self.assertEqual(
+            journey.destination.serialize(),
+            {'acc': (), 'gps': (53.332599, -6.2647978), 'time': 770}
         )
