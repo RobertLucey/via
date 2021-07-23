@@ -63,6 +63,8 @@ class Journey():
         :param n_seconds: use the location every n seconds as if the
                         location is calculated too frequently the distance
                         travelled could be artificially inflated
+        :rtype: float
+        :return: distance travelled in metres
         """
         last_frame = None
         distances = []
@@ -79,6 +81,17 @@ class Journey():
                 last_frame = frame
 
         return sum(distances)
+
+    def get_avg_speed(self, n_seconds=1):
+        """
+
+        :param n_seconds: use the location every n seconds as if the
+                        location is calculated too frequently the distance
+                        travelled could be artificially inflated
+        :rtype: float
+        :return: avg speed in metres per second
+        """
+        return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
     def serialize(self, minimal=False):
         data = {

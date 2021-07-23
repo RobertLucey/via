@@ -1,5 +1,7 @@
 import json
 
+import mock
+
 from unittest import TestCase
 
 from bike.models.journey import Journey
@@ -88,4 +90,13 @@ class JourneyTest(TestCase):
         self.assertEqual(
             journey.serialize()['transport_type'],
             'mountain'
+        )
+
+    @mock.patch('bike.models.journey.Journey.get_indirect_distance', return_value=1000)
+    @mock.patch('bike.models.journey.Journey.duration', 10)
+    def test_get_avg_speed(self, mock_get_indirect_distance):
+        journey = Journey()
+        self.assertEqual(
+            journey.get_avg_speed(),
+            100
         )
