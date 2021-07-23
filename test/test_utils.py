@@ -114,7 +114,7 @@ class UtilTest(TestCase):
                     [random.random(), random.random(), random.random()],
                 )
             )
-
+        journey.is_culled = True
         journey.save()
 
         new_journey = journey_from_file(journey.filepath)
@@ -151,6 +151,7 @@ class UtilTest(TestCase):
                         [random.random(), random.random(), random.random()],
                     )
                 )
+            journey.is_culled = True
             journey.save()
 
         self.assertEqual(

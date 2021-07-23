@@ -119,7 +119,7 @@ class Journey():
 
     def save(self):
         logger.info('Saving %s', self.uuid)
-        if self.is_culled:
+        if not self.is_culled:
             logger.error('Can not save culled journeys')
             raise Exception('Can not save culled journeys')
 

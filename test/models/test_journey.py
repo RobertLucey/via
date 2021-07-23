@@ -187,3 +187,8 @@ class JourneyTest(TestCase):
             self.test_journey.duration,
             770
         )
+
+    def test_save_unculled(self):
+        with self.assertRaises(Exception):
+            self.test_journey.save()
+
