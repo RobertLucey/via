@@ -70,7 +70,7 @@ class Journey():
         for frame in self.frames:
             if last_frame is None:
                 last_frame = frame
-            elif frame.time > last_frame.time + n_seconds:
+            elif frame.time >= last_frame.time + n_seconds:
                 distances.append(
                     last_frame.distance_from_point(
                         frame

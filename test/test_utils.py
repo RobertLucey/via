@@ -11,7 +11,8 @@ from bike.models.frame import Frame
 from bike.utils import (
     is_journey_data_file,
     get_data_files,
-    journey_from_file
+    journey_from_file,
+    window
 )
 
 from bike.constants import (
@@ -111,3 +112,19 @@ class UtilTest(TestCase):
         new_journey = journey_from_file(journey.filepath)
 
         self.assertEquals(journey.serialize(), new_journey.serialize())
+
+    def test_window(self):
+        self.assertEqual(
+            list(window([1, 2, 3, 4, 5])),
+            [(1, 2), (2, 3), (3, 4), (4, 5)]
+        )
+
+        self.assertEqual(
+            list(window([1, 2, 3, 4, 5], n=2)),
+            [(1, 2), (2, 3), (3, 4), (4, 5)]
+        )
+
+        self.assertEqual(
+            list(window([1, 2, 3, 4, 5], n=3)),
+            [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
+        )
