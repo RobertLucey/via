@@ -42,7 +42,7 @@ class Journey():
 
     @property
     def duration(self):
-        return self.frames[-1].time - self.frames[0].time
+        return self.destination.time - self.origin.time
 
     @property
     def quality(self):
@@ -196,7 +196,7 @@ class Journey():
         self.is_culled = True
 
         logger.info(
-            'Culled %s removed %s % frames',
+            'Culled %s removed %s %% frames',
             self.uuid,
             (new_frame_count / orig_frame_count) * 100
         )

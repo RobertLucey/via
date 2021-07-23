@@ -4,6 +4,10 @@ import mock
 
 from unittest import TestCase
 
+from bike.settings import (
+    MINUTES_TO_CUT,
+    EXCLUDE_METRES_BEGIN_AND_END
+)
 from bike.models.journey import Journey
 from bike.models.frame import Frame
 
@@ -23,9 +27,6 @@ class JourneyTest(TestCase):
                     ()  # acceleration, don't really care at the mo
                 )
             )
-
-    def test_duration(self):
-        pass
 
     def test_graph(self):
 
@@ -103,26 +104,86 @@ class JourneyTest(TestCase):
         )
 
     def test_cull_distance(self):
-        original_frame = self.test_journey.origin
+        # TODO: ensure it doesn't cut too much
+
+        origin_frame = self.test_journey.origin
         destination_frame = self.test_journey.destination
 
-        original_frames = len(self.test_journey.frames)
+        origin_frames = len(self.test_journey.frames)
 
         self.test_journey.cull_distance()
 
         self.assertLess(
             len(self.test_journey.frames),
-            original_frames
+            origin_frames
         )
 
         for frame in self.test_journey.frames:
-            if frame.distance_from_point(original_frame) < 100:
+            if frame.distance_from_point(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
         for frame in self.test_journey.frames:
-            if frame.distance_from_point(destination_frame) < 100:
+            if frame.distance_from_point(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
-
     def test_cull_time(self):
-        pass
+        # TODO: ensure it doesn't cut too much
+
+        origin_frame = self.test_journey.origin
+        destination_frame = self.test_journey.destination
+
+        origin_frames = len(self.test_journey.frames)
+
+        self.test_journey.cull_time(origin_frame.time, destination_frame.time)
+
+        self.assertLess(
+            len(self.test_journey.frames),
+            origin_frames
+        )
+
+        for frame in self.test_journey.frames:
+            if frame.time - origin_frame.time < 60 * MINUTES_TO_CUT:
+                self.fail()
+
+        for frame in self.test_journey.frames:
+            if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
+                self.fail()
+
+    def test_cull(self):
+        # TODO: ensure it doesn't cut too much
+
+        origin_frame = self.test_journey.origin
+        destination_frame = self.test_journey.destination
+
+        origin_frames = len(self.test_journey.frames)
+
+        self.test_journey.cull()
+
+        self.assertTrue(self.test_journey.is_culled)
+
+        self.assertLess(
+            len(self.test_journey.frames),
+            origin_frames
+        )
+
+        for frame in self.test_journey.frames:
+            if frame.distance_from_point(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
+                self.fail()
+
+        for frame in self.test_journey.frames:
+            if frame.distance_from_point(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
+                self.fail()
+
+        for frame in self.test_journey.frames:
+            if frame.time - origin_frame.time < 60 * MINUTES_TO_CUT:
+                self.fail()
+
+        for frame in self.test_journey.frames:
+            if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
+                self.fail()
+
+    def test_duration(self):
+        self.assertEqual(
+            self.test_journey.duration,
+            770
+        )
