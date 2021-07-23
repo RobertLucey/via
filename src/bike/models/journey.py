@@ -133,7 +133,7 @@ class Journey():
         """
         Remove the start and end of the journey, the start to remove
         will be until you are x metres away, the end to remove will be the
-        first time you are x metres away from the destination
+        last time you are x metres away from the destination
         """
         first_frame_away_idx = None
         last_frame_away_idx = None
