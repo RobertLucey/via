@@ -14,7 +14,8 @@ from bike.settings import (
     EXCLUDE_METRES_BEGIN_AND_END,
     MINUTES_TO_CUT,
     TRANSPORT_TYPE,
-    SUSPENSION
+    SUSPENSION,
+    DELETE_ON_SEND
 )
 from bike.models.frame import Frames
 
@@ -117,18 +118,6 @@ class Journey():
 
         return data
 
-    def save(self):
-        logger.info('Saving %s', self.uuid)
-        if not self.is_culled:
-            logger.error('Can not save culled journeys')
-            raise Exception('Can not save culled journeys')
-
-        with open(self.filepath, 'w') as f:
-            json.dump(
-                self.serialize(minimal=True),
-                f
-            )
-
     def cull_distance(self):
         """
         Remove the start and end of the journey, the start to remove
@@ -201,6 +190,18 @@ class Journey():
             (new_frame_count / orig_frame_count) * 100
         )
 
+    def save(self):
+        logger.info('Saving %s', self.uuid)
+        if not self.is_culled:
+            logger.error('Can not save culled journeys')
+            raise Exception('Can not save culled journeys')
+
+        with open(self.filepath, 'w') as f:
+            json.dump(
+                self.serialize(minimal=True),
+                f
+            )
+
     def send(self):
         logger.info('Sending %s', self.uuid)
         if not self.is_culled:
@@ -208,10 +209,13 @@ class Journey():
 
         # TODO: networkey stuff
 
-        os.rename(
-            self.filepath,
-            os.path.join(SENT_DATA_DIR, os.path.basename(self.filepath))
-        )
+        if DELETE_ON_SEND:
+            os.remove(self.filepath)
+        else:
+            os.rename(
+                self.filepath,
+                os.path.join(SENT_DATA_DIR, os.path.basename(self.filepath))
+            )
 
     @property
     def graph(self):

@@ -1,5 +1,6 @@
 import pkg_resources
 
+DELETE_ON_SEND = True
 
 SUSPENSION = True
 
