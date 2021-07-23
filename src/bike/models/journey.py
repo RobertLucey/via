@@ -129,59 +129,67 @@ class Journey():
                 f
             )
 
+    def cull_distance(self):
+        """
+        Remove the start and end of the journey, the start to remove
+        will be until you are x metres away, the end to remove will be the
+        first time you are x metres away from the destination
+        """
+        first_frame_away_idx = None
+        last_frame_away_idx = None
+
+        for idx, frame in enumerate(self.frames):
+            if frame.distance_from_point(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
+                first_frame_away_idx = idx
+                break
+
+        for idx, frame in enumerate(reversed(self.frames)):
+            if frame.distance_from_point(self.destination_time) > EXCLUDE_METRES_BEGIN_AND_END:
+                last_frame_away_idx = self.frames - idx
+                break
+
+        if any(
+            [
+                first_frame_away_idx is None,
+                last_frame_away_idx is None
+            ]
+        ):
+            raise Exception('Not a long enough journey to get any meaningful data from')
+
+        self.frames = self.frames[first_frame_away_idx:last_frame_away_idx]
+
+    def cull_time(self, origin_time, destination_time):
+        """
+        Remove the start and end of a journey, the start to remove will be
+        the first x minutes, the end to remove will be the last x minutes
+        """
+        if MINUTES_TO_CUT != 0:
+            min_time = origin_time
+            max_time = destination_time
+
+            tmp_frames = Frames()
+            for frame in self.frames:
+                if any([
+                    frame.time > min_time + (60 * MINUTES_TO_CUT),
+                    frame.time < max_time - (60 * MINUTES_TO_CUT)
+                ]):
+                    continue
+                tmp_frames.append(frame)
+
+            self.frames = tmp_frames
+
+        if self.is_culled:
+            return
+
     def cull(self):
-
-        def cull_distance():
-            first_frame_away_idx = None
-            last_frame_away_idx = None
-
-            for idx, frame in enumerate(self.frames):
-                if frame.distance_from_point(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
-                    first_frame_away_idx = idx
-                    break
-
-            for idx, frame in enumerate(reversed(self.frames)):
-                if frame.distance_from_point(self.destination_time) > EXCLUDE_METRES_BEGIN_AND_END:
-                    last_frame_away_idx = self.frames - idx
-                    break
-
-            if any(
-                [
-                    first_frame_away_idx is None,
-                    last_frame_away_idx is None
-                ]
-            ):
-                raise Exception('Not a long enough journey to get any meaningful data from')
-
-            self.frames = self.frames[first_frame_away_idx:last_frame_away_idx]
-
-        def cull_time():
-
-            if MINUTES_TO_CUT != 0:
-                min_time = origin_time
-                max_time = destination_time
-
-                tmp_frames = Frames()
-                for frame in self.frames:
-                    if any([
-                        frame.time > min_time + (60 * MINUTES_TO_CUT),
-                        frame.time < max_time - (60 * MINUTES_TO_CUT)
-                    ]):
-                        continue
-                    tmp_frames.append(frame)
-
-                self.frames = tmp_frames
-
-            if self.is_culled:
-                return
 
         origin_time = self.origin.time
         destination_time = self.destination.time
 
         orig_frame_count = len(self.frames)
 
-        cull_distance()
-        cull_time()
+        self.cull_distance()
+        self.cull_time(origin_time, destination_time)
 
         new_frame_count = len(self.frames)
 
