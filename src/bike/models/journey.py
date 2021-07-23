@@ -170,8 +170,8 @@ class Journey():
             tmp_frames = Frames()
             for frame in self.frames:
                 if any([
-                    frame.time > min_time + (60 * MINUTES_TO_CUT),
-                    frame.time < max_time - (60 * MINUTES_TO_CUT)
+                    frame.time < min_time + (60 * MINUTES_TO_CUT),
+                    frame.time > max_time - (60 * MINUTES_TO_CUT)
                 ]):
                     continue
                 tmp_frames.append(frame)
@@ -196,7 +196,7 @@ class Journey():
         self.is_culled = True
 
         logger.info(
-            'Culled %s removed %s %% frames',
+            'Culled %s kept %s %% frames',
             self.uuid,
             (new_frame_count / orig_frame_count) * 100
         )
