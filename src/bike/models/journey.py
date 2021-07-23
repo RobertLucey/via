@@ -2,7 +2,10 @@ import uuid
 import json
 import os
 
+import networkx as nx
+
 from bike import logger
+from bike.utils import window
 from bike.constants import (
     STAGED_DATA_DIR,
     SENT_DATA_DIR
@@ -188,3 +191,27 @@ class Journey():
             self.filepath,
             os.path.join(SENT_DATA_DIR, os.path.basename(self.filepath))
         )
+
+    @property
+    def graph(self):
+        """
+        Get a graph of the journey since routes are only to the closest
+        node of a premade graph
+
+        Fairly possible I just don't understand osmnx properly and am
+        doing this badly
+        """
+        graph = nx.Graph()
+
+        for (origin, destination) in window(self.frames):
+            graph.add_node(
+                origin.uuid,
+                **{'x': origin.lng, 'y': origin.lat}
+            )
+            graph.add_node(
+                destination.uuid,
+                **{'x': destination.lng, 'y': destination.lat}
+            )
+            graph.add_edge(origin.uuid, destination.uuid)
+
+        return graph

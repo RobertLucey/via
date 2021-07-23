@@ -3,6 +3,7 @@ import glob
 import json
 import time
 from functools import wraps
+from itertools import islice
 
 from bike import logger
 from bike.constants import (
@@ -10,7 +11,6 @@ from bike.constants import (
     STAGED_DATA_DIR,
     SENT_DATA_DIR
 )
-from bike.models.journey import Journey
 from bike.models.frame import Frame
 
 
@@ -80,7 +80,8 @@ def get_raw_journey_data(data_file: str):
 
 
 def journey_from_file(journey_fp: str):
-    # FIXME: all this is gross
+    # FIXME: all this is gross. Make a static method of Journey or something
+    from bike.models.journey import Journey
 
     journey_data = get_raw_journey_data(journey_fp)
 
@@ -160,3 +161,16 @@ def sleep_until(max_seconds):
             return result
         return wrapper
     return real_decorator
+
+
+def window(seq, n=2):
+    """
+    Returns a sliding window (of width n) over data from the iterable
+    """
+    it = iter(seq)
+    result = tuple(islice(it, n))
+    if len(result) == n:
+        yield result
+    for elem in it:
+        result = result[1:] + (elem,)
+        yield result

@@ -4,6 +4,10 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'adafruit-circuitpython-gps',
+    'haversine',
+    'adafruit-circuitpython-lis331',
+    'osmnx'
 )
 
 setup(

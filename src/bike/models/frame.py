@@ -1,3 +1,5 @@
+import uuid
+
 from haversine import haversine, Unit
 
 from bike.models.generic import (
@@ -9,9 +11,18 @@ from bike.models.generic import (
 class Frame(GenericObject):
 
     def __init__(self, time, gps, acceleration):
+        self.uuid = uuid.uuid4()
         self.time = time
         self.gps = gps
         self.acceleration = acceleration
+
+    @property
+    def lat(self):
+        return self.gps[0]
+
+    @property
+    def lng(self):
+        return self.gps[1]
 
     def distance_from_point(self, point):
         if isinstance(point, Frame):
