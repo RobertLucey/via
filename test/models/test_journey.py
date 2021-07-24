@@ -45,7 +45,7 @@ class JourneyTest(TestCase):
 
         self.assertEqual(
             list(self.test_journey.route_graph._node.keys()),
-            [frame.uuid for frame in self.test_journey.frames]
+            [frame.uuid for frame in self.test_journey]
         )
 
     def test_serialization(self):
@@ -109,20 +109,20 @@ class JourneyTest(TestCase):
         origin_frame = self.test_journey.origin
         destination_frame = self.test_journey.destination
 
-        origin_frames = len(self.test_journey.frames)
+        origin_frames = len(self.test_journey)
 
         self.test_journey.cull_distance()
 
         self.assertLess(
-            len(self.test_journey.frames),
+            len(self.test_journey),
             origin_frames
         )
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if frame.distance_from_point(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if frame.distance_from_point(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
@@ -132,20 +132,20 @@ class JourneyTest(TestCase):
         origin_frame = self.test_journey.origin
         destination_frame = self.test_journey.destination
 
-        origin_frames = len(self.test_journey.frames)
+        origin_frames = len(self.test_journey)
 
         self.test_journey.cull_time(origin_frame.time, destination_frame.time)
 
         self.assertLess(
-            len(self.test_journey.frames),
+            len(self.test_journey),
             origin_frames
         )
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if frame.time - origin_frame.time < 60 * MINUTES_TO_CUT:
                 self.fail()
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
                 self.fail()
 
@@ -155,30 +155,30 @@ class JourneyTest(TestCase):
         origin_frame = self.test_journey.origin
         destination_frame = self.test_journey.destination
 
-        origin_frames = len(self.test_journey.frames)
+        origin_frames = len(self.test_journey)
 
         self.test_journey.cull()
 
         self.assertTrue(self.test_journey.is_culled)
 
         self.assertLess(
-            len(self.test_journey.frames),
+            len(self.test_journey),
             origin_frames
         )
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if frame.distance_from_point(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if frame.distance_from_point(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if frame.time - origin_frame.time < 60 * MINUTES_TO_CUT:
                 self.fail()
 
-        for frame in self.test_journey.frames:
+        for frame in self.test_journey:
             if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
                 self.fail()
 

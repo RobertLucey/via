@@ -9,7 +9,8 @@ from bike import logger
 from bike.constants import (
     DATA_DIR,
     STAGED_DATA_DIR,
-    SENT_DATA_DIR
+    SENT_DATA_DIR,
+    NON_WHITESPACE_PRINTABLE
 )
 from bike.models.frame import Frame
 
@@ -81,13 +82,15 @@ def get_raw_journey_data(data_file: str):
 
 def journey_from_file(journey_fp: str):
     # FIXME: all this is gross. Make a static method of Journey or something
+
     from bike.models.journey import Journey
 
     journey_data = get_raw_journey_data(journey_fp)
 
     journey = Journey(
         transport_type=journey_data['transport_type'],
-        suspension=journey_data['suspension']
+        suspension=journey_data['suspension'],
+        is_culled=journey_data['is_culled']
     )
     journey.uuid = journey_data['uuid']
 

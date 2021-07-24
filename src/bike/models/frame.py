@@ -1,5 +1,3 @@
-import uuid
-
 from haversine import haversine, Unit
 
 from bike.models.generic import (
@@ -11,7 +9,7 @@ from bike.models.generic import (
 class Frame(GenericObject):
 
     def __init__(self, time, gps, acceleration):
-        self.uuid = uuid.uuid4()
+        super(Frame, self).__init__()
         self.time = time
         self.gps = gps
         self.acceleration = acceleration
@@ -52,3 +50,24 @@ class Frames(GenericObjects):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Frame)
         super(Frames, self).__init__(*args, **kwargs)
+
+    @property
+    def most_northern(self):
+        return max([frame.lat for frame in self])
+
+    @property
+    def most_southern(self):
+        return min([frame.lat for frame in self])
+
+    @property
+    def most_eastern(self):
+        return min([frame.lng for frame in self])
+
+    @property
+    def most_western(self):
+        return max([frame.lng for frame in self])
+
+    @property
+    def quality(self):
+        # Mixed with the deviation between times?
+        return len([f for f in self if f.is_complete]) / float(len(self))

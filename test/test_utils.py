@@ -117,7 +117,7 @@ class UtilTest(TestCase):
         journey.is_culled = True
         journey.save()
 
-        new_journey = journey_from_file(journey.filepath)
+        new_journey = journey_from_file(os.path.join(STAGED_DATA_DIR, str(journey.uuid) + '.json'))
 
         self.assertEquals(journey.serialize(), new_journey.serialize())
 

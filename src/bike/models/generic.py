@@ -10,6 +10,7 @@ class GenericObjects(object):
         :kwarg data:
         :kwarg child_class:
         '''
+        self.uuid = kwargs.get('uuid', uuid.uuid4())
         self._data = kwargs.get('data', [])
         self.child_class = kwargs.get('child_class', GenericObject)
 
@@ -70,7 +71,7 @@ class GenericObject(object):
 
         :kwarg data:
         '''
-        self.id = kwargs.get('id', uuid.uuid4())
+        self.uuid = kwargs.get('uuid', uuid.uuid4())
 
     def __repr__(self):
         return str('%s(%s)' % (

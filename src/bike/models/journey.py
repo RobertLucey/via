@@ -1,4 +1,3 @@
-import uuid
 import json
 import os
 
@@ -18,62 +17,23 @@ from bike.settings import (
     SUSPENSION,
     DELETE_ON_SEND
 )
-from bike.models.frame import Frames
+from bike.models.frame import (
+    Frame,
+    Frames
+)
+from bike.models.generic import GenericObjects
 
 
-class Journey():
+class Journey(Frames):
 
-    def __init__(self, **kwargs):
-        self.uuid = str(uuid.uuid4())
-        self.frames = Frames()
-        self.is_culled = False
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('child_class', Frame)
+        super(Journey, self).__init__(*args, **kwargs)
+
+        self.is_culled = kwargs.get('is_culled', False)
 
         self.transport_type = kwargs.get('transport_type', TRANSPORT_TYPE)
         self.suspension = kwargs.get('suspension', SUSPENSION)
-
-    def append(self, frame):
-        self.frames.append(frame)
-
-    @property
-    def most_northern(self):
-        return max([frame.lat for frame in self.frames])
-
-    @property
-    def most_southern(self):
-        return min([frame.lat for frame in self.frames])
-
-    @property
-    def most_eastern(self):
-        return min([frame.lng for frame in self.frames])
-
-    @property
-    def most_western(self):
-        return max([frame.lng for frame in self.frames])
-
-    @property
-    def origin(self):
-        return self.frames[0]
-
-    @property
-    def destination(self):
-        return self.frames[-1]
-
-    @property
-    def duration(self):
-        return self.destination.time - self.origin.time
-
-    @property
-    def quality(self):
-        # Mixed with the deviation between times?
-        return len([f for f in self.frames if f.is_complete]) / float(len(self.frames))
-
-    @property
-    def filepath(self):
-        return os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
-
-    @property
-    def direct_distance(self):
-        return self.frames[0].distance_from_point(self.frames[-1])
 
     def get_indirect_distance(self, n_seconds=1):
         """
@@ -87,7 +47,7 @@ class Journey():
         last_frame = None
         distances = []
 
-        for frame in self.frames:
+        for frame in self:
             if last_frame is None:
                 last_frame = frame
             elif frame.time >= last_frame.time + n_seconds:
@@ -114,9 +74,10 @@ class Journey():
     def serialize(self, minimal=False):
         data = {
             'uuid': str(self.uuid),
-            'data': self.frames.serialize(),
+            'data': super().serialize(),
             'transport_type': self.transport_type,
             'suspension': self.suspension,
+            'is_culled': self.is_culled
         }
 
         if minimal is False:
@@ -144,14 +105,14 @@ class Journey():
         first_frame_away_idx = None
         last_frame_away_idx = None
 
-        for idx, frame in enumerate(self.frames):
+        for idx, frame in enumerate(self):
             if frame.distance_from_point(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
                 first_frame_away_idx = idx
                 break
 
-        for idx, frame in enumerate(reversed(self.frames)):
+        for idx, frame in enumerate(reversed(self)):
             if frame.distance_from_point(self.destination) > EXCLUDE_METRES_BEGIN_AND_END:
-                last_frame_away_idx = len(self.frames) - idx
+                last_frame_away_idx = len(self) - idx
                 break
 
         if any(
@@ -162,7 +123,7 @@ class Journey():
         ):
             raise Exception('Not a long enough journey to get any meaningful data from')
 
-        self.frames = self.frames[first_frame_away_idx:last_frame_away_idx]
+        self._data = self[first_frame_away_idx:last_frame_away_idx]
 
     def cull_time(self, origin_time, destination_time):
         """
@@ -174,7 +135,7 @@ class Journey():
             max_time = destination_time
 
             tmp_frames = Frames()
-            for frame in self.frames:
+            for frame in self:
                 if any([
                     frame.time < min_time + (60 * MINUTES_TO_CUT),
                     frame.time > max_time - (60 * MINUTES_TO_CUT)
@@ -182,7 +143,7 @@ class Journey():
                     continue
                 tmp_frames.append(frame)
 
-            self.frames = tmp_frames
+            self._data = tmp_frames
 
         if self.is_culled:
             return
@@ -192,12 +153,12 @@ class Journey():
         origin_time = self.origin.time
         destination_time = self.destination.time
 
-        orig_frame_count = len(self.frames)
+        orig_frame_count = len(self)
 
         self.cull_distance()
         self.cull_time(origin_time, destination_time)
 
-        new_frame_count = len(self.frames)
+        new_frame_count = len(self)
 
         self.is_culled = True
 
@@ -213,7 +174,9 @@ class Journey():
             logger.error('Can not save culled journeys')
             raise Exception('Can not save culled journeys')
 
-        with open(self.filepath, 'w') as f:
+        filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
+
+        with open(filepath, 'w') as f:
             json.dump(
                 self.serialize(minimal=True),
                 f
@@ -245,7 +208,7 @@ class Journey():
         """
         graph = nx.Graph()
 
-        for (origin, destination) in window(self.frames):
+        for (origin, destination) in window(self):
             graph.add_node(
                 origin.uuid,
                 **{'x': origin.lng, 'y': origin.lat}
@@ -274,3 +237,42 @@ class Journey():
             self.most_western,
             network_type='bike'
         )
+
+    @property
+    def origin(self):
+        return self[0]
+
+    @property
+    def destination(self):
+        return self[-1]
+
+    @property
+    def duration(self):
+        return self.destination.time - self.origin.time
+
+    @property
+    def direct_distance(self):
+        return self[0].distance_from_point(self[-1])
+
+
+class Journeys(GenericObjects):
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('child_class', Journey)
+        super(Journeys, self).__init__(*args, **kwargs)
+
+    @property
+    def most_northern(self):
+        return max([journey.most_northern for journey in self])
+
+    @property
+    def most_southern(self):
+        return min([journey.most_southern for journey in self])
+
+    @property
+    def most_eastern(self):
+        return min([journey.most_eastern for journey in self])
+
+    @property
+    def most_western(self):
+        return min([journey.most_western for journey in self])
