@@ -1,5 +1,7 @@
 # Bike
 
+Mainly for road quality assessment from cycling around
+
 I'll put a parts list and an installer together but until I have the hardware all together and tested out this is all up in the air and probably doesn't work
 
 Also I'm going to rename this at some point for obvious reasons
