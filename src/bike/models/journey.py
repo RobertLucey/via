@@ -2,6 +2,7 @@ import uuid
 import json
 import os
 
+import osmnx as ox
 import networkx as nx
 
 from bike import logger
@@ -32,6 +33,22 @@ class Journey():
 
     def append(self, frame):
         self.frames.append(frame)
+
+    @property
+    def most_northern(self):
+        return max([frame.lat for frame in self.frames])
+
+    @property
+    def most_southern(self):
+        return min([frame.lat for frame in self.frames])
+
+    @property
+    def most_eastern(self):
+        return min([frame.lng for frame in self.frames])
+
+    @property
+    def most_western(self):
+        return max([frame.lng for frame in self.frames])
 
     @property
     def origin(self):
@@ -218,7 +235,7 @@ class Journey():
             )
 
     @property
-    def graph(self):
+    def route_graph(self):
         """
         Get a graph of the journey since routes are only to the closest
         node of a premade graph
@@ -237,6 +254,23 @@ class Journey():
                 destination.uuid,
                 **{'x': destination.lng, 'y': destination.lat}
             )
-            graph.add_edge(origin.uuid, destination.uuid)
+            graph.add_edge(
+                origin.uuid,
+                destination.uuid,
+                length=origin.distance_from_point(destination)
+            )
 
         return graph
+
+    @property
+    def bounding_graph(self):
+        """
+        Get a graph of the journey as the box that contains the route
+        """
+        return ox.graph_from_bbox(
+            self.most_northern,
+            self.most_southern,
+            self.most_eastern,
+            self.most_western,
+            network_type='bike'
+        )

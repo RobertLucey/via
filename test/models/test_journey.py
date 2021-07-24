@@ -28,10 +28,10 @@ class JourneyTest(TestCase):
                 )
             )
 
-    def test_graph(self):
+    def test_route_graph(self):
 
         graph_coordinates = []
-        for frame_uuid, frame_data in self.test_journey.graph._node.items():
+        for frame_uuid, frame_data in self.test_journey.route_graph._node.items():
             graph_coordinates.append(
                 {
                     'lat': frame_data['y'],
@@ -44,7 +44,7 @@ class JourneyTest(TestCase):
         self.assertEqual(graph_coordinates, data_no_time)
 
         self.assertEqual(
-            list(self.test_journey.graph._node.keys()),
+            list(self.test_journey.route_graph._node.keys()),
             [frame.uuid for frame in self.test_journey.frames]
         )
 
