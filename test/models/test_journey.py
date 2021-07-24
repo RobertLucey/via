@@ -188,7 +188,8 @@ class JourneyTest(TestCase):
             770
         )
 
-    def test_save_unculled(self):
+    def test_save_culled(self):
+        self.test_journey.is_culled = True
         with self.assertRaises(Exception):
             self.test_journey.save()
 

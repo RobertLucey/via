@@ -114,7 +114,7 @@ class UtilTest(TestCase):
                     [random.random(), random.random(), random.random()],
                 )
             )
-        journey.is_culled = True
+        journey.is_culled = False
         journey.save()
 
         new_journey = journey_from_file(os.path.join(STAGED_DATA_DIR, str(journey.uuid) + '.json'))
@@ -151,7 +151,7 @@ class UtilTest(TestCase):
                         [random.random(), random.random(), random.random()],
                     )
                 )
-            journey.is_culled = True
+            journey.is_culled = False
             journey.save()
 
         self.assertEqual(
