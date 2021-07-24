@@ -145,10 +145,11 @@ class Journey(Frames):
 
             self._data = tmp_frames
 
-        if self.is_culled:
-            return
-
     def cull(self):
+
+        if self.is_culled:
+            logger.warning('Attempted to cull an already culled journey: %s', self.uuid)
+            return
 
         origin_time = self.origin.time
         destination_time = self.destination.time
