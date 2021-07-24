@@ -1,5 +1,7 @@
 # Bike
 
+[![Build Status](https://travis-ci.com/RobertLucey/bike.svg?branch=master)](https://travis-ci.com/RobertLucey/mauve)
+
 Mainly for road quality assessment from cycling around
 
 I'll put a parts list and an installer together but until I have the hardware all together and tested out this is all up in the air and probably doesn't work
@@ -12,7 +14,6 @@ Features:
 - Doesn't store the actual time of day, only relative time from the start of the turning on of the device
 
 Future:
-- CI
 - Build an image so can handily install
 - Configure wifi so files uploaded when home without having to do anything
 - Some sort of backend
