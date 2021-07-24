@@ -197,6 +197,21 @@ class Journey(Frames):
                 os.path.join(SENT_DATA_DIR, os.path.basename(self.filepath))
             )
 
+    def plot_route(self):
+        base = self.bounding_graph
+        base.add_nodes_from(self.route_graph.nodes(data=True))
+        base.add_edges_from(self.route_graph.edges(data=True))
+        ox.plot_graph_route(base, self.route)
+
+    @property
+    def route(self):
+        """
+        Get a list of nodes representing the journey.
+
+        Only useful once route_graph is merged with a more detailed graph
+        """
+        return list(self.route_graph._node.keys())
+
     @property
     def route_graph(self):
         """
