@@ -12,7 +12,6 @@ from bike.models.frame import Frame
 from bike.utils import (
     is_journey_data_file,
     get_data_files,
-    journey_from_file,
     window,
     iter_journeys,
     sleep_until
@@ -101,25 +100,6 @@ class UtilTest(TestCase):
         self.assertFalse(
             is_journey_data_file('/dev/null')
         )
-
-    def test_journey_from_file(self):
-
-        journey = Journey()
-
-        for i in range(1000):
-            journey.append(
-                Frame(
-                    0 + i,
-                    [random.random(), random.random()],
-                    [random.random(), random.random(), random.random()],
-                )
-            )
-        journey.is_culled = False
-        journey.save()
-
-        new_journey = journey_from_file(os.path.join(STAGED_DATA_DIR, str(journey.uuid) + '.json'))
-
-        self.assertEquals(journey.serialize(), new_journey.serialize())
 
     def test_window(self):
         self.assertEqual(

@@ -76,7 +76,7 @@ class GenericObject(object):
     def __repr__(self):
         return str('%s(%s)' % (
             type(self).__name__,
-            self.id
+            self.uuid
         ))
 
     def serialize(self):

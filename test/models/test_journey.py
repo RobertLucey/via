@@ -1,9 +1,14 @@
+import os
+import random
 import json
 
 import mock
 
 from unittest import TestCase
 
+from bike.constants import (
+    STAGED_DATA_DIR,
+)
 from bike.settings import (
     MINUTES_TO_CUT,
     EXCLUDE_METRES_BEGIN_AND_END
@@ -193,3 +198,21 @@ class JourneyTest(TestCase):
         with self.assertRaises(Exception):
             self.test_journey.save()
 
+    def test_journey_from_file(self):
+
+        journey = Journey()
+
+        for i in range(1000):
+            journey.append(
+                Frame(
+                    0 + i,
+                    [random.random(), random.random()],
+                    [random.random(), random.random(), random.random()],
+                )
+            )
+        journey.is_culled = False
+        journey.save()
+
+        new_journey = Journey.from_file(os.path.join(STAGED_DATA_DIR, str(journey.uuid) + '.json'))
+
+        self.assertEquals(journey.serialize(), new_journey.serialize())

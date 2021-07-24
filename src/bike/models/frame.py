@@ -14,6 +14,19 @@ class Frame(GenericObject):
         self.gps = gps
         self.acceleration = acceleration
 
+    @staticmethod
+    def parse(obj):
+        if isinstance(obj, Frame):
+            return obj
+        elif isinstance(obj, dict):
+            return Frame(
+                obj['time'],
+                obj['gps'],
+                obj['acc']
+            )
+        else:
+            raise ValueError()
+
     @property
     def lat(self):
         return self.gps[0]

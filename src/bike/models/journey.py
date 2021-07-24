@@ -27,6 +27,9 @@ from bike.models.generic import GenericObjects
 class Journey(Frames):
 
     def __init__(self, *args, **kwargs):
+
+        kwargs['data'] = [Frame.parse(d) for d in kwargs.get('data', [])]
+
         kwargs.setdefault('child_class', Frame)
         super(Journey, self).__init__(*args, **kwargs)
 
@@ -34,6 +37,12 @@ class Journey(Frames):
 
         self.transport_type = kwargs.get('transport_type', TRANSPORT_TYPE)
         self.suspension = kwargs.get('suspension', SUSPENSION)
+
+    @staticmethod
+    def from_file(filepath: str):
+        return Journey(
+            **json.loads(open(filepath, 'r').read())
+        )
 
     def get_indirect_distance(self, n_seconds=1):
         """

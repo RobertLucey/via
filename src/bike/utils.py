@@ -40,8 +40,9 @@ def is_journey_data_file(fp: str):
 
 
 def iter_journeys(staged=None):
+    from bike.models.journey import Journey
     for journey_file in get_data_files(staged=staged):
-        yield journey_from_file(journey_file)
+        yield Journey.from_file(journey_file)
 
 
 def get_data_files(staged=None):
@@ -65,44 +66,6 @@ def get_data_files(staged=None):
             files.append(filename)
 
     return files
-
-
-def get_raw_journey_data(data_file: str):
-    """
-    Just reads the file but abstracted so we can handle compression since
-    I'm not sure how big these files will get
-
-    :param data_file:
-    :rtype: list
-    :return: All data collected from a journey
-    """
-    return json.loads(open(data_file, 'r').read())
-
-
-def journey_from_file(journey_fp: str):
-    # FIXME: all this is gross. Make a static method of Journey or something
-
-    from bike.models.journey import Journey
-
-    journey_data = get_raw_journey_data(journey_fp)
-
-    journey = Journey(
-        transport_type=journey_data['transport_type'],
-        suspension=journey_data['suspension'],
-        is_culled=journey_data['is_culled']
-    )
-    journey.uuid = journey_data['uuid']
-
-    for dp in journey_data['data']:
-        journey.append(
-            Frame(
-                dp['time'],
-                dp['gps'],
-                dp['acc']
-            )
-        )
-
-    return journey
 
 
 def sleep_until_ready(started, finished, max_seconds=0):
