@@ -9,8 +9,7 @@ from bike import logger
 from bike.constants import (
     DATA_DIR,
     STAGED_DATA_DIR,
-    SENT_DATA_DIR,
-    NON_WHITESPACE_PRINTABLE
+    SENT_DATA_DIR
 )
 from bike.models.frame import Frame
 
