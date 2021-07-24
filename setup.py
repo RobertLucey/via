@@ -13,7 +13,7 @@ INSTALL_REQUIRES = (
 setup(
     name='bike',
     version='0.0.1',
-    python_requires='>=3.8',
+    python_requires='>=3.6',
     description='Bike',
     author='Robert Lucey',
     url='https://github.com/RobertLucey/bike',
