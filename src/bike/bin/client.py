@@ -41,10 +41,10 @@ class BikeClient():
             self.saver
         ).start()
 
-    @sleep_until
+    @sleep_until(0.1)
     @timing
     def capture(self):
-        self._data.append(
+        self.journey.append(
             {
                 'acc': self.acceleration_interface.get_acceleration(),
                 'gps': self.gps_interface.get_lat_lng(),

@@ -29,7 +29,7 @@ class GenericObjects(object):
         :param obj:
         '''
         if not isinstance(obj, self.child_class):
-            raise TypeError('Bad type: %s' % (type(obj)))
+            obj = self.child_class.parse(obj)
         self._data.append(obj)
 
     def extend(self, objs: Iterable[Any]) -> None:
