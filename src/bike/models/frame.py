@@ -9,7 +9,7 @@ from bike.models.generic import (
 class Frame(GenericObject):
 
     def __init__(self, time, gps, acceleration):
-        super(Frame, self).__init__()
+        super().__init__()
         self.time = time
         self.gps = gps
         self.acceleration = acceleration
@@ -18,14 +18,13 @@ class Frame(GenericObject):
     def parse(obj):
         if isinstance(obj, Frame):
             return obj
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             return Frame(
                 obj['time'],
                 obj['gps'],
                 obj['acc']
             )
-        else:
-            raise ValueError()
+        raise ValueError()
 
     @property
     def lat(self):
@@ -45,9 +44,9 @@ class Frame(GenericObject):
         return all([
             isinstance(self.time, float),
             len(self.gps) == 2,
-            all([isinstance(dp, float) for dp in self.gps]),
+            all(isinstance(dp, float) for dp in self.gps),
             len(self.acceleration) == 3,
-            all([isinstance(dp, float) for dp in self.acceleration])
+            all(isinstance(dp, float) for dp in self.acceleration)
         ])
 
     def serialize(self):
@@ -62,7 +61,7 @@ class Frames(GenericObjects):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Frame)
-        super(Frames, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def most_northern(self):

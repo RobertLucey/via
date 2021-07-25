@@ -28,7 +28,7 @@ class Journey(Frames):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Frame)
-        super(Journey, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.is_culled = kwargs.get('is_culled', False)
 
@@ -36,17 +36,19 @@ class Journey(Frames):
         self.suspension = kwargs.get('suspension', SUSPENSION)
 
     @staticmethod
-    def parse(obj):
-        if isinstance(obj, Journey):
-            return obj
-        else:
-            raise NotImplementedError('Can\'t parse journey from type %s' % (type(obj)))
+    def parse(objs):
+        if isinstance(objs, Journey):
+            return objs
+        raise NotImplementedError(
+            'Can\'t parse journey from type %s' % (type(objs))
+        )
 
     @staticmethod
     def from_file(filepath: str):
-        return Journey(
-            **json.loads(open(filepath, 'r').read())
-        )
+        with open(filepath, 'r') as journey_file:
+            return Journey(
+                **json.loads(journey_file.read())
+            )
 
     def get_indirect_distance(self, n_seconds=1):
         """
@@ -123,7 +125,7 @@ class Journey(Frames):
                 first_frame_away_idx = idx
                 break
 
-        for idx, frame in enumerate(reversed(self)):
+        for idx, frame in enumerate(reversed(self._data)):
             if frame.distance_from_point(self.destination) > EXCLUDE_METRES_BEGIN_AND_END:
                 last_frame_away_idx = len(self) - idx
                 break
@@ -161,7 +163,10 @@ class Journey(Frames):
     def cull(self):
 
         if self.is_culled:
-            logger.warning('Attempted to cull an already culled journey: %s', self.uuid)
+            logger.warning(
+                'Attempted to cull an already culled journey: %s',
+                self.uuid
+            )
             return
 
         origin_time = self.origin.time
@@ -195,10 +200,10 @@ class Journey(Frames):
             exist_ok=True
         )
 
-        with open(filepath, 'w') as f:
+        with open(filepath, 'w') as journey_file:
             json.dump(
                 self.serialize(minimal=True),
-                f
+                journey_file
             )
 
     def send(self):
@@ -209,11 +214,11 @@ class Journey(Frames):
         # TODO: networkey stuff
 
         if DELETE_ON_SEND:
-            os.remove(self.filepath)
+            os.remove(os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'))
         else:
             os.rename(
-                self.filepath,
-                os.path.join(SENT_DATA_DIR, os.path.basename(self.filepath))
+                os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'),
+                os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
             )
 
     def plot_route(self):
@@ -293,7 +298,7 @@ class Journeys(GenericObjects):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Journey)
-        super(Journeys, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     @property
     def most_northern(self):

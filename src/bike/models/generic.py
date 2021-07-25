@@ -1,8 +1,12 @@
-from typing import Iterable, Any, Mapping
 import uuid
+from typing import (
+    Any,
+    Iterable,
+    Mapping
+)
 
 
-class GenericObjects(object):
+class GenericObjects():
 
     def __init__(self, *args, **kwargs):
         '''
@@ -12,7 +16,9 @@ class GenericObjects(object):
         '''
         self.uuid = kwargs.get('uuid', uuid.uuid4())
         self.child_class = kwargs.get('child_class', GenericObject)
-        self._data = [self.child_class.parse(d) for d in kwargs.get('data', [])]
+        self._data = [
+            self.child_class.parse(d) for d in kwargs.get('data', [])
+        ]
 
     def __getitem__(self, i):
         return self._data[i]
@@ -68,7 +74,7 @@ class GenericObjects(object):
         return self._data
 
 
-class GenericObject(object):
+class GenericObject():
 
     def __init__(self, *args, **kwargs):
         '''

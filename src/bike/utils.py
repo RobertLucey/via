@@ -13,19 +13,20 @@ from bike.constants import (
 )
 
 
-def is_journey_data_file(fp: str):
+def is_journey_data_file(potential_journey_file: str):
     """
 
-    :param fp:
+    :param potential_journey_file:
     :rtype: bool
     :return: if the file contains journey data
     """
-    if os.path.splitext(os.path.basename(fp))[1] != '.json':
+    if os.path.splitext(os.path.basename(potential_journey_file))[1] != '.json':
         return False
 
     try:
-        data = json.loads(open(fp, 'r').read())
-    except:
+        with open(potential_journey_file, 'r') as potential_journey_file_io:
+            data = json.loads(potential_journey_file_io.read())
+    except (json.decoder.JSONDecodeError):
         return False
     else:
         if not all([
@@ -40,7 +41,7 @@ def is_journey_data_file(fp: str):
 
 def get_journeys(staged=None):
     from bike.models.journey import Journeys
-    return Journeys(data=[d for d in iter_journeys()])
+    return Journeys(data=list(iter_journeys(staged=staged)))
 
 
 def iter_journeys(staged=None):
@@ -122,7 +123,7 @@ def sleep_until(max_seconds):
             if percentage_time > 100:
                 # If it's getting up there, then log
                 logger.debug(
-                    'function "%s" took %s % of the max %s',
+                    'function "%s" took %s %% of the max %s',
                     function.__qualname__,
                     percentage_time,
                     max_seconds
@@ -132,14 +133,14 @@ def sleep_until(max_seconds):
     return real_decorator
 
 
-def window(seq, n=2):
+def window(sequence, window_size=2):
     """
     Returns a sliding window (of width n) over data from the iterable
     """
-    it = iter(seq)
-    result = tuple(islice(it, n))
-    if len(result) == n:
+    seq_iterator = iter(sequence)
+    result = tuple(islice(seq_iterator, window_size))
+    if len(result) == window_size:
         yield result
-    for elem in it:
+    for elem in seq_iterator:
         result = result[1:] + (elem,)
         yield result
