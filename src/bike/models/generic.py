@@ -11,8 +11,8 @@ class GenericObjects(object):
         :kwarg child_class:
         '''
         self.uuid = kwargs.get('uuid', uuid.uuid4())
-        self._data = kwargs.get('data', [])
         self.child_class = kwargs.get('child_class', GenericObject)
+        self._data = [self.child_class.parse(d) for d in kwargs.get('data', [])]
 
     def __getitem__(self, i):
         return self._data[i]
@@ -59,6 +59,10 @@ class GenericObjects(object):
             o for o in self._data if o.id != obj.id
         ]
 
+    @staticmethod
+    def parse(objs):
+        raise NotImplementedError()
+
     @property
     def data(self) -> Iterable[Any]:
         return self._data
@@ -78,6 +82,10 @@ class GenericObject(object):
             type(self).__name__,
             self.uuid
         ))
+
+    @staticmethod
+    def parse(obj):
+        raise NotImplementedError()
 
     def serialize(self):
         raise NotImplementedError()

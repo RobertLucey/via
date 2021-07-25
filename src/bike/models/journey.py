@@ -27,9 +27,6 @@ from bike.models.generic import GenericObjects
 class Journey(Frames):
 
     def __init__(self, *args, **kwargs):
-
-        kwargs['data'] = [Frame.parse(d) for d in kwargs.get('data', [])]
-
         kwargs.setdefault('child_class', Frame)
         super(Journey, self).__init__(*args, **kwargs)
 
@@ -37,6 +34,13 @@ class Journey(Frames):
 
         self.transport_type = kwargs.get('transport_type', TRANSPORT_TYPE)
         self.suspension = kwargs.get('suspension', SUSPENSION)
+
+    @staticmethod
+    def parse(obj):
+        if isinstance(obj, Journey):
+            return obj
+        else:
+            raise NotImplementedError('Can\'t parse journey from type %s' % (type(obj)))
 
     @staticmethod
     def from_file(filepath: str):
@@ -306,3 +310,16 @@ class Journeys(GenericObjects):
     @property
     def most_western(self):
         return min([journey.most_western for journey in self])
+
+    @property
+    def bounding_graph(self):
+        """
+        Get a graph that contains all journeys
+        """
+        return ox.graph_from_bbox(
+            self.most_northern,
+            self.most_southern,
+            self.most_eastern,
+            self.most_western,
+            network_type='bike'
+        )

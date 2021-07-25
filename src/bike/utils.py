@@ -11,7 +11,6 @@ from bike.constants import (
     STAGED_DATA_DIR,
     SENT_DATA_DIR
 )
-from bike.models.frame import Frame
 
 
 def is_journey_data_file(fp: str):
@@ -37,6 +36,11 @@ def is_journey_data_file(fp: str):
             return False
 
     return True
+
+
+def get_journeys(staged=None):
+    from bike.models.journey import Journeys
+    return Journeys(data=[d for d in iter_journeys()])
 
 
 def iter_journeys(staged=None):
