@@ -259,7 +259,9 @@ class Journey(Frames):
             graph.add_edge(
                 origin.uuid,
                 destination.uuid,
-                length=origin.distance_from_point(destination)
+                length=origin.distance_from_point(destination),
+                origin_acc=origin.acceleration,
+                destination_acc=destination.acceleration
             )
 
         return graph
