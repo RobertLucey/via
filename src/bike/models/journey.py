@@ -1,4 +1,5 @@
 import json
+import random
 import os
 
 import osmnx as ox
@@ -221,11 +222,35 @@ class Journey(Frames):
                 os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
             )
 
-    def plot_route(self):
+    def plot_route(self, apply_condition_colour=True):
+        """
+        This is a bit misleading, we add nodes and edges from the route
+        but only plot a graph with a different colour on the route.
+
+        At some point should add an option to not merge nodes but
+        to assume closest base nodes are the correct ones to use. This is
+        sort of necessary as merging multiple journeys, nodes won't match
+        exactly so merging wouldn't do much
+
+        :kwargs apply_condition_colour: This is just a random colour for the moment
+        as a jumping off point for when I come back to it
+        """
         base = self.bounding_graph
         base.add_nodes_from(self.route_graph.nodes(data=True))
         base.add_edges_from(self.route_graph.edges(data=True))
-        ox.plot_graph_route(base, self.route)
+
+        if apply_condition_colour:
+            colours = ox.plot.get_colors(n=10, cmap='plasma_r')
+            ec = [
+                colours[d.get('quality', 0)] for u, v, k, d in base.edges(
+                    keys=True,
+                    data=True
+                )
+            ]
+
+            ox.plot_graph(base, edge_color=ec)
+        else:
+            ox.plot_graph_route(base, self.route)
 
     @property
     def route(self):
@@ -260,8 +285,7 @@ class Journey(Frames):
                 origin.uuid,
                 destination.uuid,
                 length=origin.distance_from_point(destination),
-                origin_acc=origin.acceleration,
-                destination_acc=destination.acceleration
+                quality=random.randint(1, 9)  # TODO: base this number off accelerometer data
             )
 
         return graph
