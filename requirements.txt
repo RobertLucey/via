@@ -2,3 +2,4 @@ adafruit-circuitpython-gps
 haversine
 adafruit-circuitpython-lis331
 osmnx
+scikit-learn

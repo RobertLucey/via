@@ -7,7 +7,8 @@ INSTALL_REQUIRES = (
     'adafruit-circuitpython-gps',
     'haversine',
     'adafruit-circuitpython-lis331',
-    'osmnx'
+    'osmnx',
+    'scikit-learn'
 )
 
 setup(

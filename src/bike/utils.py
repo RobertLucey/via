@@ -144,3 +144,10 @@ def window(sequence, window_size=2):
     for elem in seq_iterator:
         result = result[1:] + (elem,)
         yield result
+
+
+def get_idx_default(lst, idx, default):
+    try:
+        return lst[idx]
+    except (IndexError, TypeError) as ex:
+        return default
