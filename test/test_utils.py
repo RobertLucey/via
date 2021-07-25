@@ -108,12 +108,12 @@ class UtilTest(TestCase):
         )
 
         self.assertEqual(
-            list(window([1, 2, 3, 4, 5], n=2)),
+            list(window([1, 2, 3, 4, 5], window_size=2)),
             [(1, 2), (2, 3), (3, 4), (4, 5)]
         )
 
         self.assertEqual(
-            list(window([1, 2, 3, 4, 5], n=3)),
+            list(window([1, 2, 3, 4, 5], window_size=3)),
             [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
         )
 
