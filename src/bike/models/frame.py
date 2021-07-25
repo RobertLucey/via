@@ -52,7 +52,7 @@ class Frame(GenericObject):
 
     def serialize(self):
         return {
-            'time': self.time,
+            'time': round(self.time, 2),
             'gps': self.gps,
             'acc': self.acceleration
         }
