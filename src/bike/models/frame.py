@@ -4,6 +4,7 @@ from bike.models.generic import (
     GenericObject,
     GenericObjects
 )
+from bike.models.gps import GPSPoint
 
 
 class Frame(GenericObject):
@@ -11,7 +12,7 @@ class Frame(GenericObject):
     def __init__(self, time, gps, acceleration):
         super().__init__()
         self.time = time
-        self.gps = gps
+        self.gps = GPSPoint(gps['lat'], gps['lng'])  # TODO: elevation
         self.acceleration = acceleration
 
     @staticmethod
@@ -26,25 +27,16 @@ class Frame(GenericObject):
             )
         raise ValueError()
 
-    @property
-    def lat(self):
-        return self.gps[0]
-
-    @property
-    def lng(self):
-        return self.gps[1]
-
     def distance_from_point(self, point):
         if isinstance(point, Frame):
-            point = point.gps
-        return haversine(self.gps, point, unit=Unit.METERS)
+            point = point.gps.point
+        return haversine(self.gps.point, point, unit=Unit.METERS)
 
     @property
     def is_complete(self):
         return all([
             isinstance(self.time, float),
-            len(self.gps) == 2,
-            all(isinstance(dp, float) for dp in self.gps),
+            self.gps.is_populated,
             len(self.acceleration) == 3,
             all(isinstance(dp, float) for dp in self.acceleration)
         ])
@@ -52,7 +44,7 @@ class Frame(GenericObject):
     def serialize(self):
         return {
             'time': round(self.time, 2),
-            'gps': self.gps,
+            'gps': self.gps.serialize(),
             'acc': self.acceleration
         }
 

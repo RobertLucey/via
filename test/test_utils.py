@@ -51,7 +51,7 @@ class UtilTest(TestCase):
                 journey.append(
                     Frame(
                         0 + i,
-                        (random.random(), random.random()),
+                        {'lat': random.random(), 'lng': random.random()},
                         (random.random(), random.random(), random.random()),
                     )
                 )
@@ -68,7 +68,7 @@ class UtilTest(TestCase):
                 journey.append(
                     Frame(
                         0 + i,
-                        (random.random(), random.random()),
+                        {'lat': random.random(), 'lng': random.random()},
                         (random.random(), random.random(), random.random()),
                     )
                 )
@@ -127,7 +127,7 @@ class UtilTest(TestCase):
                 journey.append(
                     Frame(
                         0 + i,
-                        [random.random(), random.random()],
+                        {'lat': random.random(), 'lng': random.random()},
                         [random.random(), random.random(), random.random()],
                     )
                 )

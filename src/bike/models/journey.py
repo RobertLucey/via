@@ -250,11 +250,11 @@ class Journey(Frames):
         for (origin, destination) in window(self):
             graph.add_node(
                 origin.uuid,
-                **{'x': origin.lng, 'y': origin.lat}
+                **{'x': origin.gps.lng, 'y': origin.gps.lat}
             )
             graph.add_node(
                 destination.uuid,
-                **{'x': destination.lng, 'y': destination.lat}
+                **{'x': destination.gps.lng, 'y': destination.gps.lat}
             )
             graph.add_edge(
                 origin.uuid,
