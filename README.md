@@ -22,6 +22,18 @@ TODO: Need to make sure the parts work once they arrive
 
 TODO: Make an image but also install a guide because people shouldn't random img files
 
+## Usage
+
+To get a quick start into playing with journeys you can use one of the test resource journeys. I'll put up an actual one once I get hardware delivered
+
+```{python}
+from bike.models.journey import Journey
+
+sample_journey = Journey.from_file('test/resources/abc46949-7f23-474f-bf7c-e313f3c74e5d.json')
+print(sample_journey.serialize())  # Show some details of the journey
+sample_journey.plot_route()  # Show the route on a map
+```
+
 ## Future
 
 - Build an image so can handily install
