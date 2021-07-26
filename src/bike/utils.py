@@ -26,7 +26,7 @@ def is_journey_data_file(potential_journey_file: str):
     try:
         with open(potential_journey_file, 'r') as potential_journey_file_io:
             data = json.loads(potential_journey_file_io.read())
-    except (json.decoder.JSONDecodeError):
+    except json.decoder.JSONDecodeError:
         return False
     else:
         if not all([
@@ -40,11 +40,22 @@ def is_journey_data_file(potential_journey_file: str):
 
 
 def get_journeys(staged=None):
+    """
+    Get local journeys as Journeys
+
+    :kwarg staged: To only get staged journeys or not (gets sent ones too)
+    :rtype: Journey
+    """
     from bike.models.journey import Journeys
     return Journeys(data=list(iter_journeys(staged=staged)))
 
 
 def iter_journeys(staged=None):
+    """
+    Get local journeys as iterable of Journey
+
+    :kwarg staged: To only get staged journeys or not (gets sent ones too)
+    """
     from bike.models.journey import Journey
     for journey_file in get_data_files(staged=staged):
         yield Journey.from_file(journey_file)
@@ -146,8 +157,12 @@ def window(sequence, window_size=2):
         yield result
 
 
-def get_idx_default(lst, idx, default):
+def get_idx_default(lst: list, idx: int, default):
+    """
+    Get the ith elem of a list or a default value if out of range
+    """
+    assert isinstance(lst, list)
     try:
         return lst[idx]
-    except (IndexError, TypeError) as ex:
+    except (IndexError, TypeError):
         return default

@@ -188,6 +188,13 @@ class JourneyTest(TestCase):
             if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
                 self.fail()
 
+    def test_double_cull(self):
+        """A culled journey should fail to cull again"""
+        self.test_journey.cull()
+
+        with self.assertRaises(AssertionError):
+            self.test_journey.cull()
+
     def test_duration(self):
         self.assertEqual(
             self.test_journey.duration,
@@ -217,3 +224,14 @@ class JourneyTest(TestCase):
         new_journey = Journey.from_file(os.path.join(STAGED_DATA_DIR, str(journey.uuid) + '.json'))
 
         self.assertEquals(journey.serialize(), new_journey.serialize())
+
+    def test_parse(self):
+        self.assertEqual(
+            Journey.parse(self.test_journey).serialize(),
+            self.test_journey.serialize()
+        )
+
+        #self.assertEqual(
+        #    Journey.parse(self.test_journey.serialize()).serialize(),
+        #    self.test_journey.serialize()
+        #)

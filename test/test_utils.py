@@ -14,7 +14,8 @@ from bike.utils import (
     get_data_files,
     window,
     iter_journeys,
-    sleep_until
+    sleep_until,
+    get_idx_default
 )
 
 from bike.constants import (
@@ -146,3 +147,14 @@ class UtilTest(TestCase):
         taken = et - st
 
         self.assertTrue(taken >= 0.5)
+
+    def test_get_idx_default(self):
+
+        self.assertEqual(
+            get_idx_default([1, 2, 3], 0, None),
+            1
+        )
+        self.assertEqual(
+            get_idx_default([1, 2, 3], 9, None),
+            None
+        )

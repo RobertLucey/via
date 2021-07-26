@@ -33,6 +33,14 @@ from bike.models.generic import GenericObjects
 class Journey(Frames):
 
     def __init__(self, *args, **kwargs):
+        """
+
+        :kwarg is_culled: If the journey is culled or not
+        :kwarg transport_type: What transport type being used, defaults
+        to settings.TRANSPORT_TYPE
+        :kwarg suspension: If using suspension or not, defaults
+        to settings.SUSPENSION
+        """
         kwargs.setdefault('child_class', Frame)
         super().__init__(*args, **kwargs)
 
@@ -45,6 +53,8 @@ class Journey(Frames):
     def parse(objs):
         if isinstance(objs, Journey):
             return objs
+
+        # TODO: do this from an object serialization
         raise NotImplementedError(
             'Can\'t parse journey from type %s' % (type(objs))
         )
@@ -142,7 +152,9 @@ class Journey(Frames):
                 last_frame_away_idx is None
             ]
         ):
-            raise Exception('Not a long enough journey to get any meaningful data from')
+            raise Exception(
+                'Not a long enough journey to get any meaningful data from'
+            )
 
         self._data = self[first_frame_away_idx:last_frame_away_idx]
 
@@ -167,13 +179,7 @@ class Journey(Frames):
             self._data = tmp_frames
 
     def cull(self):
-
-        if self.is_culled:
-            logger.warning(
-                'Attempted to cull an already culled journey: %s',
-                self.uuid
-            )
-            return
+        assert self.is_culled is False
 
         origin_time = self.origin.time
         destination_time = self.destination.time
@@ -230,15 +236,20 @@ class Journey(Frames):
     def plot_route(
         self,
         apply_condition_colour=False,
-        use_closest_edge_from_base=False
+        use_closest_edge_from_base=False,
+        colour_map_name='plasma_r',
+        plot_kwargs={}
     ):
         """
 
-        :kwargs apply_condition_colour: This is just a random colour for
+        :kwarg apply_condition_colour: This is just a random colour for
         the moment as a jumping off point for when I come back to it
-        :kwargs use_closest_from_base: For each point on the actual route, for
+        :kwarg use_closest_from_base: For each point on the actual route, for
         each node use the closest node from the original base graph the route
         is being drawn on
+        :kwarg colour_map_name:
+        :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
+        being done
         """
         base = self.bounding_graph
         if use_closest_edge_from_base:
@@ -246,7 +257,7 @@ class Journey(Frames):
 
                 edge_quality_data = self.edge_quality_data
 
-                colours = ox.plot.get_colors(n=10, cmap='plasma_r')
+                colours = ox.plot.get_colors(n=10, cmap=colour_map_name)
                 edge_colours = [
                     get_idx_default(
                         colours,
@@ -261,27 +272,39 @@ class Journey(Frames):
                 ox.plot_graph(
                     base,
                     edge_color=edge_colours,
-                    edge_linewidth=1
+                    **plot_kwargs
                 )
             else:
-                ox.plot_graph_route(base, self.closest_route)
+                ox.plot_graph_route(
+                    base,
+                    self.closest_route,
+                    **plot_kwargs
+                )
 
         else:
             base.add_nodes_from(self.route_graph.nodes(data=True))
             base.add_edges_from(self.route_graph.edges(data=True))
 
             if apply_condition_colour:
-                colours = ox.plot.get_colors(n=10, cmap='plasma_r')
-                ec = [
+                colours = ox.plot.get_colors(n=10, cmap=colour_map_name)
+                edge_colours = [
                     colours[d.get('quality', 0)] for u, v, k, d in base.edges(
                         keys=True,
                         data=True
                     )
                 ]
 
-                ox.plot_graph(base, edge_color=ec)
+                ox.plot_graph(
+                    base,
+                    edge_color=edge_colours,
+                    **plot_kwargs
+                )
             else:
-                ox.plot_graph_route(base, self.route)
+                ox.plot_graph_route(
+                    base,
+                    self.route,
+                    **plot_kwargs
+                )
 
     @property
     def edge_quality_data(self):
@@ -455,7 +478,41 @@ class Journeys(GenericObjects):
         """
         base = self.bounding_graph
         if use_closest_edge_from_base:
-            raise NotImplementedError()
+
+            if apply_condition_colour:
+
+                edge_quality_map = defaultdict(list)
+                for journey in self:
+                    for edge_hash, edge_quality in journey.edge_quality_data:
+                        edge_quality_map[edge_hash].append(edge_quality)
+
+                edge_quality_map = {
+                    k: statistics.mean(v) for k, v in edge_quality_map.items()
+                }
+
+                colours = ox.plot.get_colors(n=10, cmap='plasma_r')
+                edge_colours = [
+                    get_idx_default(
+                        colours,
+                        edge_quality_map.get(hash(hash(u) + hash(v)), None),
+                        '#999999'
+                    ) for (u, v, k, d) in base.edges(
+                        keys=True,
+                        data=True
+                    )
+                ]
+
+                ox.plot_graph(
+                    base,
+                    edge_color=edge_colours,
+                    edge_linewidth=1
+                )
+            else:
+                ox.plot_graph_routes(
+                    base,
+                    [journey.closest_route for journey in self]
+                )
+
         else:
 
             routes = []
@@ -468,13 +525,13 @@ class Journeys(GenericObjects):
 
             if apply_condition_colour:
                 colours = ox.plot.get_colors(n=10, cmap='plasma_r')
-                ec = [
+                edge_colours = [
                     colours[d.get('quality', 0)] for u, v, k, d in base.edges(
                         keys=True,
                         data=True
                     )
                 ]
 
-                ox.plot_graph(base, edge_color=ec)
+                ox.plot_graph(base, edge_color=edge_colours)
             else:
                 ox.plot_graph_routes(base, routes)

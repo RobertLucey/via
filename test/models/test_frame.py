@@ -45,3 +45,58 @@ class FrameTest(TestCase):
                 'acc': (1.0, 2.0, 3.0)
             }
         )
+
+    def test_parse(self):
+        frame = Frame(
+            0.0,
+            {'lat': 0.0, 'lng': 1.0},
+            (1.0, 2.0, 3.0)
+        )
+        self.assertEqual(Frame.parse(frame).serialize(), frame.serialize())
+        self.assertEqual(
+            Frame.parse({'time': 0.0, 'gps': {'lat': 0.0, 'lng': 1.0}, 'acc': (1.0, 2.0, 3.0)}).serialize(),
+            frame.serialize()
+        )
+        with self.assertRaises(ValueError):
+            Frame.parse(None)
+
+
+class FramesTest(TestCase):
+
+    def setUp(self):
+        self.frames = Frames()
+        self.frames.append(
+            Frame(
+                0.0,
+                {'lat': 0.0, 'lng': 1.0},
+                (1.0, 2.0, 3.0)
+            )
+        )
+        self.frames.append(
+            Frame(
+                1.0,
+                {'lat': 2.0, 'lng': 3.0},
+                (1.0, 2.0, 3.0)
+            )
+        )
+
+    def test_most_directional(self):
+        self.assertEqual(
+            self.frames.most_northern,
+            2
+        )
+        self.assertEqual(
+            self.frames.most_southern,
+            0
+        )
+        self.assertEqual(
+            self.frames.most_eastern,
+            1
+        )
+        self.assertEqual(
+            self.frames.most_western,
+            3
+        )
+
+    def test_quality(self):
+        pass
