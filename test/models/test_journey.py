@@ -76,7 +76,7 @@ class JourneyTest(TestCase):
             }
         )
         self.assertEqual(
-            self.test_journey.serialize()['quality'],
+            self.test_journey.serialize()['data_quality'],
             0.0
         )
         self.assertEqual(

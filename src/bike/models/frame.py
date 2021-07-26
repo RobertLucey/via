@@ -1,3 +1,5 @@
+import random
+
 from haversine import haversine, Unit
 
 from bike.models.generic import (
@@ -41,6 +43,11 @@ class Frame(GenericObject):
             all(isinstance(dp, float) for dp in self.acceleration)
         ])
 
+    @property
+    def road_quality(self):
+        # FIXME: base this number off accelerometer data
+        return random.randint(0, 9)
+
     def serialize(self):
         return {
             'time': round(self.time, 2),
@@ -72,6 +79,6 @@ class Frames(GenericObjects):
         return max([frame.gps.lng for frame in self])
 
     @property
-    def quality(self):
+    def data_quality(self):
         # Mixed with the deviation between times?
         return len([f for f in self if f.is_complete]) / float(len(self))
