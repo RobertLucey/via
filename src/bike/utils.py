@@ -20,7 +20,7 @@ def is_journey_data_file(potential_journey_file: str):
     :rtype: bool
     :return: if the file contains journey data
     """
-    if os.path.splitext(os.path.basename(potential_journey_file))[1] != '.json':
+    if os.path.splitext(potential_journey_file)[1] != '.json':
         return False
 
     try:
@@ -64,8 +64,7 @@ def iter_journeys(staged=None):
 def get_data_files(staged=None):
     """
 
-    :kwarg uploaded: To only return files that uploaded
-                    None to return all
+    :kwarg uploaded: To only return files that uploaded None to return all
     :rtype: list
     :return: a list of file paths to journey files
     """
@@ -166,3 +165,14 @@ def get_idx_default(lst: list, idx: int, default):
         return lst[idx]
     except (IndexError, TypeError):
         return default
+
+
+def get_combined_id(obj, other_obj):
+    """
+
+    :param obj: hashable thing
+    :param other_obj: hashable thing
+    :rtype: int
+    :return: A unque id that will be the same regardless of param order
+    """
+    return hash(obj) + hash(other_obj)
