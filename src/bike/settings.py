@@ -21,5 +21,8 @@ MINUTES_TO_CUT = 5
 EXCLUDE_METRES_BEGIN_AND_END = 100
 
 
+UPLOAD_URL = 'https://localhost'
+
+
 # FIXME: this but less bad
 pkg_resources.require('bike')[0].version
