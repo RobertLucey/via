@@ -74,6 +74,7 @@ class Journey(Frames):
         :param filepath: Path to a saved journey file
         :rtype: bike.models.journey.Journey
         """
+        logger.debug('Loading journey from %s', filepath)
         with open(filepath, 'r') as journey_file:
             return Journey(
                 **json.loads(journey_file.read())
@@ -196,6 +197,8 @@ class Journey(Frames):
         Remove the start and end of the journey by time and distance for the
         sake of removing possible identifiable data
         """
+        logger.debug('Culling %s', self.uuid)
+
         assert self.is_culled is False
 
         origin_time = self.origin.time
@@ -218,6 +221,7 @@ class Journey(Frames):
 
     def save(self):
         logger.info('Saving %s', self.uuid)
+
         assert self.is_culled is False
 
         filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
@@ -235,7 +239,9 @@ class Journey(Frames):
 
     def send(self):
         logger.info('Sending %s', self.uuid)
+
         if not self.is_culled:
+            logger.info('Forcing a cull on send')
             self.cull()
 
         try:
@@ -247,13 +253,17 @@ class Journey(Frames):
             logger.error('Failed to send: %s', self.uuid)
             logger.error(ex)
         else:
+            filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
             if DELETE_ON_SEND:
-                os.remove(os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'))
+                os.remove(filepath)
+                logger.debug('Deleted: %s', filepath)
             else:
+                sent_filepath = os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
                 os.rename(
-                    os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'),
-                    os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
+                    filepath,
+                    sent_filepath
                 )
+                logger.debug('Moved %s -> %s', filepath, sent_filepath)
 
     def plot_route(
         self,
@@ -364,17 +374,14 @@ class Journey(Frames):
         # TODO: option to do this by edges
         # ...Maybe unless it's x metres within the radius of a node cause
         # it would probably get confused if too close and only doing by edge
-        route = []
         bounding_graph = self.bounding_graph
-        for frame in self:
-            route.append(
-                nearest_node.get(
-                    bounding_graph,
-                    [frame]
-                )[0]
-            )
 
-        return route
+        return [
+            nearest_node.get(
+                bounding_graph,
+                [frame]
+            )[0] for frame in self
+        ]
 
     @property
     def route(self):
@@ -512,6 +519,13 @@ class Journeys(GenericObjects):
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
+        logger.debug(
+            'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
+            self.most_northern,
+            self.most_southern,
+            self.most_eastern,
+            self.most_western
+        )
         return ox.graph_from_bbox(
             self.most_northern,
             self.most_southern,
@@ -604,6 +618,6 @@ class Journeys(GenericObjects):
 
             ox.plot_graph_routes(
                 base,
-                [journey.closest_route for journey in self],
+                routes,
                 **plot_kwargs
             )
