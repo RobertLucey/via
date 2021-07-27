@@ -1,7 +1,5 @@
 import random
 
-from haversine import haversine, Unit
-
 from bike.models.generic import (
     GenericObject,
     GenericObjects
@@ -29,10 +27,10 @@ class Frame(GenericObject):
             )
         raise ValueError()
 
-    def distance_from_point(self, point):
+    def distance_from(self, point):
         if isinstance(point, Frame):
-            point = point.gps.point
-        return haversine(self.gps.point, point, unit=Unit.METERS)
+            point = point.gps
+        return self.gps.distance_from(point)
 
     @property
     def is_complete(self):

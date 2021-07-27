@@ -3,15 +3,20 @@ import statistics
 import os
 from collections import defaultdict
 
+import requests
+
 import osmnx as ox
 import networkx as nx
 
 from bike import logger
 from bike.utils import (
     window,
-    get_idx_default
+    get_idx_default,
+    get_combined_id
 )
+from bike.nearest_node import nearest_node
 from bike.constants import (
+    DEFAULT_EDGE_COLOUR,
     STAGED_DATA_DIR,
     SENT_DATA_DIR
 )
@@ -20,7 +25,8 @@ from bike.settings import (
     MINUTES_TO_CUT,
     TRANSPORT_TYPE,
     SUSPENSION,
-    DELETE_ON_SEND
+    DELETE_ON_SEND,
+    UPLOAD_URL
 )
 from bike.models.frame import (
     Frame,
@@ -36,9 +42,9 @@ class Journey(Frames):
 
         :kwarg is_culled: If the journey is culled or not
         :kwarg transport_type: What transport type being used, defaults
-        to settings.TRANSPORT_TYPE
+            to settings.TRANSPORT_TYPE
         :kwarg suspension: If using suspension or not, defaults
-        to settings.SUSPENSION
+            to settings.SUSPENSION
         """
         kwargs.setdefault('child_class', Frame)
         super().__init__(*args, **kwargs)
@@ -77,8 +83,8 @@ class Journey(Frames):
         """
 
         :param n_seconds: use the location every n seconds as if the
-                        location is calculated too frequently the distance
-                        travelled could be artificially inflated
+            location is calculated too frequently the distance
+            travelled could be artificially inflated
         :rtype: float
         :return: distance travelled in metres
         """
@@ -90,7 +96,7 @@ class Journey(Frames):
                 previous_used_frame = frame
             elif frame.time >= previous_used_frame.time + n_seconds:
                 distances.append(
-                    previous_used_frame.distance_from_point(
+                    previous_used_frame.distance_from(
                         frame
                     )
                 )
@@ -98,7 +104,7 @@ class Journey(Frames):
 
         return sum(distances)
 
-    def get_avg_speed(self, n_seconds=1):
+    def get_avg_speed(self, n_seconds=30):
         """
 
         :param n_seconds: use the location every n seconds as if the
@@ -144,12 +150,12 @@ class Journey(Frames):
         last_frame_away_idx = None
 
         for idx, frame in enumerate(self):
-            if frame.distance_from_point(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
+            if frame.distance_from(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
                 first_frame_away_idx = idx
                 break
 
         for idx, frame in enumerate(reversed(self._data)):
-            if frame.distance_from_point(self.destination) > EXCLUDE_METRES_BEGIN_AND_END:
+            if frame.distance_from(self.destination) > EXCLUDE_METRES_BEGIN_AND_END:
                 last_frame_away_idx = len(self) - idx
                 break
 
@@ -212,9 +218,7 @@ class Journey(Frames):
 
     def save(self):
         logger.info('Saving %s', self.uuid)
-        if self.is_culled:
-            logger.error('Can not save culled journeys')
-            raise Exception('Can not save culled journeys')
+        assert self.is_culled is False
 
         filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
 
@@ -234,15 +238,22 @@ class Journey(Frames):
         if not self.is_culled:
             self.cull()
 
-        # TODO: networkey stuff
-
-        if DELETE_ON_SEND:
-            os.remove(os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'))
-        else:
-            os.rename(
-                os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'),
-                os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
+        try:
+            requests.post(
+                url=UPLOAD_URL,
+                json=self.serialize()
             )
+        except requests.exceptions.RequestException as ex:
+            logger.error('Failed to send: %s', self.uuid)
+            logger.error(ex)
+        else:
+            if DELETE_ON_SEND:
+                os.remove(os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'))
+            else:
+                os.rename(
+                    os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json'),
+                    os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
+                )
 
     def plot_route(
         self,
@@ -254,13 +265,13 @@ class Journey(Frames):
         """
 
         :kwarg apply_condition_colour: This is just a random colour for
-        the moment as a jumping off point for when I come back to it
-        :kwarg use_closest_from_base: For each point on the actual route, for
-        each node use the closest node from the original base graph the route
-        is being drawn on
+            the moment as a jumping off point for when I come back to it
+        :kwarg use_closest_from_base: For each point on the actual route,
+            for each node use the closest node from the original base graph
+            the route is being drawn on
         :kwarg colour_map_name:
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
-        being done
+            being done
         """
         base = self.bounding_graph
         if apply_condition_colour:
@@ -273,8 +284,8 @@ class Journey(Frames):
                 edge_colours = [
                     get_idx_default(
                         colours,
-                        edge_quality_map.get(hash(u) + hash(v), None),
-                        '#999999'
+                        edge_quality_map.get(get_combined_id(u, v), None),
+                        DEFAULT_EDGE_COLOUR
                     ) for (u, v, k, d) in base.edges(
                         keys=True,
                         data=True
@@ -297,26 +308,24 @@ class Journey(Frames):
             )
         else:
             if use_closest_edge_from_base:
-                ox.plot_graph_route(
-                    base,
-                    self.closest_route,
-                    **plot_kwargs
-                )
+                route = self.closest_route
             else:
                 base.add_nodes_from(self.route_graph.nodes(data=True))
                 base.add_edges_from(self.route_graph.edges(data=True))
-                ox.plot_graph_route(
-                    base,
-                    self.route,
-                    **plot_kwargs
-                )
+                route = self.route
+
+            return ox.plot_graph_route(
+                base,
+                route,
+                **plot_kwargs
+            )
 
     @property
     def edge_quality_map(self):
         """
         Get a map between edge_hash and road quality of the road. edge_map
-        being hash(edge_id) + hash(edge_id) and road quality being
-        something that hasn't been defined yet TODO
+        being edge_id and road quality being something that hasn't been
+        defined yet TODO
 
         :rtype: dict
         """
@@ -329,18 +338,17 @@ class Journey(Frames):
         route_graph = self.route_graph
 
         for (our_origin, our_destination) in window(self, window_size=2):
-            their_origin = ox.get_nearest_node(
+
+            their_origin = nearest_node.get(
                 bounding_graph,
-                (our_origin.gps.lat, our_origin.gps.lng),
-                method='haversine'
+                our_origin
             )
-            their_destination = ox.get_nearest_node(
+            their_destination = nearest_node.get(
                 bounding_graph,
-                (our_destination.gps.lat, our_destination.gps.lng),
-                method='haversine'
+                our_destination
             )
 
-            data[hash(their_origin) + hash(their_destination)].append(
+            data[get_combined_id(their_origin, their_destination)].append(
                 route_graph.get_edge_data(
                     our_origin.uuid,
                     our_destination.uuid
@@ -362,15 +370,13 @@ class Journey(Frames):
         # TODO: option to do this by edges
         # ...Maybe unless it's x metres within the radius of a node cause
         # it would probably get confused if too close and only doing by edge
-
         route = []
         bounding_graph = self.bounding_graph
         for frame in self:
             route.append(
-                ox.get_nearest_node(
+                nearest_node.get(
                     bounding_graph,
-                    (frame.gps.lat, frame.gps.lng),
-                    method='haversine'
+                    frame
                 )
             )
 
@@ -408,7 +414,7 @@ class Journey(Frames):
             graph.add_edge(
                 origin.uuid,
                 destination.uuid,
-                length=origin.distance_from_point(destination),
+                length=origin.distance_from(destination),
                 road_quality=origin.road_quality
             )
 
@@ -458,7 +464,7 @@ class Journey(Frames):
 
     @property
     def direct_distance(self):
-        return self[0].distance_from_point(self[-1])
+        return self[0].distance_from(self[-1])
 
     @property
     def max_road_quality(self):
@@ -509,6 +515,8 @@ class Journeys(GenericObjects):
     def bounding_graph(self):
         """
         Get a graph that contains all journeys
+
+        :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
         return ox.graph_from_bbox(
             self.most_northern,
@@ -520,13 +528,20 @@ class Journeys(GenericObjects):
 
     @property
     def edge_quality_map(self):
+        """
+        Get a map between edge_hash and road quality of the road. edge_map
+        being edge id and road quality being something that hasn't been
+        defined yet TODO
+
+        :rtype: dict
+        """
         edge_quality_map = defaultdict(list)
         for journey in self:
             for edge_hash, edge_quality in journey.edge_quality_data:
                 edge_quality_map[edge_hash].append(edge_quality)
 
         return {
-            k: statistics.mean(v) for k, v in edge_quality_map.items()
+            edge_hash: statistics.mean(qualities) for edge_hash, qualities in edge_quality_map.items()
         }
 
     def plot_routes(
@@ -538,14 +553,14 @@ class Journeys(GenericObjects):
     ):
         """
 
-        :kwargs apply_condition_colour: This is just a random colour for
-        the moment as a jumping off point for when I come back to it
-        :kwargs use_closest_from_base: For each point on the actual route, for
-        each node use the closest node from the original base graph the route
-        is being drawn on
+        :kwarg apply_condition_colour: This is just a random colour for
+            the moment as a jumping off point for when I come back to it
+        :kwarg use_closest_from_base: For each point on the actual route, for
+            each node use the closest node from the original base graph
+            the route is being drawn on
         :kwarg colour_map_name:
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
-        being done
+            being done
         """
         base = self.bounding_graph
         if apply_condition_colour:
@@ -558,8 +573,8 @@ class Journeys(GenericObjects):
                 edge_colours = [
                     get_idx_default(
                         colours,
-                        edge_quality_map.get(hash(u) + hash(v), None),
-                        '#999999'
+                        edge_quality_map.get(get_combined_id(u, v), None),
+                        DEFAULT_EDGE_COLOUR
                     ) for (u, v, k, d) in base.edges(
                         keys=True,
                         data=True
@@ -567,7 +582,6 @@ class Journeys(GenericObjects):
                 ]
 
             else:
-                routes = []
                 for journey in self:
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
                     base.add_edges_from(journey.route_graph.edges(data=True))
@@ -586,22 +600,16 @@ class Journeys(GenericObjects):
             )
         else:
             if use_closest_edge_from_base:
-                ox.plot_graph_routes(
-                    base,
-                    [journey.closest_route for journey in self],
-                    **plot_kwargs
-                )
+                routes = [journey.closest_route for journey in self]
             else:
                 routes = []
                 for journey in self:
-
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
                     base.add_edges_from(journey.route_graph.edges(data=True))
-
                     routes.append(journey.route)
 
-                ox.plot_graph_routes(
-                    base,
-                    routes,
-                    **plot_kwargs
-                )
+            ox.plot_graph_routes(
+                base,
+                [journey.closest_route for journey in self],
+                **plot_kwargs
+            )

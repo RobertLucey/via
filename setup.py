@@ -8,7 +8,8 @@ INSTALL_REQUIRES = (
     'haversine',
     'adafruit-circuitpython-lis331',
     'osmnx',
-    'scikit-learn'
+    'scikit-learn',
+    'requests'
 )
 
 setup(

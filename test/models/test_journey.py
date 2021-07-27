@@ -125,11 +125,11 @@ class JourneyTest(TestCase):
         )
 
         for frame in self.test_journey:
-            if frame.distance_from_point(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
+            if frame.distance_from(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
         for frame in self.test_journey:
-            if frame.distance_from_point(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
+            if frame.distance_from(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
     def test_cull_time(self):
@@ -173,11 +173,11 @@ class JourneyTest(TestCase):
         )
 
         for frame in self.test_journey:
-            if frame.distance_from_point(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
+            if frame.distance_from(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
         for frame in self.test_journey:
-            if frame.distance_from_point(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
+            if frame.distance_from(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
                 self.fail()
 
         for frame in self.test_journey:
