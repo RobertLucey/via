@@ -314,6 +314,8 @@ class Journey(Frames):
                 base.add_edges_from(self.route_graph.edges(data=True))
                 route = self.route
 
+            print(route)
+
             return ox.plot_graph_route(
                 base,
                 route,
@@ -339,13 +341,9 @@ class Journey(Frames):
 
         for (our_origin, our_destination) in window(self, window_size=2):
 
-            their_origin = nearest_node.get(
+            their_origin, their_destination = nearest_node.get(
                 bounding_graph,
-                our_origin
-            )
-            their_destination = nearest_node.get(
-                bounding_graph,
-                our_destination
+                [our_origin, our_destination]
             )
 
             data[get_combined_id(their_origin, their_destination)].append(
@@ -355,11 +353,9 @@ class Journey(Frames):
                 )['road_quality']
             )
 
-        quality_data = defaultdict(int)
-        for edge_hash, quality_list in data.items():
-            quality_data[edge_hash] = statistics.mean(quality_list)
-
-        return quality_data
+        return {
+            edge_id: statistics.mean(qualities) for edge_id, qualities in data.items()
+        }
 
     @property
     def closest_route(self):
@@ -376,8 +372,8 @@ class Journey(Frames):
             route.append(
                 nearest_node.get(
                     bounding_graph,
-                    frame
-                )
+                    [frame]
+                )[0]
             )
 
         return route
@@ -541,7 +537,7 @@ class Journeys(GenericObjects):
                 edge_quality_map[edge_hash].append(edge_quality)
 
         return {
-            edge_hash: statistics.mean(qualities) for edge_hash, qualities in edge_quality_map.items()
+            edge_id: statistics.mean(qualities) for edge_id, qualities in edge_quality_map.items()
         }
 
     def plot_routes(
