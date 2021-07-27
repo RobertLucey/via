@@ -314,8 +314,6 @@ class Journey(Frames):
                 base.add_edges_from(self.route_graph.edges(data=True))
                 route = self.route
 
-            print(route)
-
             return ox.plot_graph_route(
                 base,
                 route,
@@ -398,7 +396,7 @@ class Journey(Frames):
         """
         graph = nx.Graph()
 
-        for (origin, destination) in window(self):
+        for (origin, destination) in window(self, window_size=2):
             graph.add_node(
                 origin.uuid,
                 **{'x': origin.gps.lng, 'y': origin.gps.lat}

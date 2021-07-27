@@ -16,7 +16,7 @@ class NearestNodeCache():
         :return: list of of node ids or tuple of node_id and distance
         """
         frame_ids_to_get = [
-            frame.uuid for frame in frames if self.data.get(frame.uuid, None) == None
+            frame.uuid for frame in frames if self.data.get(frame.uuid, None) is None
         ]
 
         id_frame_map = {f.uuid: f for f in frames}
@@ -44,8 +44,8 @@ class NearestNodeCache():
             )
         )
 
-        for k, v in frame_id_result_map.items():
-            self.data[k] = v
+        for frame_id, node_data in frame_id_result_map.items():
+            self.data[frame_id] = node_data
 
         requested_frame_node_map = {
             f.uuid: self.data.get(f.uuid, None) for f in frames
