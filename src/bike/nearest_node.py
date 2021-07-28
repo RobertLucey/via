@@ -25,27 +25,28 @@ class NearestNodeCache():
             f.uuid: self.data.get(f.uuid, None) for f in frames
         }
 
-        results = ox.distance.nearest_nodes(
-            graph,
-            [id_frame_map[frame_id].gps.lng for frame_id in frame_ids_to_get],
-            [id_frame_map[frame_id].gps.lat for frame_id in frame_ids_to_get],
-            return_dist=True
-        )
+        if frame_ids_to_get != []:
+            results = ox.distance.nearest_nodes(
+                graph,
+                [id_frame_map[frame_id].gps.lng for frame_id in frame_ids_to_get],
+                [id_frame_map[frame_id].gps.lat for frame_id in frame_ids_to_get],
+                return_dist=True
+            )
 
-        frame_id_result_map = dict(
-            zip(
-                frame_ids_to_get,
-                list(
-                    zip(
-                        results[0],
-                        results[1]
+            frame_id_result_map = dict(
+                zip(
+                    frame_ids_to_get,
+                    list(
+                        zip(
+                            results[0],
+                            results[1]
+                        )
                     )
                 )
             )
-        )
 
-        for frame_id, node_data in frame_id_result_map.items():
-            self.data[frame_id] = node_data
+            for frame_id, node_data in frame_id_result_map.items():
+                self.data[frame_id] = node_data
 
         requested_frame_node_map = {
             f.uuid: self.data.get(f.uuid, None) for f in frames
