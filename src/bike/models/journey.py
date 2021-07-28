@@ -482,7 +482,7 @@ class Journeys(GenericObjects):
 
     @property
     def max_road_quality(self):
-        return max([frame.road_quality for frame in self])
+        return max([frame.max_road_quality for frame in self])
 
     @property
     def most_northern(self):
@@ -570,6 +570,13 @@ class Journeys(GenericObjects):
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
             being done
         """
+        if len(self) == 0:
+            raise Exception('Current Journeys object has no content')
+        elif len(self) == 1:
+            # We could just duplicate the only journey we have... will
+            # decide on this later when I figure out how annoying it is
+            raise Exception('To use Journeys effectively multiple journeys must be used, only one found')
+
         base = self.bounding_graph
         if apply_condition_colour:
             colours = ox.plot.get_colors(
