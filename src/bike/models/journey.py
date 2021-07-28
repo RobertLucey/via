@@ -340,6 +340,8 @@ class Journey(Frames):
         :rtype: dict
         """
 
+        # FIXME FIXME FIXME: If multiple on the one path in the one journey they get overridden
+
         # FIXME: This uses nodes to get edges, should use nearest edge
         # unless very close to a node
 
@@ -362,7 +364,7 @@ class Journey(Frames):
             )
 
         return {
-            edge_id: statistics.mean(qualities) for edge_id, qualities in data.items()
+            edge_id: int(statistics.mean(qualities)) for edge_id, qualities in data.items()
         }
 
     @property
@@ -469,7 +471,7 @@ class Journey(Frames):
 
     @property
     def max_road_quality(self):
-        return max([frame.road_quality for frame in self])
+        return max([q for q in self.edge_quality_map.values()])
 
 
 class Journeys(GenericObjects):
@@ -482,7 +484,7 @@ class Journeys(GenericObjects):
 
     @property
     def max_road_quality(self):
-        return max([frame.max_road_quality for frame in self])
+        return max([journey.max_road_quality for journey in self])
 
     @property
     def most_northern(self):
@@ -549,7 +551,7 @@ class Journeys(GenericObjects):
                 edge_quality_map[edge_hash].append(edge_quality)
 
         return {
-            edge_id: statistics.mean(qualities) for edge_id, qualities in edge_quality_map.items()
+            edge_id: int(statistics.mean(qualities)) for edge_id, qualities in edge_quality_map.items()
         }
 
     def plot_routes(
@@ -595,7 +597,6 @@ class Journeys(GenericObjects):
                         data=True
                     )
                 ]
-
             else:
                 for journey in self:
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
