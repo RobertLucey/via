@@ -16,18 +16,10 @@ def main():
         help='Show the condition of the roads'
     )
     parser.add_argument(
-        '--closest_edge',
+        '--closest-edge',
         action='store_true',
         dest='closest_edge',
         help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap'
-    )
-    parser.add_argument(
-        '-m',
-        '--max_tries',
-        type=int,
-        default=5,
-        dest='max_tries',
-        help='Max times to attempt a single download.'
     )
     args = parser.parse_args()
 
@@ -35,7 +27,10 @@ def main():
     journeys.plot_routes(
         use_closest_edge_from_base=args.closest_edge,
         apply_condition_colour=args.condition,
-        plot_kwargs={'edge_linewidth': 5, 'show': True}
+        plot_kwargs={
+            'edge_linewidth': 5,
+            'show': True
+        }
     )
 
 
