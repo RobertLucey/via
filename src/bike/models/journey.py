@@ -305,7 +305,7 @@ class Journey(Frames):
                 base.add_nodes_from(self.route_graph.nodes(data=True))
                 base.add_edges_from(self.route_graph.edges(data=True))
                 edge_colours = [
-                    colours[d.get('road_quality', 0)] for u, v, k, d in base.edges(
+                    get_idx_default(colours, d.get('road_quality', None), DEFAULT_EDGE_COLOUR) for u, v, k, d in base.edges(
                         keys=True,
                         data=True
                     )
@@ -602,7 +602,7 @@ class Journeys(GenericObjects):
                     base.add_edges_from(journey.route_graph.edges(data=True))
 
                 edge_colours = [
-                    colours[d.get('road_quality', 0)] for u, v, k, d in base.edges(
+                    get_idx_default(colours, d.get('road_quality', None), DEFAULT_EDGE_COLOUR) for u, v, k, d in base.edges(
                         keys=True,
                         data=True
                     )
