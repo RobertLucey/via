@@ -545,7 +545,7 @@ class Journeys(GenericObjects):
         """
         edge_quality_map = defaultdict(list)
         for journey in self:
-            for edge_hash, edge_quality in journey.edge_quality_map:
+            for edge_hash, edge_quality in journey.edge_quality_map.items():
                 edge_quality_map[edge_hash].append(edge_quality)
 
         return {
