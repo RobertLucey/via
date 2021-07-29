@@ -12,7 +12,8 @@ from bike import logger
 from bike.utils import (
     window,
     get_idx_default,
-    get_combined_id
+    get_combined_id,
+    get_colours
 )
 from bike.nearest_node import nearest_node
 from bike.constants import (
@@ -289,16 +290,7 @@ class Journey(Frames):
             if use_closest_edge_from_base:
                 edge_quality_map = self.edge_quality_map
 
-                max_num_colours = max(
-                    [
-                        edge_quality_map.get(get_combined_id(u, v), -1) for (u, v, _, _) in base.edges(keys=True, data=True)
-                    ]
-                ) + 1
-
-                colours = ox.plot.get_colors(
-                    n=max_num_colours,
-                    cmap=colour_map_name
-                )
+                colours = get_colours(base, colour_map_name, edge_map=edge_quality_map)
 
                 edge_colours = [
                     get_idx_default(
@@ -314,16 +306,7 @@ class Journey(Frames):
                 base.add_nodes_from(self.route_graph.nodes(data=True))
                 base.add_edges_from(self.route_graph.edges(data=True))
 
-                max_num_colours = max(
-                    [
-                        d.get('avg_road_quality', -1) for (_, _, _, d) in base.edges(keys=True, data=True)
-                    ]
-                ) + 1
-
-                colours = ox.plot.get_colors(
-                    n=max_num_colours,
-                    cmap=colour_map_name
-                )
+                colours = get_colours(base, colour_map_name, key_name='avg_road_quality')
 
                 edge_colours = [
                     get_idx_default(
@@ -635,16 +618,7 @@ class Journeys(GenericObjects):
             if use_closest_edge_from_base:
                 edge_quality_map = self.edge_quality_map
 
-                max_num_colours = max(
-                    [
-                        edge_quality_map.get(get_combined_id(u, v), -1) for (u, v, _, _) in base.edges(keys=True, data=True)
-                    ]
-                ) + 1
-
-                colours = ox.plot.get_colors(
-                    n=max_num_colours,
-                    cmap=colour_map_name
-                )
+                colours = get_colours(base, colour_map_name, edge_map=edge_quality_map)
 
                 edge_colours = [
                     get_idx_default(
@@ -661,11 +635,7 @@ class Journeys(GenericObjects):
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
                     base.add_edges_from(journey.route_graph.edges(data=True))
 
-                max_num_colours = max(
-                    [
-                        d.get('avg_road_quality', -1) for (_, _, _, d) in base.edges(keys=True, data=True)
-                    ]
-                ) + 1
+                colours = get_colours(base, colour_map_name, key_name='avg_road_quality')
 
                 colours = ox.plot.get_colors(
                     n=max_num_colours,

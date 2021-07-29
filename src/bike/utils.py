@@ -5,6 +5,8 @@ import time
 from functools import wraps
 from itertools import islice
 
+import osmnx as ox
+
 from bike import logger
 from bike.constants import (
     DATA_DIR,
@@ -176,3 +178,25 @@ def get_combined_id(obj, other_obj):
     :return: A unque id that will be the same regardless of param order
     """
     return hash(obj) + hash(other_obj)
+
+
+def get_colours(graph, colour_map_name, edge_map=None, key_name=None):
+    if edge_map is not None:
+        max_num_colours = max(
+            [
+                edge_map.get(get_combined_id(u, v), -1) for (u, v, _, _) in graph.edges(keys=True, data=True)
+            ]
+        ) + 1
+    elif key_name is not None:
+        max_num_colours = max(
+            [
+                d.get(key_name, -1) for (_, _, _, d) in graph.edges(keys=True, data=True)
+            ]
+        ) + 1
+    else:
+        raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
+
+    return ox.plot.get_colors(
+        n=max_num_colours,
+        cmap=colour_map_name
+    )
