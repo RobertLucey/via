@@ -285,12 +285,21 @@ class Journey(Frames):
         """
         base = self.bounding_graph
         if apply_condition_colour:
-            colours = ox.plot.get_colors(
-                n=self.max_road_quality + 1,
-                cmap=colour_map_name
-            )
+
             if use_closest_edge_from_base:
                 edge_quality_map = self.edge_quality_map
+
+                max_num_colours = max(
+                    [
+                        edge_quality_map.get(get_combined_id(u, v), -1) for (u, v, _, _) in base.edges(keys=True, data=True)
+                    ]
+                ) + 1
+
+                colours = ox.plot.get_colors(
+                    n=max_num_colours,
+                    cmap=colour_map_name
+                )
+
                 edge_colours = [
                     get_idx_default(
                         colours,
@@ -304,8 +313,24 @@ class Journey(Frames):
             else:
                 base.add_nodes_from(self.route_graph.nodes(data=True))
                 base.add_edges_from(self.route_graph.edges(data=True))
+
+                max_num_colours = max(
+                    [
+                        d.get('avg_road_quality', -1) for (_, _, _, d) in base.edges(keys=True, data=True)
+                    ]
+                ) + 1
+
+                colours = ox.plot.get_colors(
+                    n=max_num_colours,
+                    cmap=colour_map_name
+                )
+
                 edge_colours = [
-                    get_idx_default(colours, d.get('road_quality', None), DEFAULT_EDGE_COLOUR) for u, v, k, d in base.edges(
+                    get_idx_default(
+                        colours,
+                        d.get('avg_road_quality', None),
+                        DEFAULT_EDGE_COLOUR
+                    ) for u, v, k, d in base.edges(
                         keys=True,
                         data=True
                     )
@@ -340,10 +365,19 @@ class Journey(Frames):
         :rtype: dict
         """
 
-        # FIXME FIXME FIXME: If multiple on the one path in the one journey they get overridden
+        return {
+            edge_id: int(
+                statistics.mean(
+                    [edge['avg_road_quality'] for edge in single_edge_data]
+                )
+            ) for edge_id, single_edge_data in self.edge_data.items()
+        }
+
+    @property
+    def edge_data(self):
 
         # FIXME: This uses nodes to get edges, should use nearest edge
-        # unless very close to a node
+        # unless very close to a node. Factor in direction and all that
 
         data = defaultdict(list)
         bounding_graph = self.bounding_graph
@@ -360,12 +394,10 @@ class Journey(Frames):
                 route_graph.get_edge_data(
                     our_origin.uuid,
                     our_destination.uuid
-                )['road_quality']
+                )
             )
 
-        return {
-            edge_id: int(statistics.mean(qualities)) for edge_id, qualities in data.items()
-        }
+        return data
 
     @property
     def closest_route(self):
@@ -405,6 +437,8 @@ class Journey(Frames):
         """
         graph = nx.Graph()
 
+        combined_edge_data = defaultdict(list)
+
         for (origin, destination) in window(self, window_size=2):
             graph.add_node(
                 origin.uuid,
@@ -414,11 +448,35 @@ class Journey(Frames):
                 destination.uuid,
                 **{'x': destination.gps.lng, 'y': destination.gps.lat}
             )
+
+            distance = origin.distance_from(destination)
+            combined_edge_data[get_combined_id(origin.uuid, destination.uuid)].append(
+                {
+                    'origin': origin,
+                    'destination': destination,
+                    'distance': distance,
+                    'road_quality': origin.road_quality,
+                    # TODO: other bits, speed / elevation maybe?
+                }
+            )
+
+        merged_edge_data = {}
+        for shared_id, values in combined_edge_data.items():
+            merged_edge_data[shared_id] = {
+                'origin': values[0]['origin'],
+                'destination': values[0]['destination'],
+                'distance': values[0]['distance'],
+                'avg_road_quality': statistics.mean([val['road_quality'] for val in values]),
+                'max_road_quality': max([val['road_quality'] for val in values])
+            }
+
+        for shared_id, values in merged_edge_data.items():
             graph.add_edge(
-                origin.uuid,
-                destination.uuid,
-                length=origin.distance_from(destination),
-                road_quality=origin.road_quality
+                values['origin'].uuid,
+                values['destination'].uuid,
+                length=values['distance'],
+                avg_road_quality=values['avg_road_quality'],
+                max_road_quality=values['max_road_quality']
             )
 
         return graph
@@ -469,10 +527,6 @@ class Journey(Frames):
     def direct_distance(self):
         return self[0].distance_from(self[-1])
 
-    @property
-    def max_road_quality(self):
-        return max([q for q in self.edge_quality_map.values()])
-
 
 class Journeys(GenericObjects):
 
@@ -481,10 +535,6 @@ class Journeys(GenericObjects):
         super().__init__(*args, **kwargs)
 
         self.network_type = 'bike'
-
-    @property
-    def max_road_quality(self):
-        return max([journey.max_road_quality for journey in self])
 
     @property
     def most_northern(self):
@@ -581,12 +631,21 @@ class Journeys(GenericObjects):
 
         base = self.bounding_graph
         if apply_condition_colour:
-            colours = ox.plot.get_colors(
-                n=self.max_road_quality + 1,
-                cmap=colour_map_name
-            )
+
             if use_closest_edge_from_base:
                 edge_quality_map = self.edge_quality_map
+
+                max_num_colours = max(
+                    [
+                        edge_quality_map.get(get_combined_id(u, v), -1) for (u, v, _, _) in base.edges(keys=True, data=True)
+                    ]
+                ) + 1
+
+                colours = ox.plot.get_colors(
+                    n=max_num_colours,
+                    cmap=colour_map_name
+                )
+
                 edge_colours = [
                     get_idx_default(
                         colours,
@@ -602,8 +661,23 @@ class Journeys(GenericObjects):
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
                     base.add_edges_from(journey.route_graph.edges(data=True))
 
+                max_num_colours = max(
+                    [
+                        d.get('avg_road_quality', -1) for (_, _, _, d) in base.edges(keys=True, data=True)
+                    ]
+                ) + 1
+
+                colours = ox.plot.get_colors(
+                    n=max_num_colours,
+                    cmap=colour_map_name
+                )
+
                 edge_colours = [
-                    get_idx_default(colours, d.get('road_quality', None), DEFAULT_EDGE_COLOUR) for u, v, k, d in base.edges(
+                    get_idx_default(
+                        colours,
+                        d.get('avg_road_quality', None),
+                        DEFAULT_EDGE_COLOUR
+                    ) for u, v, k, d in base.edges(
                         keys=True,
                         data=True
                     )
