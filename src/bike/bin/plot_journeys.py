@@ -28,6 +28,7 @@ def main():
         use_closest_edge_from_base=args.closest_edge,
         apply_condition_colour=args.condition,
         plot_kwargs={
+            'bgcolor': 'w',
             'edge_linewidth': 5,
             'show': True
         }

@@ -9,4 +9,4 @@ SENT_DATA_DIR = os.path.join(DATA_DIR, 'sent')
 
 LOG_LOCATION = '/var/log/bike/bike.log' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/log/bike/bike.log'
 
-DEFAULT_EDGE_COLOUR = '#808080'
+DEFAULT_EDGE_COLOUR = '#E1E1E1'
