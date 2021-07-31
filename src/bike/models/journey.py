@@ -354,7 +354,7 @@ class Journey(Frames):
                 base.add_edges_from(self.route_graph.edges(data=True))
                 route = self.route
 
-            return ox.plot_graph_route(
+            ox.plot_graph_route(
                 base,
                 route,
                 **plot_kwargs
