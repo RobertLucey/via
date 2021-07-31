@@ -486,7 +486,8 @@ class Journey(Frames):
             self.most_southern,
             self.most_eastern,
             self.most_western,
-            network_type=self.network_type
+            network_type=self.network_type,
+            simplify=True
         )
 
     @property
@@ -576,7 +577,8 @@ class Journeys(GenericObjects):
             self.most_southern,
             self.most_eastern,
             self.most_western,
-            network_type=self.network_type
+            network_type=self.network_type,
+            simplify=True
         )
 
     @property
