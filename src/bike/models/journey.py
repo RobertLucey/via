@@ -1,6 +1,7 @@
 import json
 import statistics
 import os
+import multiprocessing
 from collections import defaultdict
 
 import requests
@@ -35,6 +36,13 @@ from bike.models.frame import (
 )
 from bike.models.generic import GenericObjects
 from bike.edge_cache import get_edge_data
+
+
+def get_journey_edge_quality_map(journey):
+    edge_quality_map = defaultdict(list)
+    for edge_hash, edge_quality in journey.edge_quality_map.items():
+        edge_quality_map[edge_hash].append(edge_quality)
+    return edge_quality_map
 
 
 class Journey(Frames):
@@ -590,10 +598,14 @@ class Journeys(GenericObjects):
 
         :rtype: dict
         """
+
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        journey_edge_quality_maps = pool.map(get_journey_edge_quality_map, self._data)
+
         edge_quality_map = defaultdict(list)
-        for journey in self:
-            for edge_hash, edge_quality in journey.edge_quality_map.items():
-                edge_quality_map[edge_hash].append(edge_quality)
+        for journey_edge_quality_map in journey_edge_quality_maps:
+            for edge_id, quals in journey_edge_quality_map.items():
+                edge_quality_map[edge_id].extend(quals)
 
         return {
             edge_id: int(statistics.mean(qualities)) for edge_id, qualities in edge_quality_map.items()
