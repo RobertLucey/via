@@ -91,11 +91,11 @@ class FramesTest(TestCase):
         )
         self.assertEqual(
             self.frames.most_eastern,
-            1
+            3
         )
         self.assertEqual(
             self.frames.most_western,
-            3
+            1
         )
 
     def test_quality(self):
