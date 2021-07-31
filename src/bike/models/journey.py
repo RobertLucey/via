@@ -290,7 +290,11 @@ class Journey(Frames):
             if use_closest_edge_from_base:
                 edge_quality_map = self.edge_quality_map
 
-                colours = get_colours(base, colour_map_name, edge_map=edge_quality_map)
+                colours = get_colours(
+                    base,
+                    colour_map_name,
+                    edge_map=edge_quality_map
+                )
 
                 edge_colours = [
                     get_idx_default(
@@ -306,7 +310,11 @@ class Journey(Frames):
                 base.add_nodes_from(self.route_graph.nodes(data=True))
                 base.add_edges_from(self.route_graph.edges(data=True))
 
-                colours = get_colours(base, colour_map_name, key_name='avg_road_quality')
+                colours = get_colours(
+                    base,
+                    colour_map_name,
+                    key_name='avg_road_quality'
+                )
 
                 edge_colours = [
                     get_idx_default(
@@ -618,7 +626,11 @@ class Journeys(GenericObjects):
             if use_closest_edge_from_base:
                 edge_quality_map = self.edge_quality_map
 
-                colours = get_colours(base, colour_map_name, edge_map=edge_quality_map)
+                colours = get_colours(
+                    base,
+                    colour_map_name,
+                    edge_map=edge_quality_map
+                )
 
                 edge_colours = [
                     get_idx_default(
@@ -635,11 +647,10 @@ class Journeys(GenericObjects):
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
                     base.add_edges_from(journey.route_graph.edges(data=True))
 
-                colours = get_colours(base, colour_map_name, key_name='avg_road_quality')
-
-                colours = ox.plot.get_colors(
-                    n=max_num_colours,
-                    cmap=colour_map_name
+                colours = get_colours(
+                    base,
+                    colour_map_name,
+                    key_name='avg_road_quality'
                 )
 
                 edge_colours = [
