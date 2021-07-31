@@ -184,7 +184,7 @@ def get_colours(graph, colour_map_name, edge_map=None, key_name=None):
     if edge_map is not None:
         max_num_colours = max(
             [
-                edge_map.get(get_combined_id(u, v), -1) for (u, v, _, _) in graph.edges(keys=True, data=True)
+                edge_map.get(get_combined_id(u, v), {}).get('avg', -1) for (u, v, _, _) in graph.edges(keys=True, data=True)
             ]
         ) + 1
     elif key_name is not None:

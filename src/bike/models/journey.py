@@ -308,7 +308,7 @@ class Journey(Frames):
                 edge_colours = [
                     get_idx_default(
                         colours,
-                        edge_quality_map.get(get_combined_id(u, v), None),
+                        edge_quality_map.get(get_combined_id(u, v), {}).get('avg', None),
                         DEFAULT_EDGE_COLOUR
                     ) for (u, v, k, d) in base.edges(
                         keys=True,
@@ -366,11 +366,14 @@ class Journey(Frames):
         """
 
         return {
-            edge_id: int(
-                statistics.mean(
-                    [edge['avg_road_quality'] for edge in single_edge_data]
-                )
-            ) for edge_id, single_edge_data in self.edge_data.items()
+            edge_id: {
+                'avg': int(
+                    statistics.mean(
+                        [edge['avg_road_quality'] for edge in single_edge_data]
+                    )
+                ),
+                'count': len(single_edge_data)
+            } for edge_id, single_edge_data in self.edge_data.items()
         }
 
     @property
@@ -600,7 +603,10 @@ class Journeys(GenericObjects):
         """
 
         pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        journey_edge_quality_maps = pool.map(get_journey_edge_quality_map, self._data)
+        journey_edge_quality_maps = pool.map(
+            get_journey_edge_quality_map,
+            self
+        )
 
         edge_quality_map = defaultdict(list)
         for journey_edge_quality_map in journey_edge_quality_maps:
@@ -608,7 +614,10 @@ class Journeys(GenericObjects):
                 edge_quality_map[edge_id].extend(quals)
 
         return {
-            edge_id: int(statistics.mean(qualities)) for edge_id, qualities in edge_quality_map.items()
+            edge_id: {
+                'avg': int(statistics.mean([d['avg'] for d in data])),
+                'count': len(data)
+            } for edge_id, data in edge_quality_map.items()
         }
 
     def plot_routes(
@@ -651,7 +660,7 @@ class Journeys(GenericObjects):
                 edge_colours = [
                     get_idx_default(
                         colours,
-                        edge_quality_map.get(get_combined_id(u, v), None),
+                        edge_quality_map.get(get_combined_id(u, v), {}).get('avg', None),
                         DEFAULT_EDGE_COLOUR
                     ) for (u, v, k, d) in base.edges(
                         keys=True,
