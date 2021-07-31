@@ -34,6 +34,7 @@ from bike.models.frame import (
     Frames
 )
 from bike.models.generic import GenericObjects
+from bike.edge_cache import get_edge_data
 
 
 class Journey(Frames):
@@ -382,7 +383,8 @@ class Journey(Frames):
             )
 
             data[get_combined_id(their_origin, their_destination)].append(
-                route_graph.get_edge_data(
+                get_edge_data(
+                    route_graph,
                     our_origin.uuid,
                     our_destination.uuid
                 )
