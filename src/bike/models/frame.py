@@ -70,11 +70,11 @@ class Frames(GenericObjects):
 
     @property
     def most_eastern(self):
-        return min([frame.gps.lng for frame in self])
+        return max([frame.gps.lng for frame in self])
 
     @property
     def most_western(self):
-        return max([frame.gps.lng for frame in self])
+        return min([frame.gps.lng for frame in self])
 
     @property
     def data_quality(self):

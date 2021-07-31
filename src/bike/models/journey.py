@@ -546,7 +546,7 @@ class Journeys(GenericObjects):
         """
         Get the most easterly longitude over all journeys
         """
-        return min([journey.most_eastern for journey in self])
+        return max([journey.most_eastern for journey in self])
 
     @property
     def most_western(self):
