@@ -4,6 +4,11 @@ import os
 import multiprocessing
 from collections import defaultdict
 
+import geopandas as gpd
+
+from shapely.ops import cascaded_union
+from shapely.geometry import MultiPoint, Point
+
 import requests
 
 import osmnx as ox
@@ -293,7 +298,7 @@ class Journey(Frames):
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
             being done
         """
-        base = self.bounding_graph
+        base = self.graph
         if apply_condition_colour:
 
             if use_closest_edge_from_base:
@@ -383,7 +388,7 @@ class Journey(Frames):
         # unless very close to a node. Factor in direction and all that
 
         data = defaultdict(list)
-        bounding_graph = self.bounding_graph
+        bounding_graph = self.graph
         route_graph = self.route_graph
 
         for (our_origin, our_destination) in window(self, window_size=2):
@@ -412,7 +417,7 @@ class Journey(Frames):
         # TODO: option to do this by edges
         # ...Maybe unless it's x metres within the radius of a node cause
         # it would probably get confused if too close and only doing by edge
-        bounding_graph = self.bounding_graph
+        bounding_graph = self.graph
 
         return [
             nearest_node.get(
@@ -486,17 +491,22 @@ class Journey(Frames):
         return graph
 
     @property
-    def bounding_graph(self):
+    def graph(self):
         """
-        Get a graph of the journey as the box that contains the route
+        Get a graph of the journey but excluding nodes far away from the route
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
-        return ox.graph_from_bbox(
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western,
+        points = []
+        for frame in self:
+            points.append(Point(frame.gps.lng, frame.gps.lat))
+
+        points = MultiPoint(points)
+        buf = points.buffer(0.002, cap_style=3)
+        boundary = gpd.GeoSeries(cascaded_union(buf))
+
+        return ox.graph_from_polygon(
+            boundary.geometry[0],
             network_type=self.network_type,
             simplify=True
         )
@@ -570,7 +580,7 @@ class Journeys(GenericObjects):
         return min([journey.most_western for journey in self])
 
     @property
-    def bounding_graph(self):
+    def graph(self):
         """
         Get a graph that contains all journeys
 
@@ -645,7 +655,7 @@ class Journeys(GenericObjects):
             # decide on this later when I figure out how annoying it is
             raise Exception('To use Journeys effectively multiple journeys must be used, only one found')
 
-        base = self.bounding_graph
+        base = self.graph
         if apply_condition_colour:
 
             if use_closest_edge_from_base:

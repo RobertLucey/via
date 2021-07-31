@@ -9,7 +9,8 @@ INSTALL_REQUIRES = (
     'adafruit-circuitpython-lis331',
     'osmnx',
     'scikit-learn',
-    'requests'
+    'requests',
+    'geopandas'
 )
 
 setup(
