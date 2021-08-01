@@ -9,7 +9,7 @@ from bike.utils import (
 
 
 def print_coverage(journeys, args):
-    bounding_graph = journeys.bounding_graph
+    bounding_graph = journeys.graph
     used_edges = journeys.edge_quality_map
     total_length = 0
     used_length = 0
@@ -25,7 +25,7 @@ def print_coverage(journeys, args):
 
 
 def print_condition(journeys, args):
-    bounding_graph = journeys.bounding_graph
+    bounding_graph = journeys.graph
     used_edges = journeys.edge_quality_map
 
     merged_edge_data = {}
