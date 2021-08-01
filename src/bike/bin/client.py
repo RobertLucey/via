@@ -47,7 +47,7 @@ class BikeClient():
         self.journey.append(
             {
                 'acc': self.acceleration_interface.get_acceleration(),
-                'gps': self.gps_interface.get_lat_lng(),
+                'gps': self.gps_interface.get_lat_lng().serialize(),
                 'time': time.monotonic()
             }
         )

@@ -4,6 +4,7 @@ import busio
 import adafruit_gps
 
 from bike.utils import timing
+from bike.models.gps import GPSPoint
 
 
 class GPSInterface():
@@ -46,9 +47,10 @@ class GPSInterface():
         # In example the update is done at top of this def
         self.interface.update()
         if not self.interface.has_fix:
-            return (None, None)
+            return GPSPoint(None, None, elevation=None)
 
-        return {
-            'lat': self.interface.latitude,
-            'lng': self.interface.longitude
-        }
+        return GPSPoint(
+            self.interface.latitude,
+            self.interface.longitude,
+            elevation=None
+        )

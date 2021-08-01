@@ -12,7 +12,11 @@ class Frame(GenericObject):
     def __init__(self, time, gps, acceleration):
         super().__init__()
         self.time = time
-        self.gps = GPSPoint(gps['lat'], gps['lng'])  # TODO: elevation
+        self.gps = GPSPoint(
+            gps['lat'],
+            gps['lng'],
+            elevation=gps.get('elevation', None)
+        )
         self.acceleration = acceleration
 
     @staticmethod
@@ -80,3 +84,34 @@ class Frames(GenericObjects):
     def data_quality(self):
         # Mixed with the deviation between times?
         return len([f for f in self if f.is_complete]) / float(len(self))
+
+    @property
+    def origin(self):
+        """
+
+        :rtype: bike.models.Frame
+        :return: The first frame of the journey
+        """
+        return self[0]
+
+    @property
+    def destination(self):
+        """
+
+        :rtype: bike.models.Frame
+        :return: The last frame of the journey
+        """
+        return self[-1]
+
+    @property
+    def duration(self):
+        """
+
+        :rtype: float
+        :return: The number of seconds the journey took
+        """
+        return self.destination.time - self.origin.time
+
+    @property
+    def direct_distance(self):
+        return self[0].distance_from(self[-1])

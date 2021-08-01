@@ -94,7 +94,7 @@ class Journey(Frames):
                 **json.loads(journey_file.read())
             )
 
-    def get_indirect_distance(self, n_seconds=1):
+    def get_indirect_distance(self, n_seconds=10):
         """
 
         :param n_seconds: use the location every n seconds as if the
@@ -146,10 +146,12 @@ class Journey(Frames):
                     'indirect_distance': {
                         1: self.get_indirect_distance(n_seconds=1),
                         5: self.get_indirect_distance(n_seconds=5),
-                        10: self.get_indirect_distance(n_seconds=10)
+                        10: self.get_indirect_distance(n_seconds=10),
+                        30: self.get_indirect_distance(n_seconds=30)
                     },
                     'data_quality': self.data_quality,
-                    'duration': self.duration
+                    'duration': self.duration,
+                    'avg_speed': self.get_avg_speed()
                 }
             )
 
@@ -414,17 +416,15 @@ class Journey(Frames):
     @property
     def route_graph(self):
         """
-        Get a graph of the journey since routes are only to the closest
-        node of a premade graph
-
-        Fairly possible I just don't understand osmnx properly and am
-        doing this badly
+        Get a graph of the journey without snapping to closest node / edge
         """
         graph = nx.Graph()
 
         combined_edge_data = defaultdict(list)
 
         for (origin, destination) in window(self, window_size=2):
+            edge_id = get_combined_id(origin.uuid, destination.uuid)
+
             graph.add_node(
                 origin.uuid,
                 **{'x': origin.gps.lng, 'y': origin.gps.lat}
@@ -435,7 +435,7 @@ class Journey(Frames):
             )
 
             distance = origin.distance_from(destination)
-            combined_edge_data[get_combined_id(origin.uuid, destination.uuid)].append(
+            combined_edge_data[edge_id].append(
                 {
                     'origin': origin,
                     'destination': destination,
@@ -486,37 +486,6 @@ class Journey(Frames):
             network_type=self.network_type,
             simplify=True
         )
-
-    @property
-    def origin(self):
-        """
-
-        :rtype: bike.models.Frame
-        :return: The first frame of the journey
-        """
-        return self[0]
-
-    @property
-    def destination(self):
-        """
-
-        :rtype: bike.models.Frame
-        :return: The last frame of the journey
-        """
-        return self[-1]
-
-    @property
-    def duration(self):
-        """
-
-        :rtype: float
-        :return: The number of seconds the journey took
-        """
-        return self.destination.time - self.origin.time
-
-    @property
-    def direct_distance(self):
-        return self[0].distance_from(self[-1])
 
 
 class Journeys(GenericObjects):
@@ -633,7 +602,6 @@ class Journeys(GenericObjects):
 
         base = self.graph
         if apply_condition_colour:
-
             if use_closest_edge_from_base:
                 edge_colours = get_edge_colours(
                     base,
