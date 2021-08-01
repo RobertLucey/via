@@ -90,7 +90,7 @@ def main():
     journeys = get_journeys()
 
     if args.coverage:
-        print_condition(journeys, args)
+        print_coverage(journeys, args)
     elif args.condition_by_street:
         print_condition(journeys, args)
     else:
