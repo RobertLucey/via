@@ -48,4 +48,7 @@ class GPSInterface():
         if not self.interface.has_fix:
             return (None, None)
 
-        return (self.interface.latitude, self.interface.longitude)
+        return {
+            'lat': self.interface.latitude,
+            'lng': self.interface.longitude
+        }
