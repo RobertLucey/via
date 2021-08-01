@@ -11,7 +11,8 @@ from bike import logger
 from bike.constants import (
     DATA_DIR,
     STAGED_DATA_DIR,
-    SENT_DATA_DIR
+    SENT_DATA_DIR,
+    DEFAULT_EDGE_COLOUR
 )
 
 
@@ -180,7 +181,16 @@ def get_combined_id(obj, other_obj):
     return hash(obj) + hash(other_obj)
 
 
-def get_colours(graph, colour_map_name, edge_map=None, key_name=None):
+def get_ox_colours(graph, colour_map_name, edge_map=None, key_name=None):
+    """
+
+    :param graph: MultiDiGraph
+    :param colour_map_name: osmnx recognised colour gradient
+    :kwarg key_name: The key on the edge data to use as colour intensity data
+    :kwarg edge_map: edge_id to data containing colour intensity data
+    :rtype: list
+    :return: a list of colours indexed by edge order
+    """
     if edge_map is not None:
         max_num_colours = max(
             [
@@ -200,3 +210,53 @@ def get_colours(graph, colour_map_name, edge_map=None, key_name=None):
         n=max_num_colours,
         cmap=colour_map_name
     )
+
+
+def get_edge_colours(graph, colour_map_name, key_name=None, edge_map=None):
+    """
+
+    :param graph: MultiDiGraph
+    :param colour_map_name: osmnx recognised colour gradient
+    :kwarg key_name: The key on the edge data to use as colour intensity data
+    :kwarg edge_map: edge_id to data containing colour intensity data
+    :rtype: list
+    :return: a list of colours indexed by edge order
+    """
+    if key_name is not None:
+        colours = get_ox_colours(
+            graph,
+            colour_map_name,
+            key_name=key_name
+        )
+
+        return [
+            get_idx_default(
+                colours,
+                d.get(key_name, None),
+                DEFAULT_EDGE_COLOUR
+            ) for u, v, k, d in graph.edges(
+                keys=True,
+                data=True
+            )
+        ]
+
+    elif edge_map is not None:
+        colours = get_ox_colours(
+            graph,
+            colour_map_name,
+            edge_map=edge_map
+        )
+
+        return [
+            get_idx_default(
+                colours,
+                edge_map.get(get_combined_id(u, v), {}).get('avg', None),
+                DEFAULT_EDGE_COLOUR
+            ) for (u, v, k, d) in graph.edges(
+                keys=True,
+                data=True
+            )
+        ]
+
+    else:
+        raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')

@@ -17,13 +17,12 @@ import networkx as nx
 from bike import logger
 from bike.utils import (
     window,
-    get_idx_default,
     get_combined_id,
-    get_colours
+    get_edge_colours
 )
 from bike.nearest_node import nearest_node
 from bike.constants import (
-    DEFAULT_EDGE_COLOUR,
+    POLY_POINT_BUFFER,
     STAGED_DATA_DIR,
     SENT_DATA_DIR
 )
@@ -302,44 +301,21 @@ class Journey(Frames):
         if apply_condition_colour:
 
             if use_closest_edge_from_base:
-                edge_quality_map = self.edge_quality_map
-
-                colours = get_colours(
+                edge_colours = get_edge_colours(
                     base,
                     colour_map_name,
-                    edge_map=edge_quality_map
+                    edge_map=self.edge_quality_map
                 )
 
-                edge_colours = [
-                    get_idx_default(
-                        colours,
-                        edge_quality_map.get(get_combined_id(u, v), {}).get('avg', None),
-                        DEFAULT_EDGE_COLOUR
-                    ) for (u, v, k, d) in base.edges(
-                        keys=True,
-                        data=True
-                    )
-                ]
             else:
                 base.add_nodes_from(self.route_graph.nodes(data=True))
                 base.add_edges_from(self.route_graph.edges(data=True))
 
-                colours = get_colours(
+                edge_colours = get_edge_colours(
                     base,
                     colour_map_name,
                     key_name='avg_road_quality'
                 )
-
-                edge_colours = [
-                    get_idx_default(
-                        colours,
-                        d.get('avg_road_quality', None),
-                        DEFAULT_EDGE_COLOUR
-                    ) for u, v, k, d in base.edges(
-                        keys=True,
-                        data=True
-                    )
-                ]
 
             ox.plot_graph(
                 base,
@@ -497,12 +473,12 @@ class Journey(Frames):
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
-        points = []
-        for frame in self:
-            points.append(Point(frame.gps.lng, frame.gps.lat))
-
-        points = MultiPoint(points)
-        buf = points.buffer(0.002, cap_style=3)
+        points = MultiPoint(
+            [
+                Point(frame.gps.lng, frame.gps.lat) for frame in self
+            ]
+        )
+        buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
         boundary = gpd.GeoSeries(cascaded_union(buf))
 
         return ox.graph_from_polygon(
@@ -659,45 +635,21 @@ class Journeys(GenericObjects):
         if apply_condition_colour:
 
             if use_closest_edge_from_base:
-                edge_quality_map = self.edge_quality_map
-
-                colours = get_colours(
+                edge_colours = get_edge_colours(
                     base,
                     colour_map_name,
-                    edge_map=edge_quality_map
+                    edge_map=self.edge_quality_map
                 )
-
-                edge_colours = [
-                    get_idx_default(
-                        colours,
-                        edge_quality_map.get(get_combined_id(u, v), {}).get('avg', None),
-                        DEFAULT_EDGE_COLOUR
-                    ) for (u, v, k, d) in base.edges(
-                        keys=True,
-                        data=True
-                    )
-                ]
             else:
                 for journey in self:
                     base.add_nodes_from(journey.route_graph.nodes(data=True))
                     base.add_edges_from(journey.route_graph.edges(data=True))
 
-                colours = get_colours(
+                edge_colours = get_edge_colours(
                     base,
                     colour_map_name,
                     key_name='avg_road_quality'
                 )
-
-                edge_colours = [
-                    get_idx_default(
-                        colours,
-                        d.get('avg_road_quality', None),
-                        DEFAULT_EDGE_COLOUR
-                    ) for u, v, k, d in base.edges(
-                        keys=True,
-                        data=True
-                    )
-                ]
 
             ox.plot_graph(
                 base,
