@@ -25,12 +25,6 @@ TODO: Make an image but also install a guide because people shouldn't random img
 
 ## Usage
 
-### Installation
-
-TODO: What pins go where, installing the deb / flash / whatever
-
-### Scripting
-
 To get a quick start into playing with journeys you can use one of the test resource journeys. I'll put up an actual one once I get hardware delivered
 
 ```{python}
