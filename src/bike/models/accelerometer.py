@@ -1,3 +1,6 @@
+import numbers
+
+
 class AccelerometerPoint():
 
     def __init__(self, x, y, z):
@@ -39,7 +42,7 @@ class AccelerometerPoint():
         Is the xyz acceleromeer data populated.
         """
         return all([
-            isinstance(self.x, float),
-            isinstance(self.y, float),
-            isinstance(self.z, float)
+            isinstance(self.x, numbers.Number),
+            isinstance(self.y, numbers.Number),
+            isinstance(self.z, numbers.Number)
         ])
