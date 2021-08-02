@@ -1,5 +1,7 @@
 import os
+import hashlib
 import random
+import uuid
 import json
 
 import mock
@@ -236,3 +238,40 @@ class JourneyTest(TestCase):
         #    Journey.parse(self.test_journey.serialize()).serialize(),
         #    self.test_journey.serialize()
         #)
+
+    def test_plot_route_nothing_fancy(self):
+        img_uuid = str(uuid.uuid4())
+        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
+        self.test_journey.plot_route(
+            plot_kwargs={
+                'show': False,
+                'save': True,
+                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
+            }
+        )
+
+        self.assertEqual(
+            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
+            '33865fc665c74181ae5568db5fdb139f'
+        )
+
+    def test_plot_route_use_closest(self):
+        img_uuid = str(uuid.uuid4())
+        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
+        self.test_journey.plot_route(
+            use_closest_edge_from_base=True,
+            plot_kwargs={
+                'show': False,
+                'save': True,
+                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
+            }
+        )
+
+        self.assertEqual(
+            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
+            '0f4a71c6015e53bfe45072a6fb2787ba'
+        )
+
+    def test_plot_route_use_condition(self):
+        # TODO: need to have real data / not random data for the road quality
+        pass
