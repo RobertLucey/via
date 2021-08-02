@@ -10,6 +10,7 @@ from unittest import TestCase
 
 from bike.constants import (
     STAGED_DATA_DIR,
+    SENT_DATA_DIR
 )
 from bike.settings import (
     MINUTES_TO_CUT,
@@ -271,6 +272,55 @@ class JourneyTest(TestCase):
             hashlib.md5(open(fp, 'rb').read()).hexdigest(),
             '0f4a71c6015e53bfe45072a6fb2787ba'
         )
+
+    @mock.patch('bike.models.journey.Journey.post_send')
+    @mock.patch('requests.post')
+    @mock.patch('bike.models.journey.Journey.cull')
+    def test_send_ensure_cull(self, cull_mock, post_mock, post_send_mock):
+        post_mock.return_value = None
+        post_send_mock.return_value = None
+
+        self.test_journey.is_culled = False
+        self.test_journey.send()
+
+        self.assertTrue(cull_mock.called)
+
+    @mock.patch('bike.models.journey.DELETE_ON_SEND', True)
+    @mock.patch('requests.post')
+    @mock.patch('bike.models.journey.Journey.cull')
+    def test_send_ensure_post_send_delete(self, cull_mock, post_mock):
+        cull_mock.return_value = None
+        post_mock.return_value = None
+
+        self.test_journey.save()
+
+        path = os.path.join(STAGED_DATA_DIR, str(self.test_journey.uuid) + '.json')
+
+        self.assertTrue(os.path.exists(path))
+
+        self.test_journey.send()
+
+        self.assertFalse(os.path.exists(path))
+
+    @mock.patch('bike.models.journey.DELETE_ON_SEND', False)
+    @mock.patch('requests.post')
+    @mock.patch('bike.models.journey.Journey.cull')
+    def test_send_ensure_post_send_move(self, cull_mock, post_mock):
+        cull_mock.return_value = None
+        post_mock.return_value = None
+
+        self.test_journey.save()
+
+        path = os.path.join(STAGED_DATA_DIR, str(self.test_journey.uuid) + '.json')
+        sent_path = os.path.join(SENT_DATA_DIR, str(self.test_journey.uuid) + '.json')
+
+        self.assertTrue(os.path.exists(path))
+        self.assertFalse(os.path.exists(sent_path))
+
+        self.test_journey.send()
+
+        self.assertFalse(os.path.exists(path))
+        self.assertTrue(os.path.exists(sent_path))
 
     def test_plot_route_use_condition(self):
         # TODO: need to have real data / not random data for the road quality
