@@ -2,11 +2,14 @@ import board
 import adafruit_lis331
 
 from bike.utils import timing
+from bike.models.accelerometer import AccelerometerPoint
 
 
 class AcceleratorInterface():
 
     def __init__(self):
+
+        # TODO: might want to put on a high pass filter
 
         i2c = board.I2C()
 
@@ -16,4 +19,4 @@ class AcceleratorInterface():
 
     @timing
     def get_acceleration(self):
-        return self.interface.acceleration
+        return AccelerometerPoint(*self.interface.acceleration)
