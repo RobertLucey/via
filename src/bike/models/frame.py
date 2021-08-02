@@ -8,15 +8,21 @@ from bike.models.gps import GPSPoint
 
 
 class Frame(GenericObject):
+    """
+    A single snapshot of data on a journey containing gps, acceleration
+    and time info
+    """
 
     def __init__(self, time, gps, acceleration):
+        """
+
+        :param time:
+        :param gps: GPSPoint or dict serialization of GPSPoint
+        :param acceneration:
+        """
         super().__init__()
         self.time = time
-        self.gps = GPSPoint(
-            gps['lat'],
-            gps['lng'],
-            elevation=gps.get('elevation', None)
-        )
+        self.gps = GPSPoint.parse(gps)
         self.acceleration = acceleration
 
     @staticmethod
@@ -25,19 +31,28 @@ class Frame(GenericObject):
             return obj
         if isinstance(obj, dict):
             return Frame(
-                obj['time'],
+                obj.get('time', None),
                 obj['gps'],
                 obj['acc']
             )
         raise ValueError()
 
     def distance_from(self, point):
+        """
+
+        :param point: GPSPoint or tuple of (lat, lng) or Frame object
+        :rtype: float
+        :return: Distance between points in metres
+        """
         if isinstance(point, Frame):
             point = point.gps
         return self.gps.distance_from(point)
 
     @property
     def is_complete(self):
+        """
+        Does the frame contain all expected data
+        """
         return all([
             isinstance(self.time, float),
             self.gps.is_populated,
@@ -50,12 +65,14 @@ class Frame(GenericObject):
         # FIXME: base this number off accelerometer data
         return random.randint(0, 9)
 
-    def serialize(self):
-        return {
-            'time': round(self.time, 2),
+    def serialize(self, exclude_time=False):
+        data = {
             'gps': self.gps.serialize(),
             'acc': self.acceleration
         }
+        if not exclude_time:
+            data['time'] = round(self.time, 2)
+        return data
 
 
 class Frames(GenericObjects):
@@ -82,6 +99,13 @@ class Frames(GenericObjects):
 
     @property
     def data_quality(self):
+        """
+        Get the percentage of frames that are good. Should
+        automatically disregard journeys with low data quality
+
+        :rtype: float
+        :return: The percent between 0 and 1
+        """
         # Mixed with the deviation between times?
         return len([f for f in self if f.is_complete]) / float(len(self))
 
@@ -114,4 +138,12 @@ class Frames(GenericObjects):
 
     @property
     def direct_distance(self):
+        """
+
+        :rtype: float
+        :return: distance from origin to destination in metres
+        """
         return self[0].distance_from(self[-1])
+
+    def serialize(self, exclude_time=False):
+        return [frame.serialize(exclude_time=exclude_time) for frame in self]
