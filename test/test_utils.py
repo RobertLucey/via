@@ -15,7 +15,9 @@ from bike.utils import (
     window,
     iter_journeys,
     sleep_until,
-    get_idx_default
+    get_idx_default,
+    force_list,
+    flatten
 )
 
 from bike.constants import (
@@ -149,7 +151,6 @@ class UtilTest(TestCase):
         self.assertTrue(taken >= 0.5)
 
     def test_get_idx_default(self):
-
         self.assertEqual(
             get_idx_default([1, 2, 3], 0, None),
             1
@@ -157,4 +158,24 @@ class UtilTest(TestCase):
         self.assertEqual(
             get_idx_default([1, 2, 3], 9, None),
             None
+        )
+
+    def test_force_list(self):
+        self.assertEqual(
+            force_list([]),
+            []
+        )
+        self.assertEqual(
+            force_list([[]]),
+            [[]]
+        )
+        self.assertEqual(
+            force_list(1),
+            [1]
+        )
+
+    def test_flatten(self):
+        self.assertEqual(
+            flatten([[1, 2, 3], [1, 2]]),
+            [1, 2, 3, 1, 2]
         )

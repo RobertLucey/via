@@ -1,7 +1,6 @@
 import json
 import statistics
 import os
-import multiprocessing
 from collections import defaultdict
 
 import geopandas as gpd
@@ -32,21 +31,14 @@ from bike.settings import (
     TRANSPORT_TYPE,
     SUSPENSION,
     DELETE_ON_SEND,
-    UPLOAD_URL
+    UPLOAD_URL,
+    UPLOAD_EXCLUDE_TIME
 )
 from bike.models.frame import (
     Frame,
     Frames
 )
-from bike.models.generic import GenericObjects
 from bike.edge_cache import get_edge_data
-
-
-def get_journey_edge_quality_map(journey):
-    edge_quality_map = defaultdict(list)
-    for edge_hash, edge_quality in journey.edge_quality_map.items():
-        edge_quality_map[edge_hash].append(edge_quality)
-    return edge_quality_map
 
 
 class Journey(Frames):
@@ -64,11 +56,14 @@ class Journey(Frames):
         super().__init__(*args, **kwargs)
 
         self.is_culled = kwargs.get('is_culled', False)
+        self.is_sent = kwargs.get('is_sent', False)
 
         self.transport_type = kwargs.get('transport_type', TRANSPORT_TYPE)
         self.suspension = kwargs.get('suspension', SUSPENSION)
 
         self.network_type = 'bike'
+
+        self.included_journeys = []
 
     @staticmethod
     def parse(objs):
@@ -130,13 +125,14 @@ class Journey(Frames):
         """
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
-    def serialize(self, minimal=False):
+    def serialize(self, minimal=False, exclude_time=False):
         data = {
             'uuid': str(self.uuid),
-            'data': super().serialize(),
+            'data': super().serialize(exclude_time=exclude_time),
             'transport_type': self.transport_type,
             'suspension': self.suspension,
-            'is_culled': self.is_culled
+            'is_culled': self.is_culled,
+            'is_sent': self.is_sent
         }
 
         if minimal is False:
@@ -253,21 +249,11 @@ class Journey(Frames):
                 journey_file
             )
 
-    def send(self):
-        logger.info('Sending %s', self.uuid)
-
-        if not self.is_culled:
-            logger.info('Forcing a cull on send')
-            self.cull()
-
-        try:
-            requests.post(
-                url=UPLOAD_URL,
-                json=self.serialize()
-            )
-        except requests.exceptions.RequestException as ex:
-            logger.error('Failed to send: %s', self.uuid)
-            logger.error(ex)
+    def post_send(self):
+        if len(self.included_journeys) != 0:
+            # since this is a mega journey, we should set all included to be saved
+            for journey in self.included_journeys:
+                journey.post_send()
         else:
             filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
             if DELETE_ON_SEND:
@@ -280,6 +266,24 @@ class Journey(Frames):
                     sent_filepath
                 )
                 logger.debug('Moved %s -> %s', filepath, sent_filepath)
+
+    def send(self):
+        logger.info('Sending %s', self.uuid)
+
+        if not self.is_culled:
+            logger.info('Forcing a cull on send')
+            self.cull()
+
+        try:
+            requests.post(
+                url=UPLOAD_URL,
+                json=self.serialize(exclude_time=UPLOAD_EXCLUDE_TIME)
+            )
+        except requests.exceptions.RequestException as ex:
+            logger.error('Failed to send: %s', self.uuid)
+            logger.error(ex)
+        else:
+            self.post_send()
 
     def plot_route(
         self,
@@ -347,7 +351,6 @@ class Journey(Frames):
 
         :rtype: dict
         """
-
         return {
             edge_id: {
                 'avg': int(
@@ -361,6 +364,11 @@ class Journey(Frames):
 
     @property
     def edge_data(self):
+        """
+
+        :rtype: dict
+        :return: {edge_id: [{edge_data}, {edge_data}]}
+        """
 
         # FIXME: This uses nodes to get edges, should use nearest edge
         # unless very close to a node. Factor in direction and all that
@@ -391,6 +399,9 @@ class Journey(Frames):
         """
         Get the route but instead of creating new nodes from our journey
         data use the closest nodes on the bounding graph
+
+        :rtype: list
+        :return: list of node ids along the path
         """
         # TODO: option to do this by edges
         # ...Maybe unless it's x metres within the radius of a node cause
@@ -467,6 +478,24 @@ class Journey(Frames):
         return graph
 
     @property
+    def bounding_graph(self):
+        logger.debug(
+            'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
+            self.most_northern,
+            self.most_southern,
+            self.most_eastern,
+            self.most_western
+        )
+        return ox.graph_from_bbox(
+            self.most_northern,
+            self.most_southern,
+            self.most_eastern,
+            self.most_western,
+            network_type=self.network_type,
+            simplify=True
+        )
+
+    @property
     def graph(self):
         """
         Get a graph of the journey but excluding nodes far away from the route
@@ -486,156 +515,3 @@ class Journey(Frames):
             network_type=self.network_type,
             simplify=True
         )
-
-
-class Journeys(GenericObjects):
-
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault('child_class', Journey)
-        super().__init__(*args, **kwargs)
-
-        self.network_type = 'bike'
-
-    @property
-    def most_northern(self):
-        """
-        Get the most northerly latitude over all journeys
-        """
-        return max([journey.most_northern for journey in self])
-
-    @property
-    def most_southern(self):
-        """
-        Get the most southerly latitude over all journeys
-        """
-        return min([journey.most_southern for journey in self])
-
-    @property
-    def most_eastern(self):
-        """
-        Get the most easterly longitude over all journeys
-        """
-        return max([journey.most_eastern for journey in self])
-
-    @property
-    def most_western(self):
-        """
-        Get the most westerly longitude over all journeys
-        """
-        return min([journey.most_western for journey in self])
-
-    @property
-    def graph(self):
-        """
-        Get a graph that contains all journeys
-
-        :rtype: networkx.classes.multidigraph.MultiDiGraph
-        """
-        logger.debug(
-            'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western
-        )
-        return ox.graph_from_bbox(
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western,
-            network_type=self.network_type,
-            simplify=True
-        )
-
-    @property
-    def edge_quality_map(self):
-        """
-        Get a map between edge_hash and road quality of the road. edge_map
-        being edge id and road quality being something that hasn't been
-        defined yet TODO
-
-        :rtype: dict
-        """
-
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        journey_edge_quality_maps = pool.map(
-            get_journey_edge_quality_map,
-            self
-        )
-
-        edge_quality_map = defaultdict(list)
-        for journey_edge_quality_map in journey_edge_quality_maps:
-            for edge_id, quals in journey_edge_quality_map.items():
-                edge_quality_map[edge_id].extend(quals)
-
-        return {
-            edge_id: {
-                'avg': int(statistics.mean([d['avg'] for d in data])),
-                'count': len(data)
-            } for edge_id, data in edge_quality_map.items()
-        }
-
-    def plot_routes(
-        self,
-        apply_condition_colour=False,
-        use_closest_edge_from_base=False,
-        colour_map_name='plasma_r',
-        plot_kwargs={}
-    ):
-        """
-
-        :kwarg apply_condition_colour: This is just a random colour for
-            the moment as a jumping off point for when I come back to it
-        :kwarg use_closest_from_base: For each point on the actual route, for
-            each node use the closest node from the original base graph
-            the route is being drawn on
-        :kwarg colour_map_name:
-        :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
-            being done
-        """
-        if len(self) == 0:
-            raise Exception('Current Journeys object has no content')
-        elif len(self) == 1:
-            # We could just duplicate the only journey we have... will
-            # decide on this later when I figure out how annoying it is
-            raise Exception('To use Journeys effectively multiple journeys must be used, only one found')
-
-        base = self.graph
-        if apply_condition_colour:
-            if use_closest_edge_from_base:
-                edge_colours = get_edge_colours(
-                    base,
-                    colour_map_name,
-                    edge_map=self.edge_quality_map
-                )
-            else:
-                for journey in self:
-                    base.add_nodes_from(journey.route_graph.nodes(data=True))
-                    base.add_edges_from(journey.route_graph.edges(data=True))
-
-                edge_colours = get_edge_colours(
-                    base,
-                    colour_map_name,
-                    key_name='avg_road_quality'
-                )
-
-            ox.plot_graph(
-                base,
-                edge_color=edge_colours,
-                **plot_kwargs
-            )
-        else:
-            if use_closest_edge_from_base:
-                routes = [journey.closest_route for journey in self]
-            else:
-                routes = []
-                for journey in self:
-                    base.add_nodes_from(journey.route_graph.nodes(data=True))
-                    base.add_edges_from(journey.route_graph.edges(data=True))
-                    routes.append(journey.route)
-
-            ox.plot_graph_routes(
-                base,
-                routes,
-                **plot_kwargs
-            )

@@ -1,3 +1,4 @@
+backoff
 adafruit-circuitpython-gps
 haversine
 adafruit-circuitpython-lis331

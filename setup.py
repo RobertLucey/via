@@ -4,6 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'backoff',
     'adafruit-circuitpython-gps',
     'haversine',
     'adafruit-circuitpython-lis331',

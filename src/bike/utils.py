@@ -3,7 +3,7 @@ import glob
 import json
 import time
 from functools import wraps
-from itertools import islice
+from itertools import islice, chain
 
 import osmnx as ox
 
@@ -49,7 +49,7 @@ def get_journeys(staged=None):
     :kwarg staged: To only get staged journeys or not (gets sent ones too)
     :rtype: Journey
     """
-    from bike.models.journey import Journeys
+    from bike.models.journeys import Journeys
     return Journeys(data=list(iter_journeys(staged=staged)))
 
 
@@ -260,3 +260,40 @@ def get_edge_colours(graph, colour_map_name, key_name=None, edge_map=None):
 
     else:
         raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
+
+
+def force_list(val):
+    """
+    If the val is not already a list, make it the only element in the list
+
+    :rtype: list
+    """
+    if not isinstance(val, list):
+        return [val]
+    return val
+
+
+def split_into(seq, num):
+    avg = len(seq) / float(num)
+    out = []
+    last = 0.0
+
+    while last < len(seq):
+        out.append(seq[int(last):int(last + avg)])
+        last += avg
+
+    return out
+
+
+def flatten(lst):
+    '''
+    Given a nested list, flatten it.
+
+    Usage:
+        >>> flatten([[1, 2, 3], [1, 2]])
+        [1, 2, 3, 1, 2]
+
+    :param lst: list to be flattened
+    :return: Flattened list
+    '''
+    return list(chain.from_iterable(lst))

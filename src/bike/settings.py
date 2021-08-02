@@ -21,6 +21,20 @@ MINUTES_TO_CUT = 5
 EXCLUDE_METRES_BEGIN_AND_END = 100
 
 
+# Exclude time from data sent across network
+UPLOAD_EXCLUDE_TIME = False
+
+UPLOAD_PARTIAL = False
+
+# When saving upload split the mega journey into this many parts. Influenced by MIN_JOURNEYS_UPLOAD_PARTIALS
+# TODO: change to chunks
+PARTIAL_SPLIT_INTO = 20
+
+# The min number of journeys needed to send partial journeys for the sake
+# of mixing them all together to hide the true route of any one journey
+MIN_JOURNEYS_UPLOAD_PARTIALS = 5
+
+
 UPLOAD_URL = 'https://localhost'
 
 
