@@ -1,4 +1,7 @@
 import json
+import hashlib
+import uuid
+import os
 
 from mock import patch
 
@@ -17,7 +20,6 @@ class JourneysTest(TestCase):
 
         self.test_journey = Journey()
         self.test_journey.save()
-        print(self.test_journey.uuid)
         for d in self.test_data:
             self.test_journey.append(
                 Frame(
@@ -35,7 +37,6 @@ class JourneysTest(TestCase):
 
         self.test_journey = Journey()
         self.test_journey.save()
-        print(self.test_journey.uuid)
         for d in self.test_data:
             self.test_journey.append(
                 Frame(
@@ -115,4 +116,37 @@ class JourneysTest(TestCase):
         self.assertEqual(
             len(self.test_journeys_single.edge_quality_map),
             77
+        )
+
+    def test_plot_routes_nothing_fancy(self):
+        img_uuid = str(uuid.uuid4())
+        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
+        self.test_journeys.plot_routes(
+            plot_kwargs={
+                'show': False,
+                'save': True,
+                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
+            }
+        )
+
+        self.assertEqual(
+            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
+            'cf5f2b5fcdb64e2f264c3ad566ef134b'
+        )
+
+    def test_plot_routes_use_closest(self):
+        img_uuid = str(uuid.uuid4())
+        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
+        self.test_journeys.plot_routes(
+            use_closest_edge_from_base=True,
+            plot_kwargs={
+                'show': False,
+                'save': True,
+                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
+            }
+        )
+
+        self.assertEqual(
+            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
+            'd79a8a56de0c050d9f57bebee8589274'
         )
