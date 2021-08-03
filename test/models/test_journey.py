@@ -23,6 +23,12 @@ from bike.models.frame import Frame
 class JourneyTest(TestCase):
 
     def setUp(self):
+
+        os.makedirs(
+            STAGED_DATA_DIR,
+            exists_ok=True
+        )
+
         with open('test/resources/dublin_route.json') as json_file:
             self.test_data = json.load(json_file)
 
