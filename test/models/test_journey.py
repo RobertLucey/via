@@ -26,7 +26,7 @@ class JourneyTest(TestCase):
 
         os.makedirs(
             STAGED_DATA_DIR,
-            exists_ok=True
+            exist_ok=True
         )
 
         with open('test/resources/dublin_route.json') as json_file:
