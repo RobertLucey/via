@@ -1,4 +1,6 @@
 import json
+import os
+
 from mock import patch
 
 from unittest import TestCase
@@ -10,6 +12,7 @@ from bike.models.partial import (
     Partial,
     partials_from_journey
 )
+from bike.constants import PARTIAL_DATA_DIR
 
 
 class PartialTest(TestCase):
@@ -55,11 +58,46 @@ class PartialTest(TestCase):
             }
         )
 
-    def test_save(self):
-        pass
-
-    def test_from_file(self):
-        pass
-
+    @patch('bike.models.partial.PARTIAL_RANDOMIZE_DATA_ORDER', False)
     def test_parse(self):
-        pass
+        partials = partials_from_journey(self.test_journey)
+        data = partials[0]
+        self.assertEqual(
+            Partial.parse(data).serialize(),
+            data.serialize()
+        )
+
+        self.assertEqual(
+            Partial.parse(data.serialize()).serialize(),
+            data.serialize()
+        )
+
+        with self.assertRaises(NotImplementedError):
+            Partial.parse(None)
+
+    def test_save(self):
+        partials = partials_from_journey(self.test_journey)
+        partial = partials[0]
+        filepath = os.path.join(PARTIAL_DATA_DIR, str(partial.uuid) + '.json')
+
+        self.assertFalse(os.path.exists(filepath))
+
+        partial.save()
+
+        self.assertTrue(os.path.exists(filepath))
+
+    @patch('bike.models.partial.PARTIAL_RANDOMIZE_DATA_ORDER', False)
+    def test_from_file(self):
+        partials = partials_from_journey(self.test_journey)
+        partial = partials[0]
+        filepath = os.path.join(PARTIAL_DATA_DIR, str(partial.uuid) + '.json')
+
+        partial.save()
+
+        from_file_partial = Partial.from_file(filepath)
+
+        # json thing cause acc can be () or [] FIXME
+        self.assertEqual(
+            json.loads(json.dumps(partial.serialize())),
+            json.loads(json.dumps(from_file_partial.serialize()))
+        )

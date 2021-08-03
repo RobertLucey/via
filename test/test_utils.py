@@ -7,9 +7,12 @@ import os
 import uuid
 import time
 
+import osmnx as ox
+
 from bike.models.journey import Journey
 from bike.models.frame import Frame
 from bike.utils import (
+    get_ox_colours,
     is_journey_data_file,
     get_data_files,
     window,
@@ -17,7 +20,8 @@ from bike.utils import (
     sleep_until,
     get_idx_default,
     force_list,
-    flatten
+    flatten,
+    get_journeys
 )
 
 from bike.constants import (
@@ -104,6 +108,26 @@ class UtilTest(TestCase):
             is_journey_data_file('/dev/null')
         )
 
+        fn = '/tmp/test_bike_%s.json' % (uuid.uuid4())
+        with open(fn, 'w') as f:
+            f.write('asdasd')
+
+        self.assertFalse(
+            is_journey_data_file(fn)
+        )
+
+        fn = '/tmp/test_bike_%s.json' % (uuid.uuid4())
+        with open(fn, 'w') as f:
+            f.write(json.dumps(
+                {
+                    'something': 123
+                }
+            ))
+
+        self.assertFalse(
+            is_journey_data_file(fn)
+        )
+
     def test_window(self):
         self.assertEqual(
             list(window([1, 2, 3, 4, 5])),
@@ -179,3 +203,21 @@ class UtilTest(TestCase):
             flatten([[1, 2, 3], [1, 2]]),
             [1, 2, 3, 1, 2]
         )
+
+    def test_get_journeys(self):
+        staged_get_journeys = get_journeys(staged=True)
+        self.assertEqual(len(staged_get_journeys), 10)
+
+        not_staged_get_journeys = get_journeys(staged=False)
+        self.assertEqual(len(not_staged_get_journeys), 20)
+
+        all_get_journeys = get_journeys(staged=None)
+        self.assertEqual(len(all_get_journeys), 30)
+
+    def test_get_ox_colours(self):
+        # TODO: once not doing random quality
+        pass
+
+    def test_get_edge_colours(self):
+        # TODO: once not doing random quality
+        pass

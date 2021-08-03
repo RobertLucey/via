@@ -13,6 +13,7 @@ from bike.constants import (
     PARTIAL_DATA_DIR
 )
 from bike.settings import (
+    PARTIAL_RANDOMIZE_DATA_ORDER,
     TRANSPORT_TYPE,
     SUSPENSION,
     DELETE_ON_SEND,
@@ -51,13 +52,17 @@ class Partial(Frames):
         self.network_type = 'bike'
 
     @staticmethod
-    def parse(objs):
-        if isinstance(objs, Partial):
-            return objs
+    def parse(obj):
+        if isinstance(obj, Partial):
+            return obj
+        elif isinstance(obj, dict):
+            return Partial(
+                **obj
+            )
 
         # TODO: do this from an object serialization
         raise NotImplementedError(
-            'Can\'t parse Partial from type %s' % (type(objs))
+            'Can\'t parse Partial from type %s' % (type(obj))
         )
 
     @staticmethod
@@ -112,15 +117,13 @@ class Partial(Frames):
 
     def serialize(self, *args, **kwargs):
         frame_data = super().serialize(exclude_time=True)
-        data = {
+        return {
             'uuid': str(self.uuid),
-            'data': random.sample(frame_data, len(frame_data)),
+            'data': random.sample(frame_data, len(frame_data)) if PARTIAL_RANDOMIZE_DATA_ORDER else frame_data,
             'transport_type': self.transport_type,
             'suspension': self.suspension,
             'is_partial': self.is_partial
         }
-
-        return data
 
     #def post_send(self):
     #    filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')

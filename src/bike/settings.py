@@ -34,6 +34,8 @@ PARTIAL_SPLIT_INTO = 20
 # of mixing them all together to hide the true route of any one journey
 MIN_JOURNEYS_UPLOAD_PARTIALS = 5
 
+PARTIAL_RANDOMIZE_DATA_ORDER = True
+
 
 UPLOAD_URL = 'https://localhost'
 

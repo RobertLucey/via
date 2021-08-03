@@ -112,11 +112,25 @@ class JourneysTest(TestCase):
         with self.assertRaises(Exception):
             self.test_journeys_single._send_partials()
 
+    @patch('bike.models.journey.Journey.send')
+    def test_send_non_partial(self, mock_journey_send):
+        self.test_journeys.send()
+        self.assertEqual(mock_journey_send.call_count, len(self.test_journeys))
+
     def test_edge_quality_map(self):
         self.assertEqual(
             len(self.test_journeys_single.edge_quality_map),
             77
         )
+
+    def test_plot_routes_too_few(self):
+        with self.assertRaises(Exception):
+            Journeys().plot_routes()
+
+        self.test_journeys._data = [self.test_journeys._data[0]]
+
+        with self.assertRaises(Exception):
+            self.test_journeys.plot_routes()
 
     def test_plot_routes_nothing_fancy(self):
         img_uuid = str(uuid.uuid4())
