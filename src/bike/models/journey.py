@@ -261,6 +261,12 @@ class Journey(Frames):
                 logger.debug('Deleted: %s', filepath)
             else:
                 sent_filepath = os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
+
+                os.makedirs(
+                    os.path.dirname(sent_filepath),
+                    exist_ok=True
+                )
+
                 os.rename(
                     filepath,
                     sent_filepath
