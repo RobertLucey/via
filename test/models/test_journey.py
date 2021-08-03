@@ -241,10 +241,13 @@ class JourneyTest(TestCase):
             self.test_journey.serialize()
         )
 
-        #self.assertEqual(
-        #    Journey.parse(self.test_journey.serialize()).serialize(),
-        #    self.test_journey.serialize()
-        #)
+        self.assertEqual(
+            Journey.parse(self.test_journey.serialize()).serialize(),
+            self.test_journey.serialize()
+        )
+
+        with self.assertRaises(NotImplementedError):
+            Journey.parse(None)
 
     def test_plot_route_nothing_fancy(self):
         img_uuid = str(uuid.uuid4())

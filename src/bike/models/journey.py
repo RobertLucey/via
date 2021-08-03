@@ -69,6 +69,10 @@ class Journey(Frames):
     def parse(objs):
         if isinstance(objs, Journey):
             return objs
+        elif isinstance(objs, dict):
+            return Journey(
+                **objs
+            )
 
         # TODO: do this from an object serialization
         raise NotImplementedError(
