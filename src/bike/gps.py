@@ -1,10 +1,14 @@
-import board
 import busio
 
 import adafruit_gps
 
-from bike.utils import timing
+from bike.utils import (
+    timing,
+    get_board
+)
 from bike.models.gps import GPSPoint
+
+board = get_board()
 
 
 class GPSInterface():
@@ -25,6 +29,11 @@ class GPSInterface():
         :kwarg timeout:
         :kwarg debug:
         """
+        self.interface = self.get_interface(TX, RX, baudrate, timeout, debug)
+        self.interface.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
+        self.interface.send_command(b'PMTK220,1000')
+
+    def get_interface(self, TX, RX, baudrate, timeout, debug):
         uart = busio.UART(
             TX,
             RX,
@@ -32,14 +41,10 @@ class GPSInterface():
             timeout=timeout
         )
 
-        self.interface = adafruit_gps.GPS(
+        return adafruit_gps.GPS(
             uart,
             debug=debug
         )
-
-        self.interface.send_command(b'PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0')
-
-        self.interface.send_command(b'PMTK220,1000')
 
     @timing
     def get_lat_lng(self):

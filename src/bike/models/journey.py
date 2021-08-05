@@ -65,6 +65,19 @@ class Journey(Frames):
 
         self.included_journeys = []
 
+        self.last_gps = None
+
+    def append(self, thing):
+        frame = Frame.parse(thing)
+        if frame.gps.lat is None and frame.gps.lng is None:
+            if self.last_gps is None:
+                return
+            frame.gps = self.last_gps
+        else:
+            self.last_gps = frame.gps
+
+        super().append(frame)
+
     @staticmethod
     def parse(objs):
         if isinstance(objs, Journey):
@@ -182,7 +195,7 @@ class Journey(Frames):
                 last_frame_away_idx is None
             ]
         ):
-            raise Exception(
+            raise ValueError(
                 'Not a long enough journey to get any meaningful data from'
             )
 

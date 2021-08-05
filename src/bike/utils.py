@@ -16,6 +16,14 @@ from bike.constants import (
 )
 
 
+def get_board():
+    try:
+        import board
+        return board
+    except ImportError:
+        return None
+
+
 def is_journey_data_file(potential_journey_file: str):
     """
 

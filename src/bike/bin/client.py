@@ -13,7 +13,7 @@ from bike.constants import (
 )
 from bike.models.journey import Journey
 from bike.gps import GPSInterface
-from bike.acceleration import AcceleratorInterface
+from bike.acceleration import AccelerometerInterface
 
 
 class BikeClient():
@@ -21,7 +21,7 @@ class BikeClient():
     def __init__(self):
         logger.debug('Init Client')
         self.gps_interface = GPSInterface()
-        self.acceleration_interface = AcceleratorInterface()
+        self.acceleration_interface = AccelerometerInterface()
 
         self.journey = Journey()
 
