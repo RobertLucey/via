@@ -119,6 +119,11 @@ class JourneyTest(TestCase):
             {'acc': (), 'gps': {'lat': 53.332599, 'lng': -6.2647978, 'elevation': None}, 'time': 770}
         )
 
+    def test_cull_distance_too_short(self):
+        self.test_journey._data = self.test_journey._data[0:3]
+        with self.assertRaises(ValueError):
+            self.test_journey.cull_distance()
+
     def test_cull_distance(self):
         # TODO: ensure it doesn't cut too much
 
@@ -334,3 +339,56 @@ class JourneyTest(TestCase):
     def test_plot_route_use_condition(self):
         # TODO: need to have real data / not random data for the road quality
         pass
+
+    def test_edge_quality_map(self):
+        # TODO: need to have real data / not random data for the road quality
+        pass
+
+    def test_toggle_gps_acc(self):
+        """
+        If I don't sort out the phone thing cause I don't want to this should
+        make up for it
+        """
+        test_data = [
+            {'time': 0, 'acc': [1, 2, 3], 'gps': {'lat': None, 'lng': None}},
+            {'time': 1, 'acc': [1, 2, 3], 'gps': {'lat': None, 'lng': None}},
+            {'time': 2, 'acc': [], 'gps': {'lat': 1, 'lng': 2}},
+            {'time': 3, 'acc': [1, 2, 3], 'gps': {'lat': None, 'lng': None}},
+            {'time': 4, 'acc': [1, 2, 3], 'gps': {'lat': None, 'lng': None}},
+            {'time': 5, 'acc': [1, 2, 3], 'gps': {'lat': None, 'lng': None}},
+            {'time': 6, 'acc': [1, 2, 3], 'gps': {'lat': None, 'lng': None}},
+            {'time': 7, 'acc': [], 'gps': {'lat': 1.1, 'lng': 2.2}},
+        ]
+
+        journey = Journey()
+        for dp in test_data:
+            journey.append(dp)
+
+        self.assertEqual(
+            journey.serialize(),
+            {
+                'uuid': str(journey.uuid),
+                'data': [
+                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [], 'time': 2},
+                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 2, 3], 'time': 3},
+                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 2, 3], 'time': 4},
+                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 2, 3], 'time': 5},
+                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 2, 3], 'time': 6},
+                    {'gps': {'lat': 1.1, 'lng': 2.2, 'elevation': None}, 'acc': [], 'time': 7}
+                ],
+                'transport_type': 'mountain',
+                'suspension': True,
+                'is_culled': False,
+                'is_sent': False,
+                'direct_distance': 24860.633301979688,
+                'indirect_distance': {
+                    1: 24860.633301979688,
+                    5: 24860.633301979688,
+                    10: 0,
+                    30: 0
+                },
+                'data_quality': 0.0,
+                'duration': 5,
+                'avg_speed': 0.0
+            }
+        )
