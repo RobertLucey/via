@@ -88,10 +88,10 @@ class UtilTest(TestCase):
         data_files = get_data_files()
         self.assertEqual(len(data_files), 30)
 
-        data_files = get_data_files(staged=True)
+        data_files = get_data_files(source='staged')
         self.assertEqual(len(data_files), 10)
 
-        data_files = get_data_files(staged=False)
+        data_files = get_data_files(source='sent')
         self.assertEqual(len(data_files), 20)
 
     def test_is_journey_data_file(self):
@@ -205,10 +205,10 @@ class UtilTest(TestCase):
         )
 
     def test_get_journeys(self):
-        staged_get_journeys = get_journeys(staged=True)
+        staged_get_journeys = get_journeys(source='staged')
         self.assertEqual(len(staged_get_journeys), 10)
 
-        not_staged_get_journeys = get_journeys(staged=False)
+        not_staged_get_journeys = get_journeys(source='sent')
         self.assertEqual(len(not_staged_get_journeys), 20)
 
         all_get_journeys = get_journeys(staged=None)
