@@ -12,6 +12,7 @@ from bike.constants import (
     DATA_DIR,
     STAGED_DATA_DIR,
     SENT_DATA_DIR,
+    REMOTE_DATA_DIR,
     DEFAULT_EDGE_COLOUR
 )
 
@@ -50,42 +51,44 @@ def is_journey_data_file(potential_journey_file: str):
     return True
 
 
-def get_journeys(staged=None):
+def get_journeys(source=None):
     """
     Get local journeys as Journeys
 
-    :kwarg staged: To only get staged journeys or not (gets sent ones too)
+    :kwarg source: The data dir to get from
     :rtype: Journey
     """
     from bike.models.journeys import Journeys
-    return Journeys(data=list(iter_journeys(staged=staged)))
+    return Journeys(data=list(iter_journeys(source=source)))
 
 
-def iter_journeys(staged=None):
+def iter_journeys(source=None):
     """
     Get local journeys as iterable of Journey
 
-    :kwarg staged: To only get staged journeys or not (gets sent ones too)
+    :kwarg source: The data dir to get from
     """
     from bike.models.journey import Journey
-    for journey_file in get_data_files(staged=staged):
+    for journey_file in get_data_files(source=source):
         yield Journey.from_file(journey_file)
 
 
-def get_data_files(staged=None):
+def get_data_files(source=None):
     """
 
-    :kwarg uploaded: To only return files that uploaded None to return all
+    :kwarg source: The data dir to get from
     :rtype: list
     :return: a list of file paths to journey files
     """
     files = []
 
     path = DATA_DIR
-    if staged is True:
+    if source == 'staged':
         path = STAGED_DATA_DIR
-    elif staged is False:
+    elif source == 'sent':
         path = SENT_DATA_DIR
+    elif source == 'remote':
+        path = REMOTE_DATA_DIR
 
     for filename in glob.iglob(path + '/**/*', recursive=True):
         if is_journey_data_file(filename):

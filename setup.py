@@ -4,6 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'boto3',
     'backoff',
     'adafruit-circuitpython-gps',
     'haversine',

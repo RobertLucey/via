@@ -21,9 +21,19 @@ def main():
         dest='closest_edge',
         help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap'
     )
+    parser.add_argument(
+        '--source',
+        dest='source',
+        default='remote',
+        help='Where to plot the journeys from (staged, sent, remote), default to remote'
+    )
     args = parser.parse_args()
 
-    journeys = get_journeys()
+    journeys = get_journeys(source=args.source)
+
+    print(journeys._data)
+
+
     journeys.plot_routes(
         use_closest_edge_from_base=args.closest_edge,
         apply_condition_colour=args.condition,

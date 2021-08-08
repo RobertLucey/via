@@ -107,9 +107,15 @@ def main():
         dest='condition_by_street',
         help='List the condition by the street name'
     )
+    parser.add_argument(
+        '--source',
+        dest='source',
+        default='remote',
+        help='Where to plot the journeys from (staged, sent, remote), default to remote'
+    )
     args = parser.parse_args()
 
-    journeys = get_journeys()
+    journeys = get_journeys(args.source)
 
     if args.coverage:
         print_coverage(journeys, args.min_edge_usage)
