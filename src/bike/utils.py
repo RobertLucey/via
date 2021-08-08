@@ -89,6 +89,8 @@ def get_data_files(source=None):
         path = SENT_DATA_DIR
     elif source == 'remote':
         path = REMOTE_DATA_DIR
+    elif source is None:
+        path = DATA_DIR
 
     for filename in glob.iglob(path + '/**/*', recursive=True):
         if is_journey_data_file(filename):

@@ -211,7 +211,7 @@ class UtilTest(TestCase):
         not_staged_get_journeys = get_journeys(source='sent')
         self.assertEqual(len(not_staged_get_journeys), 20)
 
-        all_get_journeys = get_journeys(staged=None)
+        all_get_journeys = get_journeys(source=None)
         self.assertEqual(len(all_get_journeys), 30)
 
     def test_get_ox_colours(self):
