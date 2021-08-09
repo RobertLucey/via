@@ -113,9 +113,15 @@ def main():
         default='remote',
         help='Where to plot the journeys from (staged, sent, remote), default to remote'
     )
+    parser.add_argument(
+        '--place',
+        dest='place',
+        default='Dublin, Ireland',
+        help='What place to limit the data to (so you don\' try to visualize too big an area)'
+    )
     args = parser.parse_args()
 
-    journeys = get_journeys(args.source)
+    journeys = get_journeys(args.source, place=args.place)
 
     if args.coverage:
         print_coverage(journeys, args.min_edge_usage)

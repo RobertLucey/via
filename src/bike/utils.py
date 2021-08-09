@@ -51,26 +51,33 @@ def is_journey_data_file(potential_journey_file: str):
     return True
 
 
-def get_journeys(source=None):
+def get_journeys(source=None, place=None):
     """
     Get local journeys as Journeys
 
     :kwarg source: The data dir to get from
+    :kwarg place: The place to get journeys within
     :rtype: Journey
     """
     from bike.models.journeys import Journeys
-    return Journeys(data=list(iter_journeys(source=source)))
+    return Journeys(data=list(iter_journeys(source=source, place=place)))
 
 
-def iter_journeys(source=None):
+def iter_journeys(source=None, place=None):
     """
     Get local journeys as iterable of Journey
 
     :kwarg source: The data dir to get from
+    :kwarg place: The place to get journeys within
     """
     from bike.models.journey import Journey
     for journey_file in get_data_files(source=source):
-        yield Journey.from_file(journey_file)
+        journey = Journey.from_file(journey_file)
+        if place is not None:
+            if journey.is_in_place(place):
+                yield journey
+        else:
+            yield journey
 
 
 def get_data_files(source=None):

@@ -39,6 +39,7 @@ from bike.models.frame import (
     Frames
 )
 from bike.edge_cache import get_edge_data
+from bike.place_cache import place_cache
 
 
 class Journey(Frames):
@@ -141,6 +142,15 @@ class Journey(Frames):
         :return: avg speed in metres per second
         """
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
+
+    def is_in_place(self, place_name):
+        place_bounds = place_cache.get(place_name)
+        return all([
+            self.most_northern < place_bounds['north'],
+            self.most_southern > place_bounds['south'],
+            self.most_eastern < place_bounds['east'],
+            self.most_western < place_bounds['west']
+        ])
 
     def serialize(self, minimal=False, exclude_time=False):
         data = {
