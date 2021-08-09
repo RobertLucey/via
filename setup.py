@@ -27,7 +27,8 @@ setup(
     install_requires=INSTALL_REQUIRES,
     entry_points={
         'console_scripts': [
-            'start_bike = bike.bin.client'
+            'start_bike = bike.bin.client',
+            'pull_journeys = bike.bin.pull_journeys'
         ]
     }
 )

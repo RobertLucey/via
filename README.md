@@ -26,6 +26,8 @@ TODO: Make an image but also install a guide because people shouldn't random img
 
 To get a quick start into playing with journeys you can use one of the test resource journeys. I'll put up an actual one once I get hardware delivered
 
+Run `pull_journeys` before doing anything to make sure you have some data to work with.
+
 ```{python}
 from bike.models.journey import Journey
 
