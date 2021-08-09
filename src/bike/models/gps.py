@@ -33,6 +33,11 @@ class GPSPoint():
                 obj['lng'],
                 elevation=obj.get('elevation', None)
             )
+        elif isinstance(obj, list):
+            return GPSPoint(
+                obj[0],
+                obj[1]
+            )
         else:
             raise NotImplementedError(
                 'Can\'t parse gps from type %s' % (type(obj))
