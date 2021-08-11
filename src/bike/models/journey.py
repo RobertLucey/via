@@ -53,8 +53,16 @@ class Journey(Frames):
         :kwarg suspension: If using suspension or not, defaults
             to settings.SUSPENSION
         """
+
+        data = []
+        if 'data' in kwargs:
+            # If setting the frames, if from a phone need to populat empty gps with the prev / next gps
+            data = kwargs.pop('data')
+
         kwargs.setdefault('child_class', Frame)
         super().__init__(*args, **kwargs)
+
+        self.extend(data)
 
         self.is_culled = kwargs.get('is_culled', False)
         self.is_sent = kwargs.get('is_sent', False)
@@ -70,7 +78,9 @@ class Journey(Frames):
 
     def append(self, thing):
         frame = Frame.parse(thing)
-        if frame.gps.lat is None and frame.gps.lng is None:
+        if not frame.gps.is_populated:
+            if not hasattr(self, 'last_gps'):
+                return
             if self.last_gps is None:
                 return
             frame.gps = self.last_gps
@@ -535,10 +545,19 @@ class Journey(Frames):
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
+
+        unique_points = []
+        prev = None
+        for frame in self:
+            if frame.gps.is_populated:
+                if prev is not None:
+                    if prev.gps.lat != frame.gps.lat:
+                        unique_points.append(Point(frame.gps.lng, frame.gps.lat))
+
+            prev = frame
+
         points = MultiPoint(
-            [
-                Point(frame.gps.lng, frame.gps.lat) for frame in self if frame.gps.is_populated
-            ]
+            unique_points
         )
         buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
         boundary = gpd.GeoSeries(cascaded_union(buf))

@@ -82,5 +82,7 @@ class GPSPoint():
         """
         return all([
             isinstance(self.lat, float),
-            isinstance(self.lng, float)
+            isinstance(self.lng, float),
+            self.lat != 0,
+            self.lng != 0
         ])
