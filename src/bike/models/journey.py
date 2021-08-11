@@ -537,7 +537,7 @@ class Journey(Frames):
         """
         points = MultiPoint(
             [
-                Point(frame.gps.lng, frame.gps.lat) for frame in self
+                Point(frame.gps.lng, frame.gps.lat) for frame in self if frame.gps.is_populated
             ]
         )
         buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
