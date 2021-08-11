@@ -9,11 +9,7 @@ class AccelerometerPointTest(TestCase):
     def test_serialize(self):
         self.assertEqual(
             AccelerometerPoint(1, None, 3).serialize(),
-            {
-                'x': 1,
-                'y': None,
-                'z': 3
-            }
+            None
         )
 
     def test_parse(self):

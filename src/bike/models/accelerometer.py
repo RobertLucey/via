@@ -32,12 +32,15 @@ class AccelerometerPoint():
                 obj['z']
             )
         elif isinstance(obj, (list, tuple)):
-            return AccelerometerPoint(
-                obj[0],
-                obj[1],
-                obj[2]
-            )
-        elif isinstance(obj, float):
+            if len(obj) == 0:
+                return AccelerometerPoint(None)
+            else:
+                return AccelerometerPoint(
+                    obj[0],
+                    obj[1],
+                    obj[2]
+                )
+        elif isinstance(obj, (numbers.Number, type(None))):
             return AccelerometerPoint(
                 obj
             )
@@ -47,13 +50,21 @@ class AccelerometerPoint():
             )
 
     def serialize(self):
-        if self.vertical:
+        if isinstance(self.vertical, numbers.Number) or not self.xyz_populated:
             return self.vertical
         return {
             'x': self.x,
             'y': self.y,
             'z': self.z
         }
+
+    @property
+    def xyz_populated(self):
+        return all([
+            isinstance(self.x, numbers.Number),
+            isinstance(self.y, numbers.Number),
+            isinstance(self.z, numbers.Number)
+        ])
 
     @property
     def is_populated(self):
@@ -63,11 +74,7 @@ class AccelerometerPoint():
         if isinstance(self.vertical, numbers.Number):
             return True
 
-        return all([
-            isinstance(self.x, numbers.Number),
-            isinstance(self.y, numbers.Number),
-            isinstance(self.z, numbers.Number)
-        ])
+        return self.xyz_populated
 
     @property
     def quality(self):

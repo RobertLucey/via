@@ -10,7 +10,6 @@ class FrameTest(TestCase):
 
     def test_completeness(self):
         self.assertTrue(Frame(0.0, {'lat': 0.0, 'lng': 1.0}, (1.0, 1.0, 1.0)).is_complete)
-        self.assertFalse(Frame(0.0, {'lat': 0.0, 'lng': 1.0}, (1.0, 1.0)).is_complete)
         self.assertFalse(Frame(0.0, {'lat': 0.0, 'lng': None}, (1.0, 1.0, 1.0)).is_complete)
 
     def test_lat(self):
@@ -42,7 +41,7 @@ class FrameTest(TestCase):
             {
                 'time': 0.0,
                 'gps': {'lat': 0.0, 'lng': 1.0, 'elevation': None},
-                'acc': (1.0, 2.0, 3.0)
+                'acc': {'x': 1.0, 'y': 2.0, 'z': 3.0}
             }
         )
 
@@ -57,7 +56,7 @@ class FrameTest(TestCase):
             Frame.parse({'time': 0.0, 'gps': {'lat': 0.0, 'lng': 1.0}, 'acc': (1.0, 2.0, 3.0)}).serialize(),
             frame.serialize()
         )
-        with self.assertRaises(ValueError):
+        with self.assertRaises(NotImplementedError):
             Frame.parse(None)
 
 

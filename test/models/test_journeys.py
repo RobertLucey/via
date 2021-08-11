@@ -25,7 +25,7 @@ class JourneysTest(TestCase):
                 Frame(
                     d['time'],
                     {'lat': d['lat'], 'lng': d['lng']},
-                    ()  # acceleration, don't really care at the mo
+                    1  # acceleration, don't really care at the mo
                 )
             )
 
@@ -42,7 +42,7 @@ class JourneysTest(TestCase):
                 Frame(
                     d['time'],
                     {'lat': d['lat'], 'lng': d['lng']},
-                    ()  # acceleration, don't really care at the mo
+                    1  # acceleration, don't really care at the mo
                 )
             )
 
