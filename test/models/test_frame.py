@@ -9,7 +9,7 @@ from bike.models.frame import (
 class FrameTest(TestCase):
 
     def test_completeness(self):
-        self.assertTrue(Frame(0.0, {'lat': 0.0, 'lng': 1.0}, (1.0, 1.0, 1.0)).is_complete)
+        self.assertTrue(Frame(0.0, {'lat': 0.1, 'lng': 1.0}, (1.0, 1.0, 1.0)).is_complete)
         self.assertFalse(Frame(0.0, {'lat': 0.0, 'lng': None}, (1.0, 1.0, 1.0)).is_complete)
 
     def test_lat(self):
