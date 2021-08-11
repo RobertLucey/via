@@ -267,7 +267,7 @@ class JourneyTest(TestCase):
 
         self.assertEqual(
             hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            '33865fc665c74181ae5568db5fdb139f'
+            'fae0d22390bf7bb8a0948a5b954aceb4'
         )
 
     def test_plot_route_use_closest(self):
@@ -284,7 +284,7 @@ class JourneyTest(TestCase):
 
         self.assertEqual(
             hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            '0f4a71c6015e53bfe45072a6fb2787ba'
+            '5a0155e8bea8eb4994917744546fb9aa'
         )
 
     @mock.patch('bike.models.journey.Journey.post_send')

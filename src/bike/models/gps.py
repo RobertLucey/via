@@ -1,3 +1,5 @@
+import numbers
+
 from haversine import (
     haversine,
     Unit
@@ -81,8 +83,8 @@ class GPSPoint():
         :rtype: bool
         """
         return all([
-            isinstance(self.lat, float),
-            isinstance(self.lng, float),
+            isinstance(self.lat, numbers.Number),
+            isinstance(self.lng, numbers.Number),
             self.lat != 0,
             self.lng != 0
         ])
