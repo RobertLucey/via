@@ -1,10 +1,9 @@
-import random
-
 from bike.models.generic import (
     GenericObject,
     GenericObjects
 )
 from bike.models.gps import GPSPoint
+from bike.models.accelerometer import AccelerometerPoint
 
 
 class Frame(GenericObject):
@@ -23,7 +22,7 @@ class Frame(GenericObject):
         super().__init__()
         self.time = time
         self.gps = GPSPoint.parse(gps)
-        self.acceleration = acceleration
+        self.acceleration = AccelerometerPoint.parse(acceleration)
 
     @staticmethod
     def parse(obj):
@@ -35,7 +34,9 @@ class Frame(GenericObject):
                 obj['gps'],
                 obj['acc']
             )
-        raise ValueError()
+        raise NotImplementedError(
+            'Can\'t parse Frame from type %s' % (type(obj))
+        )
 
     def distance_from(self, point):
         """
@@ -56,19 +57,17 @@ class Frame(GenericObject):
         return all([
             isinstance(self.time, float),
             self.gps.is_populated,
-            len(self.acceleration) == 3,
-            all(isinstance(dp, float) for dp in self.acceleration)
+            self.acceleration.is_populated,
         ])
 
     @property
     def road_quality(self):
-        # FIXME: base this number off accelerometer data
-        return random.randint(0, 9)
+        return self.acceleration.quality
 
     def serialize(self, exclude_time=False):
         data = {
             'gps': self.gps.serialize(),
-            'acc': self.acceleration
+            'acc': self.acceleration.serialize()
         }
         if not exclude_time:
             data['time'] = round(self.time, 2)
