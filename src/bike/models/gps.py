@@ -1,5 +1,3 @@
-import numbers
-
 from haversine import (
     haversine,
     Unit
@@ -27,19 +25,19 @@ class GPSPoint():
 
     @staticmethod
     def parse(obj):
-        if isinstance(obj, GPSPoint):
-            return obj
+        if isinstance(obj, list):
+            return GPSPoint(
+                obj[0],
+                obj[1]
+            )
         elif isinstance(obj, dict):
             return GPSPoint(
                 obj['lat'],
                 obj['lng'],
                 elevation=obj.get('elevation', None)
             )
-        elif isinstance(obj, list):
-            return GPSPoint(
-                obj[0],
-                obj[1]
-            )
+        elif isinstance(obj, GPSPoint):
+            return obj
         else:
             raise NotImplementedError(
                 'Can\'t parse gps from type %s' % (type(obj))
@@ -82,9 +80,4 @@ class GPSPoint():
 
         :rtype: bool
         """
-        return all([
-            isinstance(self.lat, numbers.Number),
-            isinstance(self.lng, numbers.Number),
-            self.lat != 0,
-            self.lng != 0
-        ])
+        return isinstance(self.lat, (int, float)) and isinstance(self.lng, (int, float)) and self.lat != 0 and self.lng != 0

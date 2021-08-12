@@ -6,6 +6,7 @@ from functools import wraps
 from itertools import islice, chain
 
 import osmnx as ox
+import fast_json
 
 from bike import logger
 from bike.constants import (
@@ -37,8 +38,8 @@ def is_journey_data_file(potential_journey_file: str):
 
     try:
         with open(potential_journey_file, 'r') as potential_journey_file_io:
-            data = json.loads(potential_journey_file_io.read())
-    except json.decoder.JSONDecodeError:
+            data = fast_json.loads(potential_journey_file_io.read())
+    except (json.decoder.JSONDecodeError, ValueError):
         return False
     else:
         if not all([

@@ -4,6 +4,7 @@ import os
 
 import backoff
 import requests
+import fast_json
 
 from bike import logger
 from bike.utils import split_into
@@ -21,13 +22,14 @@ from bike.settings import (
     UPLOAD_EXCLUDE_TIME,
     PARTIAL_SPLIT_INTO
 )
+from bike.models.point import FramePoint, FramePoints
 from bike.models.frame import (
     Frame,
     Frames
 )
 
 
-class Partial(Frames):
+class Partial(FramePoints):
     """
     When sending never includes time as it can't be used for anything but
     stitching together a journey which we don't want
@@ -41,7 +43,7 @@ class Partial(Frames):
         :kwarg suspension: If using suspension or not, defaults
             to settings.SUSPENSION
         """
-        kwargs.setdefault('child_class', Frame)
+        kwargs.setdefault('child_class', FramePoint)
         super().__init__(*args, **kwargs)
 
         self.is_partial = True
@@ -77,7 +79,7 @@ class Partial(Frames):
         logger.debug('Loading partial from %s', filepath)
         with open(filepath, 'r') as journey_file:
             return Partial(
-                **json.loads(journey_file.read())
+                **fast_json.loads(journey_file.read())
             )
 
     def save(self):

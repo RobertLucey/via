@@ -1,5 +1,6 @@
 import statistics
 import multiprocessing
+from contextlib import closing
 from collections import defaultdict
 
 import osmnx as ox
@@ -79,6 +80,14 @@ class Journeys(GenericObjects):
             self.most_western,
             network_type=self.network_type,
             simplify=True
+        )
+
+    @staticmethod
+    def from_files(filepaths):
+        with closing(multiprocessing.Pool(multiprocessing.cpu_count())) as p:
+            journeys = list(p.imap_unordered(Journey.from_file, filepaths))
+        return Journeys(
+            data=journeys
         )
 
     @property

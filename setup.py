@@ -4,6 +4,8 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'reverse_geocoder',
+    'fast_json',
     'boto3',
     'backoff',
     'adafruit-circuitpython-gps',

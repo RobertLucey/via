@@ -5,44 +5,20 @@ from bike.models.accelerometer import AccelerometerPoint
 
 class AccelerometerPointTest(TestCase):
 
-
     def test_serialize(self):
         self.assertEqual(
-            AccelerometerPoint(1, None, 3).serialize(),
-            None
+            AccelerometerPoint(1).serialize(),
+            1
         )
-
-    def test_parse(self):
         self.assertEqual(
-            AccelerometerPoint.parse(
-                (
-                    1,
-                    2,
-                    3
-                )
-            ).serialize(),
-            {
-                'x': 1,
-                'y': 2,
-                'z': 3
-            }
+            AccelerometerPoint([1, 2]).serialize(),
+            [1, 2]
         )
-
         self.assertEqual(
-            AccelerometerPoint.parse(
-                {
-                    'x': 1,
-                    'y': 2,
-                    'z': 3
-                }
-            ).serialize(),
-            {
-                'x': 1,
-                'y': 2,
-                'z': 3
-            }
+            AccelerometerPoint([1, 2]).serialize(),
+            [1, 2]
         )
 
     def test_is_populated(self):
         self.assertTrue(AccelerometerPoint(1, 2, 3).is_populated)
-        self.assertFalse(AccelerometerPoint(1, None, 3).is_populated)
+        self.assertFalse(AccelerometerPoint(None).is_populated)

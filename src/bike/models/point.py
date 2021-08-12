@@ -1,3 +1,5 @@
+import statistics
+
 from bike.models.generic import (
     GenericObject,
     GenericObjects
@@ -6,7 +8,7 @@ from bike.models.gps import GPSPoint
 from bike.models.accelerometer import AccelerometerPoint
 
 
-class Frame(GenericObject):
+class FramePoint(GenericObject):
     """
     A single snapshot of data on a journey containing gps, acceleration
     and time info
@@ -17,26 +19,26 @@ class Frame(GenericObject):
 
         :param time:
         :param gps: GPSPoint or dict serialization of GPSPoint
-        :param acceleration:
+        :param acceneration:
         """
         super().__init__()
         self.time = time
         self.gps = GPSPoint.parse(gps)
-        self.acceleration = acceleration
+
+        if isinstance(acceleration, list):
+            self.acceleration = acceleration
+        else:
+            self.acceleration = [acceleration]
 
     @staticmethod
     def parse(obj):
-        if isinstance(obj, dict):
-            return Frame(
-                obj.get('time', None),
-                obj['gps'],
-                obj['acc']
-            )
-        elif isinstance(obj, Frame):
+        if isinstance(obj, FramePoint):
             return obj
+        elif isinstance(obj, dict):
+            return FramePoint(obj.get('time', None), obj['gps'], obj['acc'])
         else:
             raise NotImplementedError(
-                'Can\'t parse Frame from type %s' % (type(obj))
+                'Can\'t parse Point from type %s' % (type(obj))
             )
 
     def distance_from(self, point):
@@ -46,7 +48,7 @@ class Frame(GenericObject):
         :rtype: float
         :return: Distance between points in metres
         """
-        if isinstance(point, Frame):
+        if isinstance(point, FramePoint):
             point = point.gps
         return self.gps.distance_from(point)
 
@@ -59,22 +61,26 @@ class Frame(GenericObject):
 
     @property
     def road_quality(self):
-        return self.acceleration.quality
+        try:
+            return statistics.mean(self.acceleration)
+        except:
+            return 0
 
     def serialize(self, exclude_time=False):
         data = {
             'gps': self.gps.serialize(),
-            'acc': self.acceleration
+            'acc': list(self.acceleration)
         }
         if not exclude_time:
             data['time'] = round(self.time, 2)
+
         return data
 
 
-class Frames(GenericObjects):
+class FramePoints(GenericObjects):
 
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('child_class', Frame)
+        kwargs.setdefault('child_class', FramePoint)
         super().__init__(*args, **kwargs)
 
     @property
@@ -102,8 +108,7 @@ class Frames(GenericObjects):
         :rtype: float
         :return: The percent between 0 and 1
         """
-        # Mixed with the deviation between times?
-        return len([f for f in self if f.is_complete]) / float(len(self))
+        return 1  # TODO
 
     @property
     def origin(self):

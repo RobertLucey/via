@@ -14,11 +14,17 @@ class GenericObjects():
         :kwarg data:
         :kwarg child_class:
         '''
-        self.uuid = kwargs.get('uuid', uuid.uuid4())
+        self._uuid = kwargs.get('uuid', None)
         self.child_class = kwargs.get('child_class', GenericObject)
         self._data = [
             self.child_class.parse(d) for d in kwargs.get('data', [])
         ]
+
+    @property
+    def uuid(self):
+        if self._uuid is None:
+            self._uuid = uuid.uuid4()
+        return self._uuid
 
     def __getitem__(self, i):
         return self._data[i]
@@ -81,7 +87,13 @@ class GenericObject():
 
         :kwarg data:
         '''
-        self.uuid = kwargs.get('uuid', uuid.uuid4())
+        self._uuid = kwargs.get('uuid', None)
+
+    @property
+    def uuid(self):
+        if self._uuid is None:
+            self._uuid = uuid.uuid4()
+        return self._uuid
 
     def __repr__(self):
         return str('%s(%s)' % (

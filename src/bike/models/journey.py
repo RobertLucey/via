@@ -3,7 +3,9 @@ import statistics
 import os
 from collections import defaultdict
 
+import reverse_geocoder
 import geopandas as gpd
+import fast_json
 
 from shapely.ops import cascaded_union
 from shapely.geometry import MultiPoint, Point
@@ -34,6 +36,7 @@ from bike.settings import (
     UPLOAD_URL,
     UPLOAD_EXCLUDE_TIME
 )
+from bike.models.point import FramePoint, FramePoints
 from bike.models.frame import (
     Frame,
     Frames
@@ -42,7 +45,7 @@ from bike.edge_cache import get_edge_data
 from bike.place_cache import place_cache
 
 
-class Journey(Frames):
+class Journey(FramePoints):
 
     def __init__(self, *args, **kwargs):
         """
@@ -59,7 +62,7 @@ class Journey(Frames):
             # If setting the frames, if from a phone need to populat empty gps with the prev / next gps
             data = kwargs.pop('data')
 
-        kwargs.setdefault('child_class', Frame)
+        kwargs.setdefault('child_class', FramePoint)
         super().__init__(*args, **kwargs)
 
         self.extend(data)
@@ -76,18 +79,44 @@ class Journey(Frames):
 
         self.last_gps = None
 
-    def append(self, thing):
-        frame = Frame.parse(thing)
-        if not frame.gps.is_populated:
-            if not hasattr(self, 'last_gps'):
-                return
-            if self.last_gps is None:
-                return
-            frame.gps = self.last_gps
-        else:
-            self.last_gps = frame.gps
+    @property
+    def country(self):
+        return reverse_geocoder.search(
+            (
+                self.origin.gps.lat,
+                self.origin.gps.lng
+            )
+        )[0]['cc']
 
-        super().append(frame)
+    def append(self, thing):
+        if isinstance(thing, FramePoint):
+            self._data.append(
+                thing
+            )
+
+        else:
+            frame = Frame.parse(thing)
+
+            if not frame.gps.is_populated:
+                if not hasattr(self, 'last_gps'):
+                    return
+                if self.last_gps is None:
+                    return
+                frame.gps = self.last_gps
+            else:
+                self.last_gps = frame.gps
+
+            gps = frame.gps
+            time = frame.time
+            acc = frame.acceleration
+
+            index = next((index for (index, d) in enumerate(self._data) if d.gps == gps), None)
+            if index is None:
+                self._data.append(
+                    FramePoint(time, gps, acc)
+                )
+            else:
+                self._data[index].acceleration.append(acc)
 
     @staticmethod
     def parse(objs):
@@ -114,7 +143,7 @@ class Journey(Frames):
         logger.debug('Loading journey from %s', filepath)
         with open(filepath, 'r') as journey_file:
             return Journey(
-                **json.loads(journey_file.read())
+                **fast_json.loads(journey_file.read())
             )
 
     def get_indirect_distance(self, n_seconds=10):
@@ -230,7 +259,7 @@ class Journey(Frames):
             min_time = origin_time
             max_time = destination_time
 
-            tmp_frames = Frames()
+            tmp_frames = FramePoints()
             for frame in self:
                 if any([
                     frame.time < min_time + (60 * MINUTES_TO_CUT),
