@@ -164,12 +164,15 @@ class Journey(FramePoints):
 
     def is_in_place(self, place_name):
         place_bounds = place_cache.get(place_name)
-        return all([
-            self.most_northern < place_bounds['north'],
-            self.most_southern > place_bounds['south'],
-            self.most_eastern < place_bounds['east'],
-            self.most_western < place_bounds['west']
-        ])
+        try:
+            return all([
+                self.most_northern < place_bounds['north'],
+                self.most_southern > place_bounds['south'],
+                self.most_eastern < place_bounds['east'],
+                self.most_western > place_bounds['west']
+            ])
+        except ValueError:
+            return False
 
     def serialize(self, minimal=False, exclude_time=False):
         data = {
