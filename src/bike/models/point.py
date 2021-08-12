@@ -9,8 +9,13 @@ from bike.models.gps import GPSPoint
 
 class FramePoint(GenericObject):
     """
-    A single snapshot of data on a journey containing gps, acceleration
-    and time info
+    Data which snaps to the gps giving something like
+    {gps: (1, 2), acc: [1,2,3], time: 1}
+
+    Rather than
+    {gps: (1, 2), acc: 1, time: 1}
+    {gps: (1, 2), acc: 2, time: 2}
+    {gps: (1, 2), acc: 3, time: 3}
     """
 
     def __init__(self, time, gps, acceleration):
@@ -34,7 +39,11 @@ class FramePoint(GenericObject):
         if isinstance(obj, FramePoint):
             return obj
         elif isinstance(obj, dict):
-            return FramePoint(obj.get('time', None), obj['gps'], obj['acc'])
+            return FramePoint(
+                obj.get('time', None),
+                obj['gps'],
+                obj['acc']
+            )
         else:
             raise NotImplementedError(
                 'Can\'t parse Point from type %s' % (type(obj))
@@ -54,7 +63,7 @@ class FramePoint(GenericObject):
     @property
     def is_complete(self):
         """
-        Does the frame contain all expected data
+        Does the point contain all expected data
         """
         return isinstance(self.time, float) and self.gps.is_populated and self.acceleration != []
 

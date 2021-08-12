@@ -1,26 +1,8 @@
 # Bike
 
-Road quality assessment from cycling around
-
-I'll put a parts list and an installer together but until I have the hardware all together and tested out this is all up in the air and probably doesn't work
+Road quality assessment from cycling around, tools to analyse data from https://github.com/RobertLucey/road-quality-aggregator
 
 Also I'm going to rename this at some point for obvious reasons
-
-## Features
-
-- Cuts off the first and last 5 minutes (configurable) from your ride so nobody knows where you're coming and going to by sharing your ride info
-	- Additionally it cuts first x metres and last x metres. Whichever happens last, time or distance for the start or end takes effect
-- Optional mix multiple journeys together and split them again randomly by coordinates so it is unlikely any route will be found (along with a few other privacy measures)
-- If time is included in uploaded data, it is only relative time from the start of the turning on of the device
-- Local analysis tools so you don't need to upload your journeys if you don't want to
-
-## Requirements
-
-TODO: Need to make sure the parts work once they arrive
-
-## Installation
-
-TODO: Make an image but also install a guide because people shouldn't random img files
 
 ## Usage
 
@@ -52,10 +34,3 @@ journeys.plot_routes(
     }
 )
 ```
-
-## Future
-
-- Build an image so can handily install
-- Configure wifi so files uploaded when home without having to do anything
-- Some sort of backend to upload journeys to / visualize problematic areas
-- Visualization / Stats over multiple journeys
