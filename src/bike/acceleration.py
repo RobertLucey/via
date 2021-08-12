@@ -4,7 +4,6 @@ from bike.utils import (
     timing,
     get_board
 )
-from bike.models.accelerometer import AccelerometerPoint
 
 board = get_board()
 
@@ -27,4 +26,4 @@ class AccelerometerInterface():
 
     @timing
     def get_acceleration(self):
-        return AccelerometerPoint(*self.interface.acceleration)
+        return sum(self.interface.acceleration)  # FIXME: this is bad

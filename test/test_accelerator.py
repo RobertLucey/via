@@ -1,8 +1,8 @@
+import numbers
+
 import mock
 
 from unittest import TestCase
-
-from bike.models.accelerometer import AccelerometerPoint
 
 
 class MockIC2():
@@ -39,5 +39,5 @@ class AcceleratorTest(TestCase):
         lat_lng = interface.get_acceleration()
         self.assertIsInstance(
             lat_lng,
-            AccelerometerPoint
+            numbers.Number
         )

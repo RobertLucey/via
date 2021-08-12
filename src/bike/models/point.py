@@ -5,7 +5,6 @@ from bike.models.generic import (
     GenericObjects
 )
 from bike.models.gps import GPSPoint
-from bike.models.accelerometer import AccelerometerPoint
 
 
 class FramePoint(GenericObject):
