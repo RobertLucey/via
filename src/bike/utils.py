@@ -11,8 +11,6 @@ import fast_json
 from bike import logger
 from bike.constants import (
     DATA_DIR,
-    STAGED_DATA_DIR,
-    SENT_DATA_DIR,
     REMOTE_DATA_DIR,
     DEFAULT_EDGE_COLOUR
 )
@@ -91,11 +89,7 @@ def get_data_files(source=None):
     files = []
 
     path = DATA_DIR
-    if source == 'staged':
-        path = STAGED_DATA_DIR
-    elif source == 'sent':
-        path = SENT_DATA_DIR
-    elif source == 'remote':
+    if source == 'remote':
         path = REMOTE_DATA_DIR
     elif source is None:
         path = DATA_DIR

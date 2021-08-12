@@ -8,12 +8,7 @@ import osmnx as ox
 from bike.models.generic import GenericObjects
 from bike import logger
 from bike.models.journey import Journey
-from bike.models.partial import partials_from_journey
 from bike.utils import get_edge_colours
-from bike.settings import (
-    UPLOAD_PARTIAL,
-    MIN_JOURNEYS_UPLOAD_PARTIALS
-)
 
 
 def get_journey_edge_quality_map(journey):
@@ -187,9 +182,6 @@ class Journeys(GenericObjects):
         megas = defaultdict(Journey)
 
         for journey in self:
-            if not journey.is_culled:
-                journey.cull()
-
             key = '%s_%s' % (journey.transport_type, journey.suspension)
             megas[key].extend([frame for frame in journey])
             megas[key].transport_type = journey.transport_type
@@ -197,43 +189,3 @@ class Journeys(GenericObjects):
             megas[key].included_journeys.append(journey)
 
         return megas
-
-    def _send_partials(self):
-        if UPLOAD_PARTIAL and len(self) < MIN_JOURNEYS_UPLOAD_PARTIALS:
-            raise Exception('Not enough journeys to upload as upload partials are being used')
-
-        mega_journeys = self.get_mega_journeys()
-        for key, journey in mega_journeys.items():
-            failed = 0
-            success = 0
-            if len(journey.included_journeys) >= MIN_JOURNEYS_UPLOAD_PARTIALS:
-                for partial in partials_from_journey(journey):
-                    try:
-                        partial.send()
-                    except:
-                        failed += 1
-                    else:
-                        success += 1
-                if success > 0:
-                    if failed > 0:
-                        logger.warning(
-                            'Some partials failed to send but marking as sent. Success rate %s / %s' % (
-                                success,
-                                (success + failed)
-                            )
-                        )
-                    journey.post_send()
-            else:
-                logger.info(
-                    'Too few similar journey types to send: %s %s' % (
-                        key,
-                        journey.encoded_journeys
-                    )
-                )
-
-    def send(self):
-        if UPLOAD_PARTIAL:
-            self._send_partials()
-        else:
-            for journey in self:
-                journey.send()

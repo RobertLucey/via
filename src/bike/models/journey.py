@@ -1,6 +1,4 @@
-import json
 import statistics
-import os
 from collections import defaultdict
 
 import reverse_geocoder
@@ -9,8 +7,6 @@ import fast_json
 
 from shapely.ops import cascaded_union
 from shapely.geometry import MultiPoint, Point
-
-import requests
 
 import osmnx as ox
 import networkx as nx
@@ -22,25 +18,9 @@ from bike.utils import (
     get_edge_colours
 )
 from bike.nearest_node import nearest_node
-from bike.constants import (
-    POLY_POINT_BUFFER,
-    STAGED_DATA_DIR,
-    SENT_DATA_DIR
-)
-from bike.settings import (
-    EXCLUDE_METRES_BEGIN_AND_END,
-    MINUTES_TO_CUT,
-    TRANSPORT_TYPE,
-    SUSPENSION,
-    DELETE_ON_SEND,
-    UPLOAD_URL,
-    UPLOAD_EXCLUDE_TIME
-)
+from bike.constants import POLY_POINT_BUFFER
 from bike.models.point import FramePoint, FramePoints
-from bike.models.frame import (
-    Frame,
-    Frames
-)
+from bike.models.frame import Frame
 from bike.edge_cache import get_edge_data
 from bike.place_cache import place_cache
 
@@ -70,8 +50,8 @@ class Journey(FramePoints):
         self.is_culled = kwargs.get('is_culled', False)
         self.is_sent = kwargs.get('is_sent', False)
 
-        self.transport_type = kwargs.get('transport_type', TRANSPORT_TYPE)
-        self.suspension = kwargs.get('suspension', SUSPENSION)
+        self.transport_type = kwargs.get('transport_type', None)
+        self.suspension = kwargs.get('suspension', None)
 
         self.network_type = 'bike'
 
@@ -218,144 +198,6 @@ class Journey(FramePoints):
             )
 
         return data
-
-    def cull_distance(self):
-        """
-        Remove the start and end of the journey, the start to remove
-        will be until you are x metres away, the end to remove will be the
-        last time you are x metres away from the destination
-        """
-        first_frame_away_idx = None
-        last_frame_away_idx = None
-
-        for idx, frame in enumerate(self):
-            if frame.distance_from(self.origin) > EXCLUDE_METRES_BEGIN_AND_END:
-                first_frame_away_idx = idx
-                break
-
-        for idx, frame in enumerate(reversed(self._data)):
-            if frame.distance_from(self.destination) > EXCLUDE_METRES_BEGIN_AND_END:
-                last_frame_away_idx = len(self) - idx
-                break
-
-        if any(
-            [
-                first_frame_away_idx is None,
-                last_frame_away_idx is None
-            ]
-        ):
-            raise ValueError(
-                'Not a long enough journey to get any meaningful data from'
-            )
-
-        self._data = self[first_frame_away_idx:last_frame_away_idx]
-
-    def cull_time(self, origin_time, destination_time):
-        """
-        Remove the start and end of a journey, the start to remove will be
-        the first x minutes, the end to remove will be the last x minutes
-        """
-        if MINUTES_TO_CUT != 0:
-            min_time = origin_time
-            max_time = destination_time
-
-            tmp_frames = FramePoints()
-            for frame in self:
-                if any([
-                    frame.time < min_time + (60 * MINUTES_TO_CUT),
-                    frame.time > max_time - (60 * MINUTES_TO_CUT)
-                ]):
-                    continue
-                tmp_frames.append(frame)
-
-            self._data = tmp_frames
-
-    def cull(self):
-        """
-        Remove the start and end of the journey by time and distance for the
-        sake of removing possible identifiable data
-        """
-        logger.debug('Culling %s', self.uuid)
-
-        assert self.is_culled is False
-
-        origin_time = self.origin.time
-        destination_time = self.destination.time
-
-        orig_frame_count = len(self)
-
-        self.cull_distance()
-        self.cull_time(origin_time, destination_time)
-
-        new_frame_count = len(self)
-
-        self.is_culled = True
-
-        logger.info(
-            'Culled %s kept %s %% frames',
-            self.uuid,
-            (new_frame_count / orig_frame_count) * 100
-        )
-
-    def save(self):
-        logger.info('Saving %s', self.uuid)
-
-        assert self.is_culled is False
-
-        filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
-
-        os.makedirs(
-            os.path.dirname(filepath),
-            exist_ok=True
-        )
-
-        with open(filepath, 'w') as journey_file:
-            json.dump(
-                self.serialize(minimal=True),
-                journey_file
-            )
-
-    def post_send(self):
-        if len(self.included_journeys) != 0:
-            # since this is a mega journey, we should set all included to be saved
-            for journey in self.included_journeys:
-                journey.post_send()
-        else:
-            filepath = os.path.join(STAGED_DATA_DIR, str(self.uuid) + '.json')
-            if DELETE_ON_SEND:
-                os.remove(filepath)
-                logger.debug('Deleted: %s', filepath)
-            else:
-                sent_filepath = os.path.join(SENT_DATA_DIR, str(self.uuid) + '.json')
-
-                os.makedirs(
-                    os.path.dirname(sent_filepath),
-                    exist_ok=True
-                )
-
-                os.rename(
-                    filepath,
-                    sent_filepath
-                )
-                logger.debug('Moved %s -> %s', filepath, sent_filepath)
-
-    def send(self):
-        logger.info('Sending %s', self.uuid)
-
-        if not self.is_culled:
-            logger.info('Forcing a cull on send')
-            self.cull()
-
-        try:
-            requests.post(
-                url=UPLOAD_URL,
-                json=self.serialize(exclude_time=UPLOAD_EXCLUDE_TIME)
-            )
-        except requests.exceptions.RequestException as ex:
-            logger.error('Failed to send: %s', self.uuid)
-            logger.error(ex)
-        else:
-            self.post_send()
 
     def plot_route(
         self,

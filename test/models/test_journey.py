@@ -8,14 +8,6 @@ import mock
 
 from unittest import TestCase
 
-from bike.constants import (
-    STAGED_DATA_DIR,
-    SENT_DATA_DIR
-)
-from bike.settings import (
-    MINUTES_TO_CUT,
-    EXCLUDE_METRES_BEGIN_AND_END
-)
 from bike.models.journey import Journey
 from bike.models.frame import Frame
 
@@ -23,11 +15,6 @@ from bike.models.frame import Frame
 class JourneyTest(TestCase):
 
     def setUp(self):
-
-        os.makedirs(
-            STAGED_DATA_DIR,
-            exist_ok=True
-        )
 
         with open('test/resources/dublin_route.json') as json_file:
             self.test_data = json.load(json_file)
@@ -43,7 +30,6 @@ class JourneyTest(TestCase):
             )
 
     def test_route_graph(self):
-
         graph_coordinates = []
         for frame_uuid, frame_data in self.test_journey.route_graph._node.items():
             graph_coordinates.append(
@@ -89,14 +75,6 @@ class JourneyTest(TestCase):
         #    self.test_journey.serialize()['data_quality'],
         #    0.0
         #)
-        self.assertEqual(
-            self.test_journey.serialize()['suspension'],
-            True
-        )
-        self.assertEqual(
-            self.test_journey.serialize()['transport_type'],
-            'mountain'
-        )
 
     @mock.patch('bike.models.journey.Journey.get_indirect_distance', return_value=1000)
     @mock.patch('bike.models.journey.Journey.duration', 10)
@@ -119,126 +97,11 @@ class JourneyTest(TestCase):
             {'acc': [1], 'gps': {'lat': 53.332599, 'lng': -6.2647978, 'elevation': None}, 'time': 770}
         )
 
-    def test_cull_distance_too_short(self):
-        self.test_journey._data = self.test_journey._data[0:3]
-        with self.assertRaises(ValueError):
-            self.test_journey.cull_distance()
-
-    def test_cull_distance(self):
-        # TODO: ensure it doesn't cut too much
-
-        origin_frame = self.test_journey.origin
-        destination_frame = self.test_journey.destination
-
-        origin_frames = len(self.test_journey)
-
-        self.test_journey.cull_distance()
-
-        self.assertLess(
-            len(self.test_journey),
-            origin_frames
-        )
-
-        for frame in self.test_journey:
-            if frame.distance_from(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
-                self.fail()
-
-        for frame in self.test_journey:
-            if frame.distance_from(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
-                self.fail()
-
-    def test_cull_time(self):
-        # TODO: ensure it doesn't cut too much
-
-        origin_frame = self.test_journey.origin
-        destination_frame = self.test_journey.destination
-
-        origin_frames = len(self.test_journey)
-
-        self.test_journey.cull_time(origin_frame.time, destination_frame.time)
-
-        self.assertLess(
-            len(self.test_journey),
-            origin_frames
-        )
-
-        for frame in self.test_journey:
-            if frame.time - origin_frame.time < 60 * MINUTES_TO_CUT:
-                self.fail()
-
-        for frame in self.test_journey:
-            if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
-                self.fail()
-
-    def test_cull(self):
-        # TODO: ensure it doesn't cut too much
-
-        origin_frame = self.test_journey.origin
-        destination_frame = self.test_journey.destination
-
-        origin_frames = len(self.test_journey)
-
-        self.test_journey.cull()
-
-        self.assertTrue(self.test_journey.is_culled)
-
-        self.assertLess(
-            len(self.test_journey),
-            origin_frames
-        )
-
-        for frame in self.test_journey:
-            if frame.distance_from(origin_frame) < EXCLUDE_METRES_BEGIN_AND_END:
-                self.fail()
-
-        for frame in self.test_journey:
-            if frame.distance_from(destination_frame) < EXCLUDE_METRES_BEGIN_AND_END:
-                self.fail()
-
-        for frame in self.test_journey:
-            if frame.time - origin_frame.time < 60 * MINUTES_TO_CUT:
-                self.fail()
-
-        for frame in self.test_journey:
-            if destination_frame.time - frame.time < 60 * MINUTES_TO_CUT:
-                self.fail()
-
-    def test_double_cull(self):
-        """A culled journey should fail to cull again"""
-        self.test_journey.cull()
-
-        with self.assertRaises(AssertionError):
-            self.test_journey.cull()
-
     def test_duration(self):
         self.assertEqual(
             self.test_journey.duration,
             770
         )
-
-    def test_save_culled(self):
-        self.test_journey.is_culled = True
-        with self.assertRaises(Exception):
-            self.test_journey.save()
-
-    def test_journey_from_file(self):
-
-        journey = Journey()
-
-        for i in range(1000):
-            journey.append(
-                Frame(
-                    0 + i,
-                    {'lat': random.random(), 'lng': random.random()},
-                    random.random(),
-                )
-            )
-        journey.is_culled = False
-        journey.save()
-
-        new_journey = Journey.from_file(os.path.join(STAGED_DATA_DIR, str(journey.uuid) + '.json'))
-
-        self.assertEquals(journey.serialize(), new_journey.serialize())
 
     def test_parse(self):
         self.assertEqual(
@@ -287,55 +150,6 @@ class JourneyTest(TestCase):
             '5a0155e8bea8eb4994917744546fb9aa'
         )
 
-    @mock.patch('bike.models.journey.Journey.post_send')
-    @mock.patch('requests.post')
-    @mock.patch('bike.models.journey.Journey.cull')
-    def test_send_ensure_cull(self, cull_mock, post_mock, post_send_mock):
-        post_mock.return_value = None
-        post_send_mock.return_value = None
-
-        self.test_journey.is_culled = False
-        self.test_journey.send()
-
-        self.assertTrue(cull_mock.called)
-
-    @mock.patch('bike.models.journey.DELETE_ON_SEND', True)
-    @mock.patch('requests.post')
-    @mock.patch('bike.models.journey.Journey.cull')
-    def test_send_ensure_post_send_delete(self, cull_mock, post_mock):
-        cull_mock.return_value = None
-        post_mock.return_value = None
-
-        self.test_journey.save()
-
-        path = os.path.join(STAGED_DATA_DIR, str(self.test_journey.uuid) + '.json')
-
-        self.assertTrue(os.path.exists(path))
-
-        self.test_journey.send()
-
-        self.assertFalse(os.path.exists(path))
-
-    @mock.patch('bike.models.journey.DELETE_ON_SEND', False)
-    @mock.patch('requests.post')
-    @mock.patch('bike.models.journey.Journey.cull')
-    def test_send_ensure_post_send_move(self, cull_mock, post_mock):
-        cull_mock.return_value = None
-        post_mock.return_value = None
-
-        self.test_journey.save()
-
-        path = os.path.join(STAGED_DATA_DIR, str(self.test_journey.uuid) + '.json')
-        sent_path = os.path.join(SENT_DATA_DIR, str(self.test_journey.uuid) + '.json')
-
-        self.assertTrue(os.path.exists(path))
-        self.assertFalse(os.path.exists(sent_path))
-
-        self.test_journey.send()
-
-        self.assertFalse(os.path.exists(path))
-        self.assertTrue(os.path.exists(sent_path))
-
     def test_plot_route_use_condition(self):
         # TODO: need to have real data / not random data for the road quality
         pass
@@ -372,8 +186,8 @@ class JourneyTest(TestCase):
                     {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [None, 1, 1, 1, 1], 'time': 2},
                     {'gps': {'lat': 1.1, 'lng': 2.2, 'elevation': None}, 'acc': [None], 'time': 7}
                 ],
-                'transport_type': 'mountain',
-                'suspension': True,
+                'transport_type': None,
+                'suspension': None,
                 'is_culled': False,
                 'is_sent': False,
                 'direct_distance': 24860.633301979688,
