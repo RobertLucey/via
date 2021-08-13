@@ -16,14 +16,6 @@ from bike.constants import (
 )
 
 
-def get_board():
-    try:
-        import board
-        return board
-    except ImportError:
-        return None
-
-
 def is_journey_data_file(potential_journey_file: str):
     """
 
@@ -286,18 +278,6 @@ def force_list(val):
     if not isinstance(val, list):
         return [val]
     return val
-
-
-def split_into(seq, num):
-    avg = len(seq) / float(num)
-    out = []
-    last = 0.0
-
-    while last < len(seq):
-        out.append(seq[int(last):int(last + avg)])
-        last += avg
-
-    return out
 
 
 def flatten(lst):

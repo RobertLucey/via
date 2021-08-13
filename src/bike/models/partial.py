@@ -1,17 +1,9 @@
-import json
-import random
-import os
-
-import backoff
-import requests
 import fast_json
 
 from bike import logger
-from bike.utils import split_into
-from bike.models.point import FramePoint, FramePoints
-from bike.models.frame import (
-    Frame,
-    Frames
+from bike.models.point import (
+    FramePoint,
+    FramePoints
 )
 
 
