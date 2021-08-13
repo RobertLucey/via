@@ -12,7 +12,7 @@ class EdgeCacheTest(TestCase):
 
     def setUp(self):
 
-        with open('test/resources/dublin_route.json') as json_file:
+        with open('test/resources/just_route.json') as json_file:
             self.test_data = json.load(json_file)
 
         self.test_journey = Journey()

@@ -13,7 +13,7 @@ from bike.models.frame import Frame
 class JourneysTest(TestCase):
 
     def setUp(self):
-        with open('test/resources/dublin_route.json') as json_file:
+        with open('test/resources/just_route.json') as json_file:
             self.test_data = json.load(json_file)
 
         self.test_journey = Journey()
@@ -29,7 +29,7 @@ class JourneysTest(TestCase):
         self.test_journeys_single = Journeys()
         self.test_journeys_single.append(self.test_journey)
 
-        with open('test/resources/dublin_route.json') as json_file:
+        with open('test/resources/just_route.json') as json_file:
             self.test_data = json.load(json_file)
 
         self.test_journey = Journey()

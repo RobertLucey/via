@@ -1,3 +1,6 @@
+import os
+from shutil import copyfile, rmtree
+
 from unittest import TestCase
 
 import time
@@ -14,6 +17,10 @@ from bike.utils import (
     flatten,
     get_journeys
 )
+from bike.constants import (
+    REMOTE_DATA_DIR,
+    DATA_DIR
+)
 
 
 @sleep_until(0.5)
@@ -22,6 +29,53 @@ def sleep_a_bit():
 
 
 class UtilTest(TestCase):
+
+    def setUp(self):
+        try:
+            rmtree(DATA_DIR)
+        except Exception as ex:
+            pass
+        os.makedirs(REMOTE_DATA_DIR, exist_ok=True)
+        copyfile(
+            'test/resources/journey_point_at_node.json',
+            os.path.join(REMOTE_DATA_DIR, 'journey_point_at_node.json')
+        )
+        copyfile(
+            'test/resources/just_route.json',
+            os.path.join(REMOTE_DATA_DIR, 'just_route.json')
+        )
+
+    def test_is_journey_data_file(self):
+        self.assertTrue(
+            is_journey_data_file(
+                os.path.join(
+                    REMOTE_DATA_DIR,
+                    'journey_point_at_node.json'
+                )
+            )
+        )
+
+        self.assertFalse(
+            is_journey_data_file(
+                os.path.join(
+                    REMOTE_DATA_DIR,
+                    'just_route.json'
+                )
+            )
+        )
+
+        self.assertFalse(
+            is_journey_data_file(
+                '/dev/null'
+            )
+        )
+
+    def test_get_journeys(self):
+        self.assertEqual(
+            len(get_journeys()),
+            1
+        )
+
 
     def test_window(self):
         self.assertEqual(
