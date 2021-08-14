@@ -13,7 +13,7 @@ def main():
         '--condition',
         action='store_true',
         dest='condition',
-        help='Show the condition of the roads'
+        help='Show the condition of the roads, otherwise just plot the paths'
     )
     parser.add_argument(
         '--closest-edge',
@@ -22,20 +22,14 @@ def main():
         help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap'
     )
     parser.add_argument(
-        '--source',
-        dest='source',
-        default='remote',
-        help='Where to plot the journeys from (staged, sent, remote), default to remote'
-    )
-    parser.add_argument(
         '--place',
         dest='place',
         default='Dublin, Ireland',
-        help='What place to limit the data to (so you don\' try to visualize too big an area)'
+        help='What place to limit the data to (so you don\'t try to visualize too big an area). Must be an osmnx recognised place / format for example "Dublin, Ireland"'
     )
     args = parser.parse_args()
 
-    journeys = get_journeys(source=args.source, place=args.place)
+    journeys = get_journeys(source='remote', place=args.place)
 
     journeys.plot_routes(
         use_closest_edge_from_base=args.closest_edge,

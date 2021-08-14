@@ -10,27 +10,45 @@ To get a quick start into playing with journeys you can use one of the test reso
 
 Run `pull_journeys` before doing anything to make sure you have some data to work with.
 
-```{python}
-from bike.models.journey import Journey
+### Plot the road quality of a city
 
-sample_journey = Journey.from_file('test/resources/abc46949-7f23-474f-bf7c-e313f3c74e5d.json')
-print(sample_journey.serialize())  # Show some details of the journey
-sample_journey.plot_route()  # Show the route on a map
+I would like to get the `--min-edge-usage` from stats into this now that I think about it
+
+```
+usage: plot_journeys.py [-h] [--condition] [--closest-edge] [--place PLACE]
+
+optional arguments:
+  -h, --help      show this help message and exit
+  --condition     Show the condition of the roads, otherwise just plot the
+                  paths
+  --closest-edge  Use the closest route to the coordinates plotted on the
+                  actual journey. If no, similar journeys are not likely to
+                  overlap
+  --place PLACE   What place to limit the data to (so you don't try to
+                  visualize too big an area). Must be an osmnx recognised
+                  place / format for example "Dublin, Ireland"
 ```
 
-Here's how to show the road conditions on a map, aggregating all journeys
+### Get some stats of journeys
 
-```{python}
-from bike.utils import get_journeys
+Might want to split these into their own commands at some point
 
-journeys = get_journeys()
-journeys.plot_routes(
-    use_closest_edge_from_base=True,
-    apply_condition_colour=True,
-    plot_kwargs={
-        'bgcolor': 'w',
-        'edge_linewidth': 5,
-        'show': True
-    }
-)
+```
+usage: stats.py [-h] [--min-edge-usage MIN_EDGE_USAGE] [--coverage]
+                [--condition-by-street] [--place PLACE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --min-edge-usage MIN_EDGE_USAGE
+                        The minimum number of times an edge has to be used for
+                        it to be included in the final data (1 per journey)
+  --coverage            Get the coverage by length of the bounding box, to see
+                        what that box is and a visual represenation of the
+                        routes use plot_journeys
+  --condition-by-street
+                        List the condition by the street name
+  --place PLACE         What place to limit the data to (so you don't try to
+                        visualize too big an area). Must be an osmnx
+                        recognised place / format for example "Dublin,
+                        Ireland"
 ```

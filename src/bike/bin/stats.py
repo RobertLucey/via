@@ -108,20 +108,14 @@ def main():
         help='List the condition by the street name'
     )
     parser.add_argument(
-        '--source',
-        dest='source',
-        default='remote',
-        help='Where to plot the journeys from (staged, sent, remote), default to remote'
-    )
-    parser.add_argument(
         '--place',
         dest='place',
         default='Dublin, Ireland',
-        help='What place to limit the data to (so you don\' try to visualize too big an area)'
+        help='What place to limit the data to (so you don\'t try to visualize too big an area). Must be an osmnx recognised place / format for example "Dublin, Ireland"'
     )
     args = parser.parse_args()
 
-    journeys = get_journeys(args.source, place=args.place)
+    journeys = get_journeys('remote', place=args.place)
 
     if args.coverage:
         print_coverage(journeys, args.min_edge_usage)
