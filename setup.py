@@ -27,7 +27,9 @@ setup(
     install_requires=INSTALL_REQUIRES,
     entry_points={
         'console_scripts': [
-            'pull_journeys = bike.bin.pull_journeys:main'
+            'pull_journeys = bike.bin.pull_journeys:main',
+            'road_coverage = bike.bin.road_coverage:main',
+            'condition_by_street = bike.bin.condition_by_street:main'
         ]
     }
 )

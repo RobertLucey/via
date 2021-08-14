@@ -31,22 +31,37 @@ optional arguments:
 
 ### Get some stats of journeys
 
-Might want to split these into their own commands at some point
+### Road Coverage
+
+This will give a % of how much of the roads there is data of. You can make sure that there are at least 10 points of info for a road to be counted as having sufficient data to be counted
 
 ```
-usage: stats.py [-h] [--min-edge-usage MIN_EDGE_USAGE] [--coverage]
-                [--condition-by-street] [--place PLACE]
+usage: road_coverage.py [-h] [--min-edge-usage MIN_EDGE_USAGE] [--place PLACE]
 
 optional arguments:
   -h, --help            show this help message and exit
   --min-edge-usage MIN_EDGE_USAGE
                         The minimum number of times an edge has to be used for
                         it to be included in the final data (1 per journey)
-  --coverage            Get the coverage by length of the bounding box, to see
-                        what that box is and a visual represenation of the
-                        routes use plot_journeys
-  --condition-by-street
-                        List the condition by the street name
+  --place PLACE         What place to limit the data to (so you don't try to
+                        visualize too big an area). Must be an osmnx
+                        recognised place / format for example "Dublin,
+                        Ireland"
+```
+
+### Condition by Street
+
+Get a list of the worst roads and their values
+
+```
+usage: condition_by_street.py [-h] [--min-edge-usage MIN_EDGE_USAGE]
+                              [--place PLACE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --min-edge-usage MIN_EDGE_USAGE
+                        The minimum number of times an edge has to be used for
+                        it to be included in the final data (1 per journey)
   --place PLACE         What place to limit the data to (so you don't try to
                         visualize too big an area). Must be an osmnx
                         recognised place / format for example "Dublin,

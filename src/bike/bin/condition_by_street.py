@@ -9,34 +9,6 @@ from bike.utils import (
 )
 
 
-def print_coverage(journeys, min_edge_usage):
-    """
-
-    :param journeys:
-    :param min_edge_usage:
-    """
-
-    for key, journey in journeys.get_mega_journeys().items():
-        bounding_graph = journey.bounding_graph
-        used_edges = journey.edge_quality_map
-        used_edge_ids = []
-        total_length = 0
-        used_length = 0
-        for (u, v, k, d) in bounding_graph.edges(keys=True, data=True):
-            combined_id = get_combined_id(u, v)
-            if combined_id in used_edge_ids:
-                continue
-            used_edge_ids.append(combined_id)
-            if all([
-                combined_id in used_edges,
-                used_edges.get(combined_id, {}).get('count', -1) >= min_edge_usage
-            ]):
-                used_length += d['length']
-            total_length += d['length']
-        coverage_perc = (used_length / total_length) * 100
-        print('Coverage %s: %s%%' % (key, round(coverage_perc, 2)))
-
-
 def print_condition(journeys, min_edge_usage):
     """
 
@@ -96,18 +68,6 @@ def main():
         default=1
     )
     parser.add_argument(
-        '--coverage',
-        action='store_true',
-        dest='coverage',
-        help='Get the coverage by length of the bounding box, to see what that box is and a visual represenation of the routes use plot_journeys'
-    )
-    parser.add_argument(
-        '--condition-by-street',
-        action='store_true',
-        dest='condition_by_street',
-        help='List the condition by the street name'
-    )
-    parser.add_argument(
         '--place',
         dest='place',
         default='Dublin, Ireland',
@@ -116,13 +76,7 @@ def main():
     args = parser.parse_args()
 
     journeys = get_journeys('remote', place=args.place)
-
-    if args.coverage:
-        print_coverage(journeys, args.min_edge_usage)
-    elif args.condition_by_street:
-        print_condition(journeys, args.min_edge_usage)
-    else:
-        raise Exception('Must specify a stat to get')
+    print_condition(journeys, args.min_edge_usage)
 
 
 if __name__ == '__main__':
