@@ -1,8 +1,37 @@
 import os
+import sys
 import logging
 from logging.handlers import RotatingFileHandler
 
 from bike.constants import LOG_LOCATION
+
+
+fmt = '%(asctime)s|%(levelname)s| %(message)s'
+
+
+class ColourfulFormatter(logging.Formatter):
+
+    grey = "\x1b[38;21m"
+    yellow = "\x1b[33;21m"
+    red = "\x1b[31;21m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    format = fmt
+    format_problematic = fmt + ' (%(filename)s:%(lineno)d)'
+
+    FORMATS = {
+        logging.DEBUG: grey + format + reset,
+        logging.INFO: grey + format + reset,
+        logging.WARNING: yellow + format_problematic + reset,
+        logging.ERROR: red + format_problematic + reset,
+        logging.CRITICAL: bold_red + format_problematic + reset
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt)
+        return formatter.format(record)
+
 
 
 logger = logging.Logger('bike', logging.DEBUG)
@@ -24,3 +53,9 @@ handler.setFormatter(
     )
 )
 logger.addHandler(handler)
+
+std_handler = logging.StreamHandler(sys.stdout)
+std_handler.setFormatter(
+    ColourfulFormatter()
+)
+logger.addHandler(std_handler)
