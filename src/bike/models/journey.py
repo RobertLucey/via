@@ -247,18 +247,7 @@ class Journey(FramePoints):
                 **plot_kwargs
             )
         else:
-            if use_closest_edge_from_base:
-                route = self.closest_route
-            else:
-                base.add_nodes_from(self.route_graph.nodes(data=True))
-                base.add_edges_from(self.route_graph.edges(data=True))
-                route = self.route
-
-            ox.plot_graph_route(
-                base,
-                route,
-                **plot_kwargs
-            )
+            raise NotImplementedError()
 
     @property
     def edge_quality_map(self):
@@ -325,17 +314,7 @@ class Journey(FramePoints):
         :rtype: list
         :return: list of node ids along the path
         """
-        # TODO: option to do this by edges
-        # ...Maybe unless it's x metres within the radius of a node cause
-        # it would probably get confused if too close and only doing by edge
-        bounding_graph = self.graph
-
-        return [
-            nearest_node.get(
-                bounding_graph,
-                [frame]
-            )[0] for frame in self
-        ]
+        raise NotImplementedError()
 
     @property
     def route(self):

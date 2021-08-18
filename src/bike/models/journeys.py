@@ -8,7 +8,10 @@ import osmnx as ox
 from bike.models.generic import GenericObjects
 from bike import logger
 from bike.models.journey import Journey
-from bike.utils import get_edge_colours
+from bike.utils import (
+    get_edge_colours,
+    get_network_from_transport_type
+)
 
 
 def get_journey_edge_quality_map(journey):
@@ -24,7 +27,12 @@ class Journeys(GenericObjects):
         kwargs.setdefault('child_class', Journey)
         super().__init__(*args, **kwargs)
 
-        self.network_type = 'bike'
+        network_types = [journey.network_type for journey in self]
+        if len(set(network_types)) == 0 or len(set(network_types)) > 1:
+            self.network_type = 'all'
+        elif len(set(network_types)) == 1:
+            self.network_type = network_types[0]
+        print(self.network_type)
 
     @property
     def most_northern(self):
@@ -133,10 +141,8 @@ class Journeys(GenericObjects):
         """
         if len(self) == 0:
             raise Exception('Current Journeys object has no content')
-        elif len(self) == 1:
-            # We could just duplicate the only journey we have... will
-            # decide on this later when I figure out how annoying it is
-            raise Exception('To use Journeys effectively multiple journeys must be used, only one found')
+        if len(self) == 1:
+            logger.warning('To use Journeys effectively multiple journeys must be used, only one found')
 
         base = self.graph
         if apply_condition_colour:
@@ -144,7 +150,9 @@ class Journeys(GenericObjects):
                 edge_colours = get_edge_colours(
                     base,
                     colour_map_name,
-                    edge_map=self.edge_quality_map
+                    edge_map={
+                        edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] > 0
+                    }
                 )
             else:
                 for journey in self:
