@@ -9,10 +9,10 @@ class PlaceCache():
     def __init__(self):
         self.data = {
             'dublin ireland': {
-                'north': 53.4095829,
+                'north': 53.626487,
                 'south': 53.3018049,
                 'east': -6.1366563,
-                'west': -6.3867115
+                'west': -6.433500
             }
         }
 
