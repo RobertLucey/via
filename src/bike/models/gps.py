@@ -1,3 +1,4 @@
+import hashlib
 from haversine import (
     haversine,
     Unit
@@ -63,6 +64,13 @@ class GPSPoint():
             'lng': self.lng,
             'elevation': self.elevation
         }
+
+    @property
+    def content_hash(self):
+        '''
+        A content hash that will act as an id for the data, handy for caching
+        '''
+        return hashlib.md5(str(self.serialize()).encode()).hexdigest()
 
     @property
     def point(self):

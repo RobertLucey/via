@@ -306,6 +306,8 @@ class Journey(FramePoints):
                 )
             )
 
+        nearest_edge.save()
+
         return data
 
     @property

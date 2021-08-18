@@ -108,6 +108,9 @@ class Journeys(GenericObjects):
             self
         )
 
+        # Use this when profiling
+        #journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
+
         edge_quality_map = defaultdict(list)
         for journey_edge_quality_map in journey_edge_quality_maps:
             for edge_id, quals in journey_edge_quality_map.items():

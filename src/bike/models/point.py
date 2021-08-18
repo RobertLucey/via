@@ -84,6 +84,10 @@ class FramePoint(GenericObject):
 
         return data
 
+    @property
+    def gps_hash(self):
+        return self.gps.content_hash
+
 
 class FramePoints(GenericObjects):
 
