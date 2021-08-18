@@ -81,7 +81,7 @@ class NearestEdgeCache():
             )
             self.save()
         with open(self.fp, 'r') as f:
-            self.data = fast_json.loads(f.read())
+            self.data = {} #fast_json.loads(f.read())
         self.loaded = True
 
     @property
