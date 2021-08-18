@@ -32,7 +32,6 @@ class Journeys(GenericObjects):
             self.network_type = 'all'
         elif len(set(network_types)) == 1:
             self.network_type = network_types[0]
-        print(self.network_type)
 
     @property
     def most_northern(self):
@@ -125,6 +124,7 @@ class Journeys(GenericObjects):
         self,
         apply_condition_colour=False,
         use_closest_edge_from_base=False,
+        min_edge_usage=1,
         colour_map_name='plasma_r',
         plot_kwargs={}
     ):
@@ -135,6 +135,8 @@ class Journeys(GenericObjects):
         :kwarg use_closest_from_base: For each point on the actual route, for
             each node use the closest node from the original base graph
             the route is being drawn on
+        :kwargs min_edge_usage: The minimum number of times an edge has to be
+            used for it to be included in the final data (1 per journey)
         :kwarg colour_map_name:
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
             being done
@@ -151,7 +153,7 @@ class Journeys(GenericObjects):
                     base,
                     colour_map_name,
                     edge_map={
-                        edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] > 0
+                        edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] > min_edge_usage
                     }
                 )
             else:
