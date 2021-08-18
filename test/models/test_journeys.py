@@ -106,7 +106,7 @@ class JourneysTest(TestCase):
             'cf5f2b5fcdb64e2f264c3ad566ef134b'
         )
 
-    @skip()
+    @skip('not implemented')
     def test_plot_routes_use_closest(self):
         img_uuid = str(uuid.uuid4())
         fp = os.path.join('/tmp/', img_uuid) + '.jpg'

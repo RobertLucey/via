@@ -295,6 +295,9 @@ def flatten(lst):
 
 
 def get_network_from_transport_type(transport_type):
+    if transport_type is None:
+        return 'all'
+
     transport_type = transport_type.lower()
     if transport_type in {'bike', 'scooter'}:
         return 'bike'

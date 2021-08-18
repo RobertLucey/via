@@ -116,7 +116,7 @@ class JourneyTest(TestCase):
         with self.assertRaises(NotImplementedError):
             Journey.parse(None)
 
-    @skip()
+    @skip('not implemented')
     def test_plot_route_nothing_fancy(self):
         img_uuid = str(uuid.uuid4())
         fp = os.path.join('/tmp/', img_uuid) + '.jpg'
@@ -133,7 +133,7 @@ class JourneyTest(TestCase):
             'c0a275cb044243f3e1db915dcabc7557'
         )
 
-    @skip()
+    @skip('not implemented')
     def test_plot_route_use_closest(self):
         img_uuid = str(uuid.uuid4())
         fp = os.path.join('/tmp/', img_uuid) + '.jpg'
