@@ -207,7 +207,7 @@ class Journey(FramePoints):
         self,
         apply_condition_colour=False,
         use_closest_edge_from_base=False,
-        colour_map_name='plasma_r',
+        colour_map_name='bwr',
         plot_kwargs={}
     ):
         """

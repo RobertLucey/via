@@ -125,7 +125,7 @@ class Journeys(GenericObjects):
         apply_condition_colour=False,
         use_closest_edge_from_base=False,
         min_edge_usage=1,
-        colour_map_name='plasma_r',
+        colour_map_name='bwr',
         plot_kwargs={}
     ):
         """
