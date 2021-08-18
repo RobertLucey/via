@@ -70,7 +70,7 @@ class FramePoint(GenericObject):
     @property
     def road_quality(self):
         try:
-            return statistics.mean(self.acceleration)
+            return int(statistics.mean(self.acceleration) * 100)
         except:
             return 0
 

@@ -58,7 +58,7 @@ class Frame(GenericObject):
 
     @property
     def road_quality(self):
-        return self.acceleration.quality
+        return int(self.acceleration.quality * 100)
 
     def serialize(self, exclude_time=False):
         data = {
