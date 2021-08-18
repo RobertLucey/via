@@ -19,7 +19,7 @@ def main():
         '--closest-edge',
         action='store_true',
         dest='closest_edge',
-        help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap'
+        help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap (NB: Only works with condition)'
     )
     parser.add_argument(
         '--place',
