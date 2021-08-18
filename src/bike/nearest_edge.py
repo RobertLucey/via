@@ -58,6 +58,9 @@ class NearestEdgeCache():
             )
 
             for frame_id, edge_data in frame_id_result_map.items():
+                edge_data = list(edge_data)
+                edge_data[0] = [int(i) for i in edge_data[0]]
+                edge_data[1] = float(edge_data[1])
                 self.data[frame_id] = edge_data
 
         requested_frame_edge_map = {
@@ -81,7 +84,7 @@ class NearestEdgeCache():
             )
             self.save()
         with open(self.fp, 'r') as f:
-            self.data = {} #fast_json.loads(f.read())
+            self.data = fast_json.loads(f.read())
         self.loaded = True
 
     @property
