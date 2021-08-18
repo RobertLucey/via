@@ -90,6 +90,7 @@ class JourneysTest(TestCase):
         with self.assertRaises(Exception):
             self.test_journeys.plot_routes()
 
+    @skip('not implemented')
     def test_plot_routes_nothing_fancy(self):
         img_uuid = str(uuid.uuid4())
         fp = os.path.join('/tmp/', img_uuid) + '.jpg'
