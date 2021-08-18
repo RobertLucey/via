@@ -153,7 +153,7 @@ class Journeys(GenericObjects):
                     base,
                     colour_map_name,
                     edge_map={
-                        edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] > min_edge_usage
+                        edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] >= min_edge_usage
                     }
                 )
             else:
