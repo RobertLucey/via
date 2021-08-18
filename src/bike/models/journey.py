@@ -19,6 +19,7 @@ from bike.utils import (
     get_network_from_transport_type
 )
 from bike.nearest_node import nearest_node
+from bike.nearest_edge import nearest_edge
 from bike.constants import POLY_POINT_BUFFER
 from bike.models.point import FramePoint, FramePoints
 from bike.models.frame import Frame
@@ -286,16 +287,18 @@ class Journey(FramePoints):
         bounding_graph = self.graph
         route_graph = self.route_graph
 
+        nearest_edge.get(bounding_graph, self._data, return_dist=False)
+
         for (our_origin, our_destination) in window(self, window_size=2):
-            edge = ox.distance.get_nearest_edge(
+
+            edge = nearest_edge.get(
                 bounding_graph,
                 [
-                    our_origin.gps.lat,
-                    our_origin.gps.lng
+                    our_origin
                 ]
             )
 
-            data[get_combined_id(edge[0], edge[1])].append(
+            data[get_combined_id(edge[0][0], edge[0][1])].append(
                 get_edge_data(
                     route_graph,
                     our_origin.uuid,
