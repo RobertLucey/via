@@ -292,3 +292,11 @@ def flatten(lst):
     :return: Flattened list
     '''
     return list(chain.from_iterable(lst))
+
+
+def get_network_from_transport_type(transport_type):
+    if transport_type in {'bike', 'scooter'}:
+        return 'bike'
+    elif transport_type in {'bus', 'car'}:
+        return 'drive'
+    return 'all'

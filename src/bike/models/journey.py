@@ -15,7 +15,8 @@ from bike import logger
 from bike.utils import (
     window,
     get_combined_id,
-    get_edge_colours
+    get_edge_colours,
+    get_network_from_transport_type
 )
 from bike.nearest_node import nearest_node
 from bike.constants import POLY_POINT_BUFFER
@@ -53,7 +54,7 @@ class Journey(FramePoints):
         self.transport_type = kwargs.get('transport_type', None)
         self.suspension = kwargs.get('suspension', None)
 
-        self.network_type = 'bike'
+        self.network_type = get_network_from_transport_type(self.transport_type)
 
         self.included_journeys = []
 
@@ -268,16 +269,18 @@ class Journey(FramePoints):
 
         :rtype: dict
         """
-        return {
-            edge_id: {
+        data = {}
+        for edge_id, single_edge_data in self.edge_data.items():
+            data[edge_id] = {
                 'avg': int(
                     statistics.mean(
                         [edge['avg_road_quality'] for edge in single_edge_data]
                     )
                 ),
                 'count': len(single_edge_data)
-            } for edge_id, single_edge_data in self.edge_data.items()
-        }
+            }
+
+        return data
 
     @property
     def edge_data(self):
@@ -295,17 +298,19 @@ class Journey(FramePoints):
         route_graph = self.route_graph
 
         for (our_origin, our_destination) in window(self, window_size=2):
-
-            their_origin, their_destination = nearest_node.get(
+            edge = ox.distance.get_nearest_edge(
                 bounding_graph,
-                [our_origin, our_destination]
+                [
+                    our_origin.gps.lat,
+                    our_origin.gps.lng
+                ]
             )
 
-            data[get_combined_id(their_origin, their_destination)].append(
+            data[get_combined_id(edge[0], edge[1])].append(
                 get_edge_data(
                     route_graph,
                     our_origin.uuid,
-                    our_destination.uuid
+                    our_destination.uuid,
                 )
             )
 
