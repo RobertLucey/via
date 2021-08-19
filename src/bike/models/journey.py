@@ -1,3 +1,4 @@
+import hashlib
 import statistics
 from collections import defaultdict
 
@@ -18,13 +19,13 @@ from bike.utils import (
     get_edge_colours,
     get_network_from_transport_type
 )
-from bike.nearest_node import nearest_node
 from bike.nearest_edge import nearest_edge
 from bike.constants import POLY_POINT_BUFFER
 from bike.models.point import FramePoint, FramePoints
 from bike.models.frame import Frame
 from bike.edge_cache import get_edge_data
 from bike.place_cache import place_cache
+from bike.network_cache import network_cache
 
 
 class Journey(FramePoints):
@@ -392,14 +393,29 @@ class Journey(FramePoints):
             self.most_eastern,
             self.most_western
         )
-        return ox.graph_from_bbox(
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western,
-            network_type=self.network_type,
-            simplify=True
-        )
+
+        caches_key = 'bbox_journey_graph'
+
+        if network_cache.get(caches_key, self.content_hash) is None:
+            network = ox.graph_from_bbox(
+                self.most_northern,
+                self.most_southern,
+                self.most_eastern,
+                self.most_western,
+                network_type=self.network_type,
+                simplify=True
+            )
+            network_cache.set(caches_key, self.content_hash, network)
+
+        return network_cache.get(caches_key, self.content_hash)
+
+    @property
+    def content_hash(self):
+        return hashlib.md5(
+            str([
+                point.serialize() for point in self
+            ]).encode()
+        ).hexdigest()
 
     @property
     def graph(self):
@@ -409,24 +425,37 @@ class Journey(FramePoints):
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
 
-        unique_points = []
-        prev = None
-        for frame in self:
-            if frame.gps.is_populated:
-                if prev is not None:
-                    if prev.gps.lat != frame.gps.lat:
-                        unique_points.append(Point(frame.gps.lng, frame.gps.lat))
+        caches_key = 'poly_journey_graph'
 
-            prev = frame
+        if network_cache.get(caches_key, self.content_hash) is None:
 
-        points = MultiPoint(
-            unique_points
-        )
-        buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
-        boundary = gpd.GeoSeries(cascaded_union(buf))
+            unique_points = []
+            prev = None
+            for frame in self:
+                if frame.gps.is_populated:
+                    if prev is not None:
+                        if prev.gps.lat != frame.gps.lat:
+                            unique_points.append(
+                                Point(
+                                    frame.gps.lng,
+                                    frame.gps.lat
+                                )
+                            )
 
-        return ox.graph_from_polygon(
-            boundary.geometry[0],
-            network_type=self.network_type,
-            simplify=True
-        )
+                prev = frame
+
+            points = MultiPoint(
+                unique_points
+            )
+            buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
+            boundary = gpd.GeoSeries(cascaded_union(buf))
+
+            network = ox.graph_from_polygon(
+                boundary.geometry[0],
+                network_type=self.network_type,
+                simplify=True
+            )
+
+            network_cache.set(caches_key, self.content_hash, network)
+
+        return network_cache.get(caches_key, self.content_hash)

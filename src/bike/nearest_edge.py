@@ -5,14 +5,15 @@ import fast_json
 
 from bike.constants import EDGE_CACHE_DIR
 
-# TODO: just store uuids as string so no silly casting
-
 
 class NearestEdgeCache():
+    # TODO: split these in a grid of lat / lng 0.5 by the first gps of the upper right or something. Not very important as files are small
+    # TODO: just store uuids as string so no silly casting
 
     def __init__(self):
         self.loaded = False
         self.data = {}
+        self.last_save_len = -1
 
     def get(self, graph, frames, return_dist=False):
         """
@@ -72,9 +73,14 @@ class NearestEdgeCache():
         return [v[0] for v in requested_frame_edge_map.values()]
 
     def save(self):
-        # only save if fairly different from last save / load
-        with open(self.fp, 'w') as f:
-            f.write(fast_json.dumps(self.data))
+        if any([
+            not os.path.exists(self.fp),
+            len(self.data) > self.last_save_len and self.last_save_len >= 0
+        ]):
+
+            with open(self.fp, 'w') as f:
+                f.write(fast_json.dumps(self.data))
+        self.last_save_len = len(self.data)
 
     def load(self):
         if not os.path.exists(self.fp):
@@ -86,6 +92,7 @@ class NearestEdgeCache():
         with open(self.fp, 'r') as f:
             self.data = fast_json.loads(f.read())
         self.loaded = True
+        self.last_save_len = len(self.data)
 
     @property
     def fp(self):

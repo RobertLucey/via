@@ -1,4 +1,5 @@
 import statistics
+import hashlib
 import multiprocessing
 from contextlib import closing
 from collections import defaultdict
@@ -8,10 +9,8 @@ import osmnx as ox
 from bike.models.generic import GenericObjects
 from bike import logger
 from bike.models.journey import Journey
-from bike.utils import (
-    get_edge_colours,
-    get_network_from_transport_type
-)
+from bike.utils import get_edge_colours
+from bike.network_cache import network_cache
 
 
 def get_journey_edge_quality_map(journey):
@@ -75,14 +74,22 @@ class Journeys(GenericObjects):
             self.most_eastern,
             self.most_western
         )
-        return ox.graph_from_bbox(
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western,
-            network_type=self.network_type,
-            simplify=True
-        )
+
+        caches_key = 'bbox_journeys_graph'
+
+        if network_cache.get(caches_key, self.content_hash) is None:
+            network = ox.graph_from_bbox(
+                self.most_northern,
+                self.most_southern,
+                self.most_eastern,
+                self.most_western,
+                network_type=self.network_type,
+                simplify=True
+            )
+
+            network_cache.set(caches_key, self.content_hash, network)
+
+        return network_cache.get(caches_key, self.content_hash)
 
     @staticmethod
     def from_files(filepaths):
@@ -202,3 +209,11 @@ class Journeys(GenericObjects):
             megas[key].included_journeys.append(journey)
 
         return megas
+
+    @property
+    def content_hash(self):
+        hashlib.md5(
+            str([
+                journey.content_hash for journey in self
+            ]).encode()
+        ).hexdigest()
