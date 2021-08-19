@@ -25,7 +25,7 @@ class GPSPoint():
         self.elevation = elevation
 
     def __eq__(self, oth):
-        return self.serialize() == oth.serialize()
+        return self.lat == oth.lat and self.lng == oth.lng
 
     @staticmethod
     def parse(obj):

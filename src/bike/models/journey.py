@@ -72,11 +72,19 @@ class Journey(FramePoints):
         )[0]['cc']
 
     def append(self, thing):
+        """
+        NB: appending needs to be chronological (can be reversed, just so
+        long as it's consistent) as if no accelerometer data it assigns
+        the accelerometer data to the previously seen gps
+
+        Though journey data may not have time it will (should) always be
+        chronological
+        """
+        # TODO: warn if not chronological
         if isinstance(thing, FramePoint):
             self._data.append(
                 thing
             )
-
         else:
             frame = Frame.parse(thing)
 
@@ -90,16 +98,20 @@ class Journey(FramePoints):
                 self.last_gps = frame.gps
 
             gps = frame.gps
-            time = frame.time
             acc = frame.acceleration
 
-            index = next((index for (index, d) in enumerate(self._data) if d.gps == gps), None)
-            if index is None:
+            if len(self._data) == 0:
                 self._data.append(
-                    FramePoint(time, gps, acc)
+                    FramePoint(frame.time, gps, acc)
                 )
+                return
+
+            if self._data[-1].gps == gps:
+                self._data[-1].acceleration.append(acc)
             else:
-                self._data[index].acceleration.append(acc)
+                self._data.append(
+                    FramePoint(frame.time, gps, acc)
+                )
 
     @staticmethod
     def parse(objs):
