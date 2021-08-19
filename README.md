@@ -13,21 +13,24 @@ Run `pull_journeys` before doing anything to make sure you have some data to wor
 
 ### Plot the road quality of a city
 
-I would like to get the `--min-edge-usage` from stats into this now that I think about it
-
 ```
 usage: plot_journeys.py [-h] [--condition] [--closest-edge] [--place PLACE]
+                        [--min-edge-usage MIN_EDGE_USAGE]
 
 optional arguments:
-  -h, --help      show this help message and exit
-  --condition     Show the condition of the roads, otherwise just plot the
-                  paths
-  --closest-edge  Use the closest route to the coordinates plotted on the
-                  actual journey. If no, similar journeys are not likely to
-                  overlap
-  --place PLACE   What place to limit the data to (so you don't try to
-                  visualize too big an area). Must be an osmnx recognised
-                  place / format for example "Dublin, Ireland"
+  -h, --help            show this help message and exit
+  --condition           Show the condition of the roads, otherwise just plot
+                        the paths
+  --closest-edge        Use the closest route to the coordinates plotted on
+                        the actual journey. If no, similar journeys are not
+                        likely to overlap (NB: Only works with condition)
+  --place PLACE         What place to limit the data to (so you don't try to
+                        visualize too big an area). Must be an osmnx
+                        recognised place / format for example "Dublin,
+                        Ireland"
+  --min-edge-usage MIN_EDGE_USAGE
+                        The minimum number of times an edge has to be used for
+                        it to be included in the final data (1 per journey)
 ```
 
 ### Get some stats of journeys
