@@ -1,13 +1,14 @@
 # Bike
 
-Road quality assessment from cycling around, tools to analyse data from https://github.com/RobertLucey/road-quality-aggregator
+Road quality assessment from cycling around, tools to analyse data collected from the android app https://github.com/RobertLucey/road-quality-aggregator
+
+All uploaded data is public and no accounts required. Neat privacy to make it very difficult / impossible (depending on your settings and how many trips have been taken in the area) to find the route of an individual journey as well as its origin / destination
 
 Also I'm going to rename this at some point for obvious reasons
 
 ## Usage
 
 To get a quick start into playing with journeys you can use one of the test resource journeys. I'll put up an actual one once I get hardware delivered
-
 Run `pull_journeys` before doing anything to make sure you have some data to work with.
 
 ### Plot the road quality of a city
