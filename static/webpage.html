@@ -19,20 +19,10 @@
 
     <script>
 
-      function fSemaphor(minimal, maximal, value) {
-        var difference = maximal - minimal;
-        var medium = (minimal + difference / 2) | 0; // |0 returns INT
-        var RED = 255,
-          GREEN = 255;
-
-        if (value <= medium)
-          RED = (RED * (value / medium)) | 0;
-        else
-          GREEN = (GREEN * (1.0 - value / maximal)) | 0;
-
-        // returns HEX color, for usage in CSS or any style
-        return ("#" + (('0') + GREEN.toString(16)).substr(-2) + ('0' + RED.toString(16)).substr(-2) + '00'); // blue
-
+      function getColor(value){
+          //value from 0 to 1
+          var hue=((1-value)*120).toString(10);
+          return ["hsl(",hue,",100%,50%)"].join("");
       }
 
       // This map is global scope.
@@ -45,7 +35,7 @@
         id: 'mapbox/streets-v11',
         tileSize: 512,
         zoomOffset: -1,
-        accessToken: 'REDACTED'
+        accessToken: "REDACTED"
       }).addTo(map);
 
       function load_geojson(data) {
@@ -54,9 +44,8 @@
           data,
           {
             style: function(feature) {
-              // TODO: Should colour by a gradient from lowest to highest recorded road quality. This is a bit hacky
               return {
-                color: fSemaphor(0, 3, feature.properties.avg),
+                color: get_colour(Math.max.apply(Math, [feature.properties.avg], 30) / 30),  // 30 is just a fairly high cap
                 weight: 5
               };
             },
