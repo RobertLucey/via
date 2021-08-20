@@ -1,3 +1,5 @@
+import os
+import json
 import hashlib
 import statistics
 from collections import defaultdict
@@ -6,11 +8,13 @@ import reverse_geocoder
 import geopandas as gpd
 import fast_json
 
+import shapely
 from shapely.ops import cascaded_union
 from shapely.geometry import MultiPoint, Point
 
 import osmnx as ox
 import networkx as nx
+from networkx.readwrite import json_graph
 
 from bike import logger
 from bike.utils import (
@@ -20,7 +24,10 @@ from bike.utils import (
     get_network_from_transport_type
 )
 from bike.nearest_edge import nearest_edge
-from bike.constants import POLY_POINT_BUFFER
+from bike.constants import (
+    POLY_POINT_BUFFER,
+    GEOJSON_DIR
+)
 from bike.models.point import FramePoint, FramePoints
 from bike.models.frame import Frame
 from bike.edge_cache import get_edge_data
@@ -471,3 +478,104 @@ class Journey(FramePoints):
             network_cache.set(caches_key, self.content_hash, network)
 
         return network_cache.get(caches_key, self.content_hash)
+
+    @property
+    def snapped_route_graph(self):
+        """
+        Get the route graph, snapping to the nearest edge
+        """
+        bounding_graph = self.graph
+
+        nearest_edge.get(bounding_graph, self._data, return_dist=False)
+
+        edges = []
+        used_node_ids = []
+        for (our_origin, our_destination) in window(self, window_size=2):
+            edge = nearest_edge.get(
+                bounding_graph,
+                [
+                    our_origin
+                ]
+            )
+            edges.append(tuple(edge[0]))
+            used_node_ids.extend([edge[0][0], edge[0][1]])
+
+        graph_nodes, graph_edges = ox.graph_to_gdfs(
+            bounding_graph,
+            fill_edge_geometry=True
+        )
+
+        nodes_to_rm = []
+        for node in graph_nodes.index:
+            if node not in used_node_ids:
+                nodes_to_rm.append(node)
+        graph_nodes = graph_nodes.drop(nodes_to_rm)
+
+        edges_to_rm = []
+        for edge in graph_edges.index:
+            if edge not in edges:
+                edges_to_rm.append(edge)
+        graph_edges = graph_edges.drop(edges_to_rm)
+
+        graph = ox.graph_from_gdfs(graph_nodes, graph_edges)
+
+        for start, end, _ in graph.edges:
+            graph_edge_id = get_combined_id(start, end)
+            if graph_edge_id in self.edge_quality_map:
+                graph[start][end][0].update(self.edge_quality_map[graph_edge_id])
+
+        return graph
+
+    @property
+    def geojson(self):
+        """
+        Write and return a GeoJSON object string of the graph.
+        """
+
+        # TODO: deal with this like a cache this like we cache networks.
+        # This is very fast so not very important. There is some stupid caching
+        # below
+
+        if os.path.exists(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson')):
+            geojson_features = None
+            with open(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson'), 'r') as json_file:
+                geojson_features = fast_json.loads(json_file.read())
+        else:
+            json_links = json_graph.node_link_data(self.snapped_route_graph)['links']
+
+            geojson_features = {
+                'type': 'FeatureCollection',
+                'features': []
+            }
+
+            for link in json_links:
+                if 'geometry' not in link:
+                    continue
+
+                feature = {
+                    'type': 'Feature',
+                    'properties': {}
+                }
+
+                for k in link:
+                    if k == 'geometry':
+                        feature['geometry'] = shapely.geometry.mapping(link['geometry'])
+                    else:
+                        feature['properties'][k] = link[k]
+
+                geojson_features['features'].append(feature)
+
+            if not os.path.exists(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson')):
+                os.makedirs(
+                    os.path.join(GEOJSON_DIR),
+                    exist_ok=True
+                )
+
+            with open(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson'), 'w') as json_file:
+                json.dump(
+                    geojson_features,
+                    json_file,
+                    indent=4
+                )
+
+        return geojson_features

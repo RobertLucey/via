@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <title>Leaflet Example Test?</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+    <!-- Make sure you put this AFTER Leaflet's CSS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+
+    <style>
+      #map_div {
+        height: 85%;
+        width: 95%;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <div id="map_div"></div>
+
+    <script>
+
+      function fSemaphor(minimal, maximal, value) {
+        var difference = maximal - minimal;
+        var medium = (minimal + difference / 2) | 0; // |0 returns INT
+        var RED = 255,
+          GREEN = 255;
+
+        if (value <= medium)
+          RED = (RED * (value / medium)) | 0;
+        else
+          GREEN = (GREEN * (1.0 - value / maximal)) | 0;
+
+        // returns HEX color, for usage in CSS or any style
+        return ("#" + (('0') + GREEN.toString(16)).substr(-2) + ('0' + RED.toString(16)).substr(-2) + '00'); // blue
+
+      }
+
+      // This map is global scope.
+      var map = L.map('map_div').setView([53.35, -6.26], 12);
+      // Public token from Mapbox is here. It can be left in, it's not secret.
+      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGhvbmVtYW4iLCJhIjoiY2tzazlwendiMDZ3NTJvcG50dzBlZDIzZCJ9.L0wR8vdrRgO4RQR6yLF6UA', {
+        // Attribution must be left in for ToS reasons.
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'REDACTED'
+      }).addTo(map);
+
+      function load_geojson(data) {
+        // Triggered on file upload with the GeoJSON object.
+        L.geoJSON(
+          data,
+          {
+            style: function(feature) {
+              // TODO: Should colour by a gradient from lowest to highest recorded road quality. This is a bit hacky
+              return {
+                color: fSemaphor(0, 3, feature.properties.avg),
+                weight: 5
+              };
+            },
+            onEachFeature: function(feature, layer) {
+              // A general method run on each feature. These bind popups for on
+              // layer click (default) and also on mouseover/out. Just the road
+              // name for now which isn't always populated.
+
+              layer.bindPopup(feature.properties.name + ": " + feature.properties.avg);
+
+              layer.on('mouseover', function(e) {
+                this.openPopup();
+              });
+              layer.on('mouseout', function(e) {
+                this.closePopup();
+              });
+            }
+          }
+        ).addTo(map);
+      }
+
+      // These two methods just read a JSON file when one is selected and
+      // return an Object.
+      function _read_file(file) {
+        return new Promise((resolve, reject) => {
+          let fr = new FileReader();
+          fr.onload = x=> resolve(fr.result);
+          fr.readAsText(file);
+        })
+      }
+
+      async function read_file(file_input) {
+        let file_content = await _read_file(file_input.files[0]);
+        load_geojson(JSON.parse(file_content));
+      }
+    </script>
+
+    <div>
+      <input type="file" onchange="read_file(this)"/>
+      Learn more about this project <a href="https://github.com/RobertLucey/bike">HERE</a>
+    </div>
+    <hr>
+    <div>
+      TODO: Default to something and add some links to load certain types of data without needing to provide a file
+    </div>
+  </body>
+</html>

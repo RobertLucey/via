@@ -8,6 +8,7 @@ REMOTE_DATA_DIR = os.path.join(DATA_DIR, 'remote')
 CACHE_DIR = os.path.join(DATA_DIR, 'cache')
 EDGE_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_cache')
 NETWORK_CACHE_DIR = os.path.join(CACHE_DIR, 'network_cache')
+GEOJSON_DIR = os.path.join(CACHE_DIR, 'geojson')
 
 LOG_LOCATION = '/var/log/bike/bike.log' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/log/bike/bike.log'
 
