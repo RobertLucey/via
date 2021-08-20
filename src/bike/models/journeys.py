@@ -9,8 +9,15 @@ import osmnx as ox
 from bike.models.generic import GenericObjects
 from bike import logger
 from bike.models.journey import Journey
-from bike.utils import get_edge_colours
+from bike.utils import (
+    get_edge_colours,
+    flatten
+)
 from bike.network_cache import network_cache
+from bike.models.journey_mixins import (
+    SnappedRouteGraphMixin,
+    GeoJsonMixin
+)
 
 
 def get_journey_edge_quality_map(journey):
@@ -20,7 +27,7 @@ def get_journey_edge_quality_map(journey):
     return edge_quality_map
 
 
-class Journeys(GenericObjects):
+class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Journey)
@@ -213,8 +220,15 @@ class Journeys(GenericObjects):
 
     @property
     def content_hash(self):
-        hashlib.md5(
+        return hashlib.md5(
             str([
                 journey.content_hash for journey in self
             ]).encode()
         ).hexdigest()
+
+    @property
+    def all_points(self):
+        """
+        Return all the points in this journeys obj
+        """
+        return flatten([journey.all_points for journey in self._data])

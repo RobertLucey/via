@@ -1,43 +1,34 @@
-import os
-import json
-import hashlib
 import statistics
 from collections import defaultdict
 
-import reverse_geocoder
 import geopandas as gpd
 import fast_json
 
-import shapely
 from shapely.ops import cascaded_union
 
 import networkx as nx
 import osmnx as ox
-from networkx.readwrite import json_graph
 
 from bike import logger
 from bike.utils import (
     window,
     get_combined_id,
     get_edge_colours,
-    get_network_from_transport_type,
-    filter_nodes_from_geodataframe,
-    filter_edges_from_geodataframe,
-    update_edge_data
+    get_network_from_transport_type
 )
 from bike.nearest_edge import nearest_edge
-from bike.constants import (
-    POLY_POINT_BUFFER,
-    GEOJSON_DIR
-)
+from bike.constants import POLY_POINT_BUFFER
 from bike.models.point import FramePoint, FramePoints
 from bike.models.frame import Frame
 from bike.edge_cache import get_edge_data
-from bike.place_cache import place_cache
 from bike.network_cache import network_cache
+from bike.models.journey_mixins import (
+    SnappedRouteGraphMixin,
+    GeoJsonMixin
+)
 
 
-class Journey(FramePoints):
+class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin):
 
     def __init__(self, *args, **kwargs):
         """
@@ -71,21 +62,6 @@ class Journey(FramePoints):
         self.included_journeys = []
 
         self.last_gps = None
-
-    @property
-    def country(self):
-        """
-        Get what country this journey started in
-
-        :return: a two letter country code
-        :rtype: str
-        """
-        return reverse_geocoder.search(
-            (
-                self.origin.gps.lat,
-                self.origin.gps.lng
-            )
-        )[0]['cc']
 
     def append(self, thing):
         """
@@ -159,6 +135,7 @@ class Journey(FramePoints):
 
     def get_indirect_distance(self, n_seconds=10):
         """
+        NB: Data must be chronological
 
         :param n_seconds: use the location every n seconds as if the
             location is calculated too frequently the distance
@@ -184,6 +161,7 @@ class Journey(FramePoints):
 
     def get_avg_speed(self, n_seconds=30):
         """
+        NB: Data must be chronological
 
         :param n_seconds: use the location every n seconds as if the
                         location is calculated too frequently the distance
@@ -192,27 +170,6 @@ class Journey(FramePoints):
         :return: avg speed in metres per second
         """
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
-
-    def is_in_place(self, place_name: str):
-        """
-        Get if a journey is entirely within the bounds of some place.
-        Does this by rect rather than polygon so it isn't exact but mainly
-        to be used to focus on a single city.
-
-        :param place_name: An osmnx place name. For example "Dublin, Ireland"
-            To see if the place name is valid try graph_from_place(place).
-            Might be good to do that in here and throw an ex if it's not found
-        """
-        place_bounds = place_cache.get(place_name)
-        try:
-            return all([
-                self.most_northern < place_bounds['north'],
-                self.most_southern > place_bounds['south'],
-                self.most_eastern < place_bounds['east'],
-                self.most_western > place_bounds['west']
-            ])
-        except ValueError:
-            return False
 
     def serialize(self, minimal=False, exclude_time=False):
         data = {
@@ -317,10 +274,6 @@ class Journey(FramePoints):
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
         """
-
-        # FIXME: This uses nodes to get edges, should use nearest edge
-        # unless very close to a node. Factor in direction and all that
-
         data = defaultdict(list)
         bounding_graph = self.graph
         route_graph = self.route_graph
@@ -450,14 +403,6 @@ class Journey(FramePoints):
         return network_cache.get(caches_key, self.content_hash)
 
     @property
-    def content_hash(self):
-        return hashlib.md5(
-            str([
-                point.serialize() for point in self
-            ]).encode()
-        ).hexdigest()
-
-    @property
     def graph(self):
         """
         Get a graph of the journey but excluding nodes far away from the route
@@ -487,96 +432,8 @@ class Journey(FramePoints):
         return network_cache.get(caches_key, self.content_hash)
 
     @property
-    def snapped_route_graph(self):
+    def all_points(self):
         """
-        Get the route graph, snapping to the nearest edge
+        Return all the points in this journey
         """
-        bounding_graph = self.graph
-
-        nearest_edge.get(bounding_graph, self._data, return_dist=False)
-
-        edges = []
-        used_node_ids = []
-        for (our_origin, our_destination) in window(self, window_size=2):
-            edge = nearest_edge.get(
-                bounding_graph,
-                [
-                    our_origin
-                ]
-            )
-            edges.append(tuple(edge[0]))
-            used_node_ids.extend([edge[0][0], edge[0][1]])
-
-        graph_nodes, graph_edges = ox.graph_to_gdfs(
-            bounding_graph,
-            fill_edge_geometry=True
-        )
-
-        # Filter only the nodes and edges on the route and ignore the
-        # buffer used to get context
-        graph = ox.graph_from_gdfs(
-            filter_nodes_from_geodataframe(graph_nodes, used_node_ids),
-            filter_edges_from_geodataframe(graph_edges, edges)
-        )
-
-        graph = update_edge_data(graph, self.edge_quality_map)
-
-        return graph
-
-    @property
-    def geojson(self):
-        """
-        Write and return a GeoJSON object string of the graph.
-        """
-        geojson_file = os.path.join(
-            GEOJSON_DIR,
-            self.content_hash + '.geojson'
-        )
-
-        if os.path.exists(geojson_file):
-            geojson_features = None
-            with open(geojson_file, 'r') as json_file:
-                geojson_features = fast_json.loads(json_file.read())
-        else:
-            json_links = json_graph.node_link_data(
-                self.snapped_route_graph
-            )['links']
-
-            geojson_features = {
-                'type': 'FeatureCollection',
-                'features': []
-            }
-
-            for link in json_links:
-                if 'geometry' not in link:
-                    continue
-
-                feature = {
-                    'type': 'Feature',
-                    'properties': {}
-                }
-
-                for k in link:
-                    if k == 'geometry':
-                        feature['geometry'] = shapely.geometry.mapping(
-                            link['geometry']
-                        )
-                    else:
-                        feature['properties'][k] = link[k]
-
-                geojson_features['features'].append(feature)
-
-            if not os.path.exists(geojson_file):
-                os.makedirs(
-                    os.path.join(GEOJSON_DIR),
-                    exist_ok=True
-                )
-
-            with open(geojson_file, 'w') as json_file:
-                json.dump(
-                    geojson_features,
-                    json_file,
-                    indent=4
-                )
-
-        return geojson_features
+        return self._data

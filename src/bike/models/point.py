@@ -1,7 +1,13 @@
+import hashlib
 import statistics
 
-from shapely.geometry import MultiPoint, Point
+import reverse_geocoder
+from shapely.geometry import (
+    MultiPoint,
+    Point
+)
 
+from bike.place_cache import place_cache
 from bike.models.generic import (
     GenericObject,
     GenericObjects
@@ -185,3 +191,47 @@ class FramePoints(GenericObjects):
         return MultiPoint(
             unique_points
         )
+
+    @property
+    def content_hash(self):
+        return hashlib.md5(
+            str([
+                point.serialize() for point in self
+            ]).encode()
+        ).hexdigest()
+
+    @property
+    def country(self):
+        """
+        Get what country this journey started in
+
+        :return: a two letter country code
+        :rtype: str
+        """
+        return reverse_geocoder.search(
+            (
+                self.origin.gps.lat,
+                self.origin.gps.lng
+            )
+        )[0]['cc']
+
+    def is_in_place(self, place_name: str):
+        """
+        Get if a journey is entirely within the bounds of some place.
+        Does this by rect rather than polygon so it isn't exact but mainly
+        to be used to focus on a single city.
+
+        :param place_name: An osmnx place name. For example "Dublin, Ireland"
+            To see if the place name is valid try graph_from_place(place).
+            Might be good to do that in here and throw an ex if it's not found
+        """
+        place_bounds = place_cache.get(place_name)
+        try:
+            return all([
+                self.most_northern < place_bounds['north'],
+                self.most_southern > place_bounds['south'],
+                self.most_eastern < place_bounds['east'],
+                self.most_western > place_bounds['west']
+            ])
+        except ValueError:
+            return False
