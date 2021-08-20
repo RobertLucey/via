@@ -78,6 +78,7 @@ class Journeys(GenericObjects):
         caches_key = 'bbox_journeys_graph'
 
         if network_cache.get(caches_key, self.content_hash) is None:
+            logger.debug(f'{caches_key} > {self.content_hash} not found in cache, generating...')
             network = ox.graph_from_bbox(
                 self.most_northern,
                 self.most_southern,

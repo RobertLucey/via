@@ -10,10 +10,9 @@ import fast_json
 
 import shapely
 from shapely.ops import cascaded_union
-from shapely.geometry import MultiPoint, Point
 
-import osmnx as ox
 import networkx as nx
+import osmnx as ox
 from networkx.readwrite import json_graph
 
 from bike import logger
@@ -21,7 +20,10 @@ from bike.utils import (
     window,
     get_combined_id,
     get_edge_colours,
-    get_network_from_transport_type
+    get_network_from_transport_type,
+    filter_nodes_from_geodataframe,
+    filter_edges_from_geodataframe,
+    update_edge_data
 )
 from bike.nearest_edge import nearest_edge
 from bike.constants import (
@@ -49,7 +51,6 @@ class Journey(FramePoints):
 
         data = []
         if 'data' in kwargs:
-            # If setting the frames, if from a phone need to populat empty gps with the prev / next gps
             data = kwargs.pop('data')
 
         kwargs.setdefault('child_class', FramePoint)
@@ -63,7 +64,9 @@ class Journey(FramePoints):
         self.transport_type = kwargs.get('transport_type', None)
         self.suspension = kwargs.get('suspension', None)
 
-        self.network_type = get_network_from_transport_type(self.transport_type)
+        self.network_type = get_network_from_transport_type(
+            self.transport_type
+        )
 
         self.included_journeys = []
 
@@ -71,6 +74,12 @@ class Journey(FramePoints):
 
     @property
     def country(self):
+        """
+        Get what country this journey started in
+
+        :return: a two letter country code
+        :rtype: str
+        """
         return reverse_geocoder.search(
             (
                 self.origin.gps.lat,
@@ -184,7 +193,16 @@ class Journey(FramePoints):
         """
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
-    def is_in_place(self, place_name):
+    def is_in_place(self, place_name: str):
+        """
+        Get if a journey is entirely within the bounds of some place.
+        Does this by rect rather than polygon so it isn't exact but mainly
+        to be used to focus on a single city.
+
+        :param place_name: An osmnx place name. For example "Dublin, Ireland"
+            To see if the place name is valid try graph_from_place(place).
+            Might be good to do that in here and throw an ex if it's not found
+        """
         place_bounds = place_cache.get(place_name)
         try:
             return all([
@@ -310,7 +328,6 @@ class Journey(FramePoints):
         nearest_edge.get(bounding_graph, self._data, return_dist=False)
 
         for (our_origin, our_destination) in window(self, window_size=2):
-
             edge = nearest_edge.get(
                 bounding_graph,
                 [
@@ -348,7 +365,7 @@ class Journey(FramePoints):
 
         Only useful once route_graph is merged with a more detailed graph
         """
-        return list(self.route_graph._node.keys())
+        raise NotImplementedError()
 
     @property
     def route_graph(self):
@@ -405,6 +422,9 @@ class Journey(FramePoints):
 
     @property
     def bounding_graph(self):
+        """
+        Get a rectangular graph which contains the journey
+        """
         logger.debug(
             'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
             self.most_northern,
@@ -416,6 +436,7 @@ class Journey(FramePoints):
         caches_key = 'bbox_journey_graph'
 
         if network_cache.get(caches_key, self.content_hash) is None:
+            logger.debug(f'{caches_key} > {self.content_hash} not found in cache, generating...')
             network = ox.graph_from_bbox(
                 self.most_northern,
                 self.most_southern,
@@ -443,29 +464,13 @@ class Journey(FramePoints):
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
-
         caches_key = 'poly_journey_graph'
 
         if network_cache.get(caches_key, self.content_hash) is None:
+            logger.debug(f'{caches_key} > {self.content_hash} not found in cache, generating...')
 
-            unique_points = []
-            prev = None
-            for frame in self:
-                if frame.gps.is_populated:
-                    if prev is not None:
-                        if prev.gps.lat != frame.gps.lat:
-                            unique_points.append(
-                                Point(
-                                    frame.gps.lng,
-                                    frame.gps.lat
-                                )
-                            )
+            points = self.get_multi_points()
 
-                prev = frame
-
-            points = MultiPoint(
-                unique_points
-            )
             buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
             boundary = gpd.GeoSeries(cascaded_union(buf))
 
@@ -474,6 +479,8 @@ class Journey(FramePoints):
                 network_type=self.network_type,
                 simplify=True
             )
+
+            # TODO: might want to merge our edge_quality_data with edge data
 
             network_cache.set(caches_key, self.content_hash, network)
 
@@ -505,24 +512,14 @@ class Journey(FramePoints):
             fill_edge_geometry=True
         )
 
-        nodes_to_rm = []
-        for node in graph_nodes.index:
-            if node not in used_node_ids:
-                nodes_to_rm.append(node)
-        graph_nodes = graph_nodes.drop(nodes_to_rm)
+        # Filter only the nodes and edges on the route and ignore the
+        # buffer used to get context
+        graph = ox.graph_from_gdfs(
+            filter_nodes_from_geodataframe(graph_nodes, used_node_ids),
+            filter_edges_from_geodataframe(graph_edges, edges)
+        )
 
-        edges_to_rm = []
-        for edge in graph_edges.index:
-            if edge not in edges:
-                edges_to_rm.append(edge)
-        graph_edges = graph_edges.drop(edges_to_rm)
-
-        graph = ox.graph_from_gdfs(graph_nodes, graph_edges)
-
-        for start, end, _ in graph.edges:
-            graph_edge_id = get_combined_id(start, end)
-            if graph_edge_id in self.edge_quality_map:
-                graph[start][end][0].update(self.edge_quality_map[graph_edge_id])
+        graph = update_edge_data(graph, self.edge_quality_map)
 
         return graph
 
@@ -531,17 +528,19 @@ class Journey(FramePoints):
         """
         Write and return a GeoJSON object string of the graph.
         """
+        geojson_file = os.path.join(
+            GEOJSON_DIR,
+            self.content_hash + '.geojson'
+        )
 
-        # TODO: deal with this like a cache this like we cache networks.
-        # This is very fast so not very important. There is some stupid caching
-        # below
-
-        if os.path.exists(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson')):
+        if os.path.exists(geojson_file):
             geojson_features = None
-            with open(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson'), 'r') as json_file:
+            with open(geojson_file, 'r') as json_file:
                 geojson_features = fast_json.loads(json_file.read())
         else:
-            json_links = json_graph.node_link_data(self.snapped_route_graph)['links']
+            json_links = json_graph.node_link_data(
+                self.snapped_route_graph
+            )['links']
 
             geojson_features = {
                 'type': 'FeatureCollection',
@@ -559,19 +558,21 @@ class Journey(FramePoints):
 
                 for k in link:
                     if k == 'geometry':
-                        feature['geometry'] = shapely.geometry.mapping(link['geometry'])
+                        feature['geometry'] = shapely.geometry.mapping(
+                            link['geometry']
+                        )
                     else:
                         feature['properties'][k] = link[k]
 
                 geojson_features['features'].append(feature)
 
-            if not os.path.exists(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson')):
+            if not os.path.exists(geojson_file):
                 os.makedirs(
                     os.path.join(GEOJSON_DIR),
                     exist_ok=True
                 )
 
-            with open(os.path.join(GEOJSON_DIR, self.content_hash + '.geojson'), 'w') as json_file:
+            with open(geojson_file, 'w') as json_file:
                 json.dump(
                     geojson_features,
                     json_file,

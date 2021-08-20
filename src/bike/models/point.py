@@ -1,5 +1,7 @@
 import statistics
 
+from shapely.geometry import MultiPoint, Point
+
 from bike.models.generic import (
     GenericObject,
     GenericObjects
@@ -160,3 +162,26 @@ class FramePoints(GenericObjects):
 
     def serialize(self, exclude_time=False):
         return [frame.serialize(exclude_time=exclude_time) for frame in self]
+
+    def get_multi_points(self):
+        """
+        Get a shapely.geometry.MultiPoint of all the points
+        """
+        unique_points = []
+        prev = None
+        for frame in self:
+            if frame.gps.is_populated:
+                if prev is not None:
+                    if prev.gps.lat != frame.gps.lat:
+                        unique_points.append(
+                            Point(
+                                frame.gps.lng,
+                                frame.gps.lat
+                            )
+                        )
+
+            prev = frame
+
+        return MultiPoint(
+            unique_points
+        )

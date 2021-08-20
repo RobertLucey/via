@@ -304,3 +304,40 @@ def get_network_from_transport_type(transport_type):
     elif transport_type in {'bus', 'car'}:
         return 'drive'
     return 'all'
+
+
+def filter_nodes_from_geodataframe(dataframe, nodes_to_keep):
+    nodes_to_rm = []
+    for node in dataframe.index:
+        if node not in nodes_to_keep:
+            nodes_to_rm.append(node)
+    return dataframe.drop(nodes_to_rm)
+
+
+def filter_edges_from_geodataframe(dataframe, edges_to_keep):
+    edges_to_rm = []
+    for edge in dataframe.index:
+        if edge not in edges_to_keep:
+            edges_to_rm.append(edge)
+    return dataframe.drop(edges_to_rm)
+
+
+def update_edge_data(graph, edge_data_map):
+    """
+
+    :param graph:
+    :param edge_data_map: A dict of values to set on the associated
+        edge id (key of edge_data_map)
+    """
+
+    # TODO: if fewer items in edge_data_map loop over that
+    # rather than graph.edges
+
+    for start, end, _ in graph.edges:
+        graph_edge_id = get_combined_id(start, end)
+        if graph_edge_id in edge_data_map:
+            graph[start][end][0].update(
+                edge_data_map[graph_edge_id]
+            )
+
+    return graph
