@@ -13,10 +13,10 @@ from bike.utils import (
     get_edge_colours,
     flatten
 )
-from bike.network_cache import network_cache
 from bike.models.journey_mixins import (
     SnappedRouteGraphMixin,
-    GeoJsonMixin
+    GeoJsonMixin,
+    BoundingGraphMixin
 )
 
 
@@ -27,7 +27,7 @@ def get_journey_edge_quality_map(journey):
     return edge_quality_map
 
 
-class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin):
+class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Journey)
@@ -38,6 +38,8 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin):
             self.network_type = 'all'
         elif len(set(network_types)) == 1:
             self.network_type = network_types[0]
+
+        self.bounding_graph_key = 'bbox_journeys_graph'
 
     @property
     def most_northern(self):
@@ -69,35 +71,7 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin):
 
     @property
     def graph(self):
-        """
-        Get a graph that contains all journeys
-
-        :rtype: networkx.classes.multidigraph.MultiDiGraph
-        """
-        logger.debug(
-            'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western
-        )
-
-        caches_key = 'bbox_journeys_graph'
-
-        if network_cache.get(caches_key, self.content_hash) is None:
-            logger.debug(f'{caches_key} > {self.content_hash} not found in cache, generating...')
-            network = ox.graph_from_bbox(
-                self.most_northern,
-                self.most_southern,
-                self.most_eastern,
-                self.most_western,
-                network_type=self.network_type,
-                simplify=True
-            )
-
-            network_cache.set(caches_key, self.content_hash, network)
-
-        return network_cache.get(caches_key, self.content_hash)
+        return self.bounding_graph
 
     @staticmethod
     def from_files(filepaths):

@@ -24,11 +24,12 @@ from bike.edge_cache import get_edge_data
 from bike.network_cache import network_cache
 from bike.models.journey_mixins import (
     SnappedRouteGraphMixin,
-    GeoJsonMixin
+    GeoJsonMixin,
+    BoundingGraphMixin
 )
 
 
-class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin):
+class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
 
     def __init__(self, *args, **kwargs):
         """
@@ -62,6 +63,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin):
         self.included_journeys = []
 
         self.last_gps = None
+
+        self.bounding_graph_key = 'bbox_journey_graph'
 
     def append(self, thing):
         """
@@ -372,35 +375,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin):
             )
 
         return graph
-
-    @property
-    def bounding_graph(self):
-        """
-        Get a rectangular graph which contains the journey
-        """
-        logger.debug(
-            'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
-            self.most_northern,
-            self.most_southern,
-            self.most_eastern,
-            self.most_western
-        )
-
-        caches_key = 'bbox_journey_graph'
-
-        if network_cache.get(caches_key, self.content_hash) is None:
-            logger.debug(f'{caches_key} > {self.content_hash} not found in cache, generating...')
-            network = ox.graph_from_bbox(
-                self.most_northern,
-                self.most_southern,
-                self.most_eastern,
-                self.most_western,
-                network_type=self.network_type,
-                simplify=True
-            )
-            network_cache.set(caches_key, self.content_hash, network)
-
-        return network_cache.get(caches_key, self.content_hash)
 
     @property
     def graph(self):

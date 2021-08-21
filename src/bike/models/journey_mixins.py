@@ -1,12 +1,12 @@
 import os
 
 import fast_json
-
 import shapely
 
 from networkx.readwrite import json_graph
 import osmnx as ox
 
+from bike import logger
 from bike.utils import (
     window,
     filter_nodes_from_geodataframe,
@@ -14,6 +14,7 @@ from bike.utils import (
     update_edge_data
 )
 from bike.nearest_edge import nearest_edge
+from bike.network_cache import network_cache
 from bike.constants import GEOJSON_DIR
 
 
@@ -72,6 +73,8 @@ class GeoJsonMixin():
             with open(geojson_file, 'r') as json_file:
                 geojson_features = fast_json.loads(json_file.read())
         else:
+            logger.debug(f'{geojson_file} not found, generating...')
+
             json_links = json_graph.node_link_data(
                 self.snapped_route_graph
             )['links']
@@ -114,3 +117,33 @@ class GeoJsonMixin():
                 )
 
         return geojson_features
+
+
+class BoundingGraphMixin():
+
+    @property
+    def bounding_graph(self):
+        """
+        Get a rectangular graph which contains the journey
+        """
+        logger.debug(
+            'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
+            self.most_northern,
+            self.most_southern,
+            self.most_eastern,
+            self.most_western
+        )
+
+        if network_cache.get(self.bounding_graph_key, self.content_hash) is None:
+            logger.debug(f'{self.bounding_graph_key} > {self.content_hash} not found in cache, generating...')
+            network = ox.graph_from_bbox(
+                self.most_northern,
+                self.most_southern,
+                self.most_eastern,
+                self.most_western,
+                network_type=self.network_type,
+                simplify=True
+            )
+            network_cache.set(self.bounding_graph_key, self.content_hash, network)
+
+        return network_cache.get(self.bounding_graph_key, self.content_hash)
