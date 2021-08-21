@@ -1,6 +1,8 @@
 # used for finding place bounds, wuld take too long to actually get
 # graphs from osmnx
 
+from typing import Mapping
+
 import osmnx as ox
 
 
@@ -16,7 +18,7 @@ class PlaceCache():
             }
         }
 
-    def get(self, place_name):
+    def get(self, place_name: str) -> Mapping[str, float]:
         place_name = place_name.lower().replace(',', '')
         try:
             return self.data[place_name]
@@ -32,7 +34,7 @@ class PlaceCache():
                 lats.append(node_data['y'])
                 lngs.append(node_data['x'])
 
-            self._data[place_name] = {
+            self.data[place_name] = {
                 'north': max(lats),
                 'south': min(lats),
                 'east': max(lngs),
