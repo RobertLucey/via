@@ -118,7 +118,7 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
         use_closest_edge_from_base=False,
         min_edge_usage=1,
         colour_map_name='bwr',
-        plot_kwargs={}
+        plot_kwargs=None
     ):
         """
 
@@ -133,6 +133,8 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
             being done
         """
+        if plot_kwargs is None:
+            plot_kwargs = {}
         if len(self) == 0:
             raise Exception('Current Journeys object has no content')
         if len(self) == 1:

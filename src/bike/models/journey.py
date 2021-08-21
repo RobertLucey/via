@@ -66,7 +66,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         self.bounding_graph_key = 'bbox_journey_graph'
 
-    def append(self, thing):
+    def append(self, obj):
         """
         NB: appending needs to be chronological (can be reversed, just so
         long as it's consistent) as if no accelerometer data it assigns
@@ -76,12 +76,12 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         chronological
         """
         # TODO: warn if not chronological
-        if isinstance(thing, FramePoint):
+        if isinstance(obj, FramePoint):
             self._data.append(
-                thing
+                obj
             )
         else:
-            frame = Frame.parse(thing)
+            frame = Frame.parse(obj)
 
             if not frame.gps.is_populated:
                 if not hasattr(self, 'last_gps'):
@@ -112,7 +112,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
     def parse(objs):
         if isinstance(objs, Journey):
             return objs
-        elif isinstance(objs, dict):
+
+        if isinstance(objs, dict):
             return Journey(
                 **objs
             )

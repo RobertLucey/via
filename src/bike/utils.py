@@ -247,7 +247,7 @@ def get_edge_colours(graph, colour_map_name, key_name=None, edge_map=None):
             )
         ]
 
-    elif edge_map is not None:
+    if edge_map is not None:
         colours = get_ox_colours(
             graph,
             colour_map_name,
@@ -265,8 +265,7 @@ def get_edge_colours(graph, colour_map_name, key_name=None, edge_map=None):
             )
         ]
 
-    else:
-        raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
+    raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
 
 
 def force_list(val):

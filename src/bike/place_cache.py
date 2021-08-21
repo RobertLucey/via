@@ -21,13 +21,16 @@ class PlaceCache():
         try:
             return self.data[place_name]
         except KeyError:
-            place_graph = ox.graph_from_place('place_name', network_type='bike')
+            place_graph = ox.graph_from_place(
+                'place_name',
+                network_type='all'
+            )
 
             lats = []
             lngs = []
-            for k, v in place_graph._node.items():
-                lats.append(v['y'])
-                lngs.append(v['x'])
+            for _, node_data in place_graph._node.items():
+                lats.append(node_data['y'])
+                lngs.append(node_data['x'])
 
             self._data[place_name] = {
                 'north': max(lats),

@@ -8,7 +8,6 @@ import osmnx as ox
 
 from bike import logger
 from bike.utils import (
-    window,
     filter_nodes_from_geodataframe,
     filter_edges_from_geodataframe,
     update_edge_data
@@ -31,7 +30,7 @@ class SnappedRouteGraphMixin():
 
         edges = []
         used_node_ids = []
-        for (our_origin, our_destination) in window(self.all_points, window_size=2):
+        for our_origin in self.all_points:
             edge = nearest_edge.get(
                 bounding_graph,
                 [

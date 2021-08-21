@@ -46,7 +46,8 @@ class FramePoint(GenericObject):
     def parse(obj):
         if isinstance(obj, FramePoint):
             return obj
-        elif isinstance(obj, dict):
+
+        if isinstance(obj, dict):
             return FramePoint(
                 obj.get('time', None),
                 obj['gps'],
