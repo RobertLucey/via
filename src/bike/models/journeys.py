@@ -3,8 +3,14 @@ import hashlib
 import multiprocessing
 from contextlib import closing
 from collections import defaultdict
+from typing import (
+    Any,
+    List,
+    Dict
+)
 
 import osmnx as ox
+from networkx.classes.multidigraph import MultiDiGraph
 
 from bike.models.generic import GenericObjects
 from bike import logger
@@ -97,7 +103,7 @@ class Journeys(
             **plot_kwargs
         )
 
-    def get_mega_journeys(self):
+    def get_mega_journeys(self) -> Dict[str, Journey]:
         megas = defaultdict(Journey)
 
         for journey in self:
@@ -110,7 +116,7 @@ class Journeys(
         return megas
 
     @property
-    def edge_quality_map(self):
+    def edge_quality_map(self) -> Dict[str, Dict[str: Any]]:
         """
         Get a map between edge_hash and road quality of the road. edge_map
         being edge id and road quality being something that hasn't been
@@ -141,35 +147,35 @@ class Journeys(
         }
 
     @property
-    def most_northern(self):
+    def most_northern(self) -> float:
         """
         Get the most northerly latitude over all journeys
         """
         return max([journey.most_northern for journey in self])
 
     @property
-    def most_southern(self):
+    def most_southern(self) -> float:
         """
         Get the most southerly latitude over all journeys
         """
         return min([journey.most_southern for journey in self])
 
     @property
-    def most_eastern(self):
+    def most_eastern(self) -> float:
         """
         Get the most easterly longitude over all journeys
         """
         return max([journey.most_eastern for journey in self])
 
     @property
-    def most_western(self):
+    def most_western(self) -> float:
         """
         Get the most westerly longitude over all journeys
         """
         return min([journey.most_western for journey in self])
 
     @property
-    def graph(self):
+    def graph(self) -> MultiDiGraph:
         return self.bounding_graph
 
     @staticmethod
@@ -181,7 +187,7 @@ class Journeys(
         )
 
     @property
-    def content_hash(self):
+    def content_hash(self) -> str:
         return hashlib.md5(
             str([
                 journey.content_hash for journey in self
@@ -189,7 +195,7 @@ class Journeys(
         ).hexdigest()
 
     @property
-    def all_points(self):
+    def all_points(self) -> List:
         """
         Return all the points in this journeys obj
         """

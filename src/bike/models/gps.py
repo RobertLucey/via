@@ -1,4 +1,6 @@
 import hashlib
+from typing import Tuple
+
 from haversine import (
     haversine,
     Unit
@@ -13,7 +15,7 @@ class GPSPoint():
     sometimes libraries expect (lng, lat)
     """
 
-    def __init__(self, lat, lng, elevation=None):
+    def __init__(self, lat: float, lng: float, elevation=None):
         """
 
         :param lat:
@@ -29,6 +31,9 @@ class GPSPoint():
 
     @staticmethod
     def parse(obj):
+        if isinstance(obj, GPSPoint):
+            return obj
+
         if isinstance(obj, list):
             return GPSPoint(
                 obj[0],
@@ -40,14 +45,12 @@ class GPSPoint():
                 obj['lng'],
                 elevation=obj.get('elevation', None)
             )
-        elif isinstance(obj, GPSPoint):
-            return obj
-        else:
-            raise NotImplementedError(
-                'Can\'t parse gps from type %s' % (type(obj))
-            )
 
-    def distance_from(self, point):
+        raise NotImplementedError(
+            'Can\'t parse gps from type %s' % (type(obj))
+        )
+
+    def distance_from(self, point) -> float:
         """
 
         :param point: GPSPoint or tuple of (lat, lng)
@@ -66,14 +69,14 @@ class GPSPoint():
         }
 
     @property
-    def content_hash(self):
+    def content_hash(self) -> str:
         '''
         A content hash that will act as an id for the data, handy for caching
         '''
         return hashlib.md5(str(self.serialize()).encode()).hexdigest()
 
     @property
-    def point(self):
+    def point(self) -> Tuple[float]:
         """
 
         :rtype: tuple
@@ -82,7 +85,7 @@ class GPSPoint():
         return (self.lat, self.lng)
 
     @property
-    def is_populated(self):
+    def is_populated(self) -> bool:
         """
         Is the gps data populated. Often when there is no satelite
         or starting up this will not be populated.
