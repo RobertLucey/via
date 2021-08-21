@@ -14,16 +14,17 @@ Run `pull_journeys` before doing anything to make sure you have some data to wor
 ### Plot the road quality of a city
 
 ```
-usage: plot_journeys.py [-h] [--condition] [--closest-edge] [--place PLACE]
+usage: plot_journeys.py [-h] [--closest-edge]
+                        [--transport-type TRANSPORT_TYPE] [--place PLACE]
                         [--min-edge-usage MIN_EDGE_USAGE]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --condition           Show the condition of the roads, otherwise just plot
-                        the paths
   --closest-edge        Use the closest route to the coordinates plotted on
                         the actual journey. If no, similar journeys are not
-                        likely to overlap (NB: Only works with condition)
+                        likely to overlap
+  --transport-type TRANSPORT_TYPE
+                        bike/car/scoorter or whatever else is on the app
   --place PLACE         What place to limit the data to (so you don't try to
                         visualize too big an area). Must be an osmnx
                         recognised place / format for example "Dublin,
@@ -40,13 +41,16 @@ optional arguments:
 This will give a % of how much of the roads there is data of. You can make sure that there are at least 10 points of info for a road to be counted as having sufficient data to be counted
 
 ```
-usage: road_coverage.py [-h] [--min-edge-usage MIN_EDGE_USAGE] [--place PLACE]
+usage: road_coverage.py [-h] [--min-edge-usage MIN_EDGE_USAGE]
+                        [--transport-type TRANSPORT_TYPE] [--place PLACE]
 
 optional arguments:
   -h, --help            show this help message and exit
   --min-edge-usage MIN_EDGE_USAGE
                         The minimum number of times an edge has to be used for
                         it to be included in the final data (1 per journey)
+  --transport-type TRANSPORT_TYPE
+                        bike/car/scoorter or whatever else is on the app
   --place PLACE         What place to limit the data to (so you don't try to
                         visualize too big an area). Must be an osmnx
                         recognised place / format for example "Dublin,
@@ -59,6 +63,7 @@ Get a list of the worst roads and their values
 
 ```
 usage: condition_by_street.py [-h] [--min-edge-usage MIN_EDGE_USAGE]
+                              [--transport-type TRANSPORT_TYPE]
                               [--place PLACE]
 
 optional arguments:
@@ -66,6 +71,8 @@ optional arguments:
   --min-edge-usage MIN_EDGE_USAGE
                         The minimum number of times an edge has to be used for
                         it to be included in the final data (1 per journey)
+  --transport-type TRANSPORT_TYPE
+                        bike/car/scoorter or whatever else is on the app
   --place PLACE         What place to limit the data to (so you don't try to
                         visualize too big an area). Must be an osmnx
                         recognised place / format for example "Dublin,

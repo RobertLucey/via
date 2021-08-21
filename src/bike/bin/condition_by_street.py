@@ -68,6 +68,12 @@ def main():
         default=1
     )
     parser.add_argument(
+        '--transport-type',
+        dest='transport_type',
+        default=None,
+        help='bike/car/scoorter or whatever else is on the app'
+    )
+    parser.add_argument(
         '--place',
         dest='place',
         default='Dublin, Ireland',
@@ -75,7 +81,11 @@ def main():
     )
     args = parser.parse_args()
 
-    journeys = get_journeys('remote', place=args.place)
+    journeys = get_journeys(
+        transport_type=args.transport_type,
+        source='remote',
+        place=args.place
+    )
     print_condition(journeys, args.min_edge_usage)
 
 

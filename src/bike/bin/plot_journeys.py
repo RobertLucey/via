@@ -16,6 +16,12 @@ def main():
         help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap'
     )
     parser.add_argument(
+        '--transport-type',
+        dest='transport_type',
+        default=None,
+        help='bike/car/scoorter or whatever else is on the app'
+    )
+    parser.add_argument(
         '--place',
         dest='place',
         default='Dublin, Ireland',
@@ -29,7 +35,11 @@ def main():
     )
     args = parser.parse_args()
 
-    journeys = get_journeys(source='remote', place=args.place)
+    journeys = get_journeys(
+        transport_type=args.transport_type,
+        source='remote',
+        place=args.place
+    )
 
     journeys.plot_routes(
         use_closest_edge_from_base=args.closest_edge,
