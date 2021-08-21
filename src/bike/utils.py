@@ -42,27 +42,37 @@ def is_journey_data_file(potential_journey_file: str):
     return True
 
 
-def get_journeys(source=None, place=None):
+def get_journeys(transport_type=None, source=None, place=None):
     """
     Get local journeys as Journeys
 
+    :kwarg transport_type: bike|car|scooter|whatever else is on the app
     :kwarg source: The data dir to get from
     :kwarg place: The place to get journeys within
     :rtype: Journey
     """
     from bike.models.journeys import Journeys
-    return Journeys(data=list(iter_journeys(source=source, place=place)))
+    return Journeys(
+        data=list(
+            iter_journeys(
+                transport_type=transport_type,
+                source=source,
+                place=place
+            )
+        )
+    )
 
 
-def iter_journeys(source=None, place=None):
+def iter_journeys(transport_type=None, source=None, place=None):
     """
     Get local journeys as iterable of Journey
 
+    :kwarg transport_type: bike|car|scooter|whatever else is on the app
     :kwarg source: The data dir to get from
     :kwarg place: The place to get journeys within
     """
     from bike.models.journey import Journey
-    for journey_file in get_data_files(source=source):
+    for journey_file in get_data_files(transport_type=transport_type, source=source):
         journey = Journey.from_file(journey_file)
         if place is not None:
             if journey.is_in_place(place):
@@ -71,13 +81,15 @@ def iter_journeys(source=None, place=None):
             yield journey
 
 
-def get_data_files(source=None):
+def get_data_files(transport_type=None, source=None):
     """
 
+    :kwarg transport_type: bike|car|scooter|whatever else is on the app
     :kwarg source: The data dir to get from
     :rtype: list
     :return: a list of file paths to journey files
     """
+    from bike.models.journey import Journey
     files = []
 
     path = DATA_DIR
@@ -88,7 +100,15 @@ def get_data_files(source=None):
 
     for filename in glob.iglob(path + '/**/*', recursive=True):
         if is_journey_data_file(filename):
-            files.append(filename)
+            if transport_type is not None:
+                # FIXME: this is slow, should structure dirs by transport type
+                # (or something like that)
+                journey_transport_type = Journey.from_file(filename).transport_type
+                if journey_transport_type is not None:
+                    if journey_transport_type.lower() == transport_type:
+                        files.append(filename)
+            else:
+                files.append(filename)
 
     return files
 
