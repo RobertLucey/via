@@ -2,9 +2,17 @@ import os
 import glob
 import json
 import time
+from numbers import Number
 from functools import wraps
 from itertools import islice, chain
+from typing import (
+    Any,
+    List,
+    Tuple
+)
 
+from geopandas.geodataframe import GeoDataFrame
+from networkx.classes.multidigraph import MultiDiGraph
 import osmnx as ox
 import fast_json
 
@@ -16,7 +24,7 @@ from bike.constants import (
 )
 
 
-def is_journey_data_file(potential_journey_file: str):
+def is_journey_data_file(potential_journey_file: str) -> bool:
     """
 
     :param potential_journey_file:
@@ -81,7 +89,7 @@ def iter_journeys(transport_type=None, source=None, place=None):
             yield journey
 
 
-def get_data_files(transport_type=None, source=None):
+def get_data_files(transport_type=None, source=None) -> List[str]:
     """
 
     :kwarg transport_type: bike|car|scooter|whatever else is on the app
@@ -113,7 +121,7 @@ def get_data_files(transport_type=None, source=None):
     return files
 
 
-def sleep_until_ready(started, finished, max_seconds=0):
+def sleep_until_ready(started: Number, finished: Number, max_seconds=0):
     """
     Given a starting time of the kickoff, if there is still time
     to wait, sleep that time, otherwise warn of being overdue.
@@ -147,7 +155,7 @@ def timing(function):
     return wrapped
 
 
-def sleep_until(max_seconds):
+def sleep_until(max_seconds: Number):
     """
     Decorator which sleeps until a given x seconds from starting if possible.
     """
@@ -186,7 +194,7 @@ def window(sequence, window_size=2):
         yield result
 
 
-def get_idx_default(lst: list, idx: int, default):
+def get_idx_default(lst: list, idx: int, default: Any) -> Any:
     """
     Get the ith elem of a list or a default value if out of range
     """
@@ -197,7 +205,7 @@ def get_idx_default(lst: list, idx: int, default):
         return default
 
 
-def get_combined_id(obj, other_obj):
+def get_combined_id(obj: Any, other_obj: Any) -> int:
     """
 
     :param obj: hashable thing
@@ -208,7 +216,12 @@ def get_combined_id(obj, other_obj):
     return hash(obj) + hash(other_obj)
 
 
-def get_ox_colours(graph, colour_map_name, edge_map=None, key_name=None):
+def get_ox_colours(
+    graph: MultiDiGraph,
+    colour_map_name: str,
+    edge_map=None,
+    key_name=None
+) -> List:  # TODO: better list hint, not sure what this returns
     """
 
     :param graph: MultiDiGraph
@@ -239,7 +252,12 @@ def get_ox_colours(graph, colour_map_name, edge_map=None, key_name=None):
     )
 
 
-def get_edge_colours(graph, colour_map_name, key_name=None, edge_map=None):
+def get_edge_colours(
+    graph: MultiDiGraph,
+    colour_map_name: str,
+    key_name=None,
+    edge_map=None
+) -> List:  # TODO: better list hint, not sure what this returns
     """
 
     :param graph: MultiDiGraph
@@ -288,7 +306,7 @@ def get_edge_colours(graph, colour_map_name, key_name=None, edge_map=None):
     raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
 
 
-def force_list(val):
+def force_list(val: Any) -> List[Any]:
     """
     If the val is not already a list, make it the only element in the list
 
@@ -299,7 +317,7 @@ def force_list(val):
     return val
 
 
-def flatten(lst):
+def flatten(lst: List) -> List[Any]:
     '''
     Given a nested list, flatten it.
 
@@ -313,7 +331,7 @@ def flatten(lst):
     return list(chain.from_iterable(lst))
 
 
-def get_network_from_transport_type(transport_type):
+def get_network_from_transport_type(transport_type: str) -> str:
     if transport_type is None:
         return 'all'
 
@@ -325,7 +343,10 @@ def get_network_from_transport_type(transport_type):
     return 'all'
 
 
-def filter_nodes_from_geodataframe(dataframe, nodes_to_keep):
+def filter_nodes_from_geodataframe(
+    dataframe: GeoDataFrame,
+    nodes_to_keep: List[int]
+) -> GeoDataFrame:
     nodes_to_rm = []
     for node in dataframe.index:
         if node not in nodes_to_keep:
@@ -333,7 +354,10 @@ def filter_nodes_from_geodataframe(dataframe, nodes_to_keep):
     return dataframe.drop(nodes_to_rm)
 
 
-def filter_edges_from_geodataframe(dataframe, edges_to_keep):
+def filter_edges_from_geodataframe(
+    dataframe: GeoDataFrame,
+    edges_to_keep: List[Tuple[int, int, int]]
+) -> GeoDataFrame:
     edges_to_rm = []
     for edge in dataframe.index:
         if edge not in edges_to_keep:
@@ -341,7 +365,7 @@ def filter_edges_from_geodataframe(dataframe, edges_to_keep):
     return dataframe.drop(edges_to_rm)
 
 
-def update_edge_data(graph, edge_data_map):
+def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
     """
 
     :param graph:
