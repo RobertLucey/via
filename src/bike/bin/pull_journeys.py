@@ -3,6 +3,7 @@ import boto3
 
 import requests
 
+from bike import logger
 from bike.constants import REMOTE_DATA_DIR
 
 
@@ -16,6 +17,7 @@ def main():
 
         local_fp = os.path.join(REMOTE_DATA_DIR, fn)
         if not os.path.exists(local_fp):
+            logger.info(f'Downloading to {local_fp}')
             s3.download_file(
                 'bike-road-quality',
                 fn,
