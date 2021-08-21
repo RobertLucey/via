@@ -205,15 +205,12 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
     def plot_route(
         self,
-        apply_condition_colour=False,
         use_closest_edge_from_base=False,
         colour_map_name='bwr',
         plot_kwargs={}
     ):
         """
 
-        :kwarg apply_condition_colour: This is just a random colour for
-            the moment as a jumping off point for when I come back to it
         :kwarg use_closest_from_base: For each point on the actual route,
             for each node use the closest node from the original base graph
             the route is being drawn on
@@ -222,32 +219,28 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             being done
         """
         base = self.graph
-        if apply_condition_colour:
-
-            if use_closest_edge_from_base:
-                edge_colours = get_edge_colours(
-                    base,
-                    colour_map_name,
-                    edge_map=self.edge_quality_map
-                )
-
-            else:
-                base.add_nodes_from(self.route_graph.nodes(data=True))
-                base.add_edges_from(self.route_graph.edges(data=True))
-
-                edge_colours = get_edge_colours(
-                    base,
-                    colour_map_name,
-                    key_name='avg_road_quality'
-                )
-
-            ox.plot_graph(
+        if use_closest_edge_from_base:
+            edge_colours = get_edge_colours(
                 base,
-                edge_color=edge_colours,
-                **plot_kwargs
+                colour_map_name,
+                edge_map=self.edge_quality_map
             )
+
         else:
-            raise NotImplementedError()
+            base.add_nodes_from(self.route_graph.nodes(data=True))
+            base.add_edges_from(self.route_graph.edges(data=True))
+
+            edge_colours = get_edge_colours(
+                base,
+                colour_map_name,
+                key_name='avg_road_quality'
+            )
+
+        ox.plot_graph(
+            base,
+            edge_color=edge_colours,
+            **plot_kwargs
+        )
 
     @property
     def edge_quality_map(self):
@@ -303,26 +296,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         nearest_edge.save()
 
         return data
-
-    @property
-    def closest_route(self):
-        """
-        Get the route but instead of creating new nodes from our journey
-        data use the closest nodes on the bounding graph
-
-        :rtype: list
-        :return: list of node ids along the path
-        """
-        raise NotImplementedError()
-
-    @property
-    def route(self):
-        """
-        Get a list of nodes representing the journey.
-
-        Only useful once route_graph is merged with a more detailed graph
-        """
-        raise NotImplementedError()
 
     @property
     def route_graph(self):

@@ -85,11 +85,6 @@ class JourneysTest(TestCase):
         with self.assertRaises(Exception):
             Journeys().plot_routes()
 
-        self.test_journeys._data = [self.test_journeys._data[0]]
-
-        with self.assertRaises(Exception):
-            self.test_journeys.plot_routes()
-
     @skip('not implemented')
     def test_plot_routes_nothing_fancy(self):
         img_uuid = str(uuid.uuid4())

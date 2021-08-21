@@ -10,16 +10,10 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--condition',
-        action='store_true',
-        dest='condition',
-        help='Show the condition of the roads, otherwise just plot the paths'
-    )
-    parser.add_argument(
         '--closest-edge',
         action='store_true',
         dest='closest_edge',
-        help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap (NB: Only works with condition)'
+        help='Use the closest route to the coordinates plotted on the actual journey. If no, similar journeys are not likely to overlap'
     )
     parser.add_argument(
         '--place',
@@ -39,7 +33,6 @@ def main():
 
     journeys.plot_routes(
         use_closest_edge_from_base=args.closest_edge,
-        apply_condition_colour=args.condition,
         min_edge_usage=args.min_edge_usage,
         plot_kwargs={
             'bgcolor': 'w',

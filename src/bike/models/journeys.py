@@ -114,7 +114,6 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
 
     def plot_routes(
         self,
-        apply_condition_colour=False,
         use_closest_edge_from_base=False,
         min_edge_usage=1,
         colour_map_name='bwr',
@@ -122,8 +121,6 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
     ):
         """
 
-        :kwarg apply_condition_colour: This is just a random colour for
-            the moment as a jumping off point for when I come back to it
         :kwarg use_closest_from_base: For each point on the actual route, for
             each node use the closest node from the original base graph
             the route is being drawn on
@@ -141,46 +138,30 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
             logger.warning('To use Journeys effectively multiple journeys must be used, only one found')
 
         base = self.graph
-        if apply_condition_colour:
-            if use_closest_edge_from_base:
-                edge_colours = get_edge_colours(
-                    base,
-                    colour_map_name,
-                    edge_map={
-                        edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] >= min_edge_usage
-                    }
-                )
-            else:
-                for journey in self:
-                    base.add_nodes_from(journey.route_graph.nodes(data=True))
-                    base.add_edges_from(journey.route_graph.edges(data=True))
-
-                edge_colours = get_edge_colours(
-                    base,
-                    colour_map_name,
-                    key_name='avg_road_quality'
-                )
-
-            ox.plot_graph(
+        if use_closest_edge_from_base:
+            edge_colours = get_edge_colours(
                 base,
-                edge_color=edge_colours,
-                **plot_kwargs
+                colour_map_name,
+                edge_map={
+                    edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] >= min_edge_usage
+                }
             )
         else:
-            if use_closest_edge_from_base:
-                routes = [journey.closest_route for journey in self]
-            else:
-                routes = []
-                for journey in self:
-                    base.add_nodes_from(journey.route_graph.nodes(data=True))
-                    base.add_edges_from(journey.route_graph.edges(data=True))
-                    routes.append(journey.route)
+            for journey in self:
+                base.add_nodes_from(journey.route_graph.nodes(data=True))
+                base.add_edges_from(journey.route_graph.edges(data=True))
 
-            ox.plot_graph_routes(
+            edge_colours = get_edge_colours(
                 base,
-                routes,
-                **plot_kwargs
+                colour_map_name,
+                key_name='avg_road_quality'
             )
+
+        ox.plot_graph(
+            base,
+            edge_color=edge_colours,
+            **plot_kwargs
+        )
 
     def get_mega_journeys(self):
         megas = defaultdict(Journey)
