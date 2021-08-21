@@ -27,7 +27,12 @@ def get_journey_edge_quality_map(journey):
     return edge_quality_map
 
 
-class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
+class Journeys(
+    GenericObjects,
+    SnappedRouteGraphMixin,
+    GeoJsonMixin,
+    BoundingGraphMixin
+):
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', Journey)
@@ -40,77 +45,6 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
             self.network_type = network_types[0]
 
         self.bounding_graph_key = 'bbox_journeys_graph'
-
-    @property
-    def most_northern(self):
-        """
-        Get the most northerly latitude over all journeys
-        """
-        return max([journey.most_northern for journey in self])
-
-    @property
-    def most_southern(self):
-        """
-        Get the most southerly latitude over all journeys
-        """
-        return min([journey.most_southern for journey in self])
-
-    @property
-    def most_eastern(self):
-        """
-        Get the most easterly longitude over all journeys
-        """
-        return max([journey.most_eastern for journey in self])
-
-    @property
-    def most_western(self):
-        """
-        Get the most westerly longitude over all journeys
-        """
-        return min([journey.most_western for journey in self])
-
-    @property
-    def graph(self):
-        return self.bounding_graph
-
-    @staticmethod
-    def from_files(filepaths):
-        with closing(multiprocessing.Pool(multiprocessing.cpu_count())) as p:
-            journeys = list(p.imap_unordered(Journey.from_file, filepaths))
-        return Journeys(
-            data=journeys
-        )
-
-    @property
-    def edge_quality_map(self):
-        """
-        Get a map between edge_hash and road quality of the road. edge_map
-        being edge id and road quality being something that hasn't been
-        defined yet TODO
-
-        :rtype: dict
-        """
-
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        journey_edge_quality_maps = pool.map(
-            get_journey_edge_quality_map,
-            self
-        )
-
-        # Use this when profiling
-        #journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
-
-        edge_quality_map = defaultdict(list)
-        for journey_edge_quality_map in journey_edge_quality_maps:
-            for edge_id, quals in journey_edge_quality_map.items():
-                edge_quality_map[edge_id].extend(quals)
-
-        return {
-            edge_id: {
-                'avg': int(statistics.mean([d['avg'] for d in data])),
-                'count': len(data)
-            } for edge_id, data in edge_quality_map.items()
-        }
 
     def plot_routes(
         self,
@@ -174,6 +108,77 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGra
             megas[key].included_journeys.append(journey)
 
         return megas
+
+    @property
+    def edge_quality_map(self):
+        """
+        Get a map between edge_hash and road quality of the road. edge_map
+        being edge id and road quality being something that hasn't been
+        defined yet TODO
+
+        :rtype: dict
+        """
+
+        pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        journey_edge_quality_maps = pool.map(
+            get_journey_edge_quality_map,
+            self
+        )
+
+        # Use this when profiling
+        #journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
+
+        edge_quality_map = defaultdict(list)
+        for journey_edge_quality_map in journey_edge_quality_maps:
+            for edge_id, quals in journey_edge_quality_map.items():
+                edge_quality_map[edge_id].extend(quals)
+
+        return {
+            edge_id: {
+                'avg': int(statistics.mean([d['avg'] for d in data])),
+                'count': len(data)
+            } for edge_id, data in edge_quality_map.items()
+        }
+
+    @property
+    def most_northern(self):
+        """
+        Get the most northerly latitude over all journeys
+        """
+        return max([journey.most_northern for journey in self])
+
+    @property
+    def most_southern(self):
+        """
+        Get the most southerly latitude over all journeys
+        """
+        return min([journey.most_southern for journey in self])
+
+    @property
+    def most_eastern(self):
+        """
+        Get the most easterly longitude over all journeys
+        """
+        return max([journey.most_eastern for journey in self])
+
+    @property
+    def most_western(self):
+        """
+        Get the most westerly longitude over all journeys
+        """
+        return min([journey.most_western for journey in self])
+
+    @property
+    def graph(self):
+        return self.bounding_graph
+
+    @staticmethod
+    def from_files(filepaths):
+        with closing(multiprocessing.Pool(multiprocessing.cpu_count())) as pool:
+            journeys = list(pool.imap_unordered(Journey.from_file, filepaths))
+        return Journeys(
+            data=journeys
+        )
 
     @property
     def content_hash(self):

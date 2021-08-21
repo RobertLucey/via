@@ -143,6 +143,10 @@ class BoundingGraphMixin():
                 network_type=self.network_type,
                 simplify=True
             )
-            network_cache.set(self.bounding_graph_key, self.content_hash, network)
+            network_cache.set(
+                self.bounding_graph_key,
+                self.content_hash,
+                network
+            )
 
         return network_cache.get(self.bounding_graph_key, self.content_hash)

@@ -29,7 +29,12 @@ from bike.models.journey_mixins import (
 )
 
 
-class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
+class Journey(
+    FramePoints,
+    SnappedRouteGraphMixin,
+    GeoJsonMixin,
+    BoundingGraphMixin
+):
 
     def __init__(self, *args, **kwargs):
         """
@@ -65,48 +70,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         self.last_gps = None
 
         self.bounding_graph_key = 'bbox_journey_graph'
-
-    def append(self, obj):
-        """
-        NB: appending needs to be chronological (can be reversed, just so
-        long as it's consistent) as if no accelerometer data it assigns
-        the accelerometer data to the previously seen gps
-
-        Though journey data may not have time it will (should) always be
-        chronological
-        """
-        # TODO: warn if not chronological
-        if isinstance(obj, FramePoint):
-            self._data.append(
-                obj
-            )
-        else:
-            frame = Frame.parse(obj)
-
-            if not frame.gps.is_populated:
-                if not hasattr(self, 'last_gps'):
-                    return
-                if self.last_gps is None:
-                    return
-                frame.gps = self.last_gps
-            else:
-                self.last_gps = frame.gps
-
-            gps = frame.gps
-            acc = frame.acceleration
-
-            if len(self._data) == 0:
-                self._data.append(
-                    FramePoint(frame.time, gps, acc)
-                )
-                return
-
-            if self._data[-1].gps == gps:
-                self._data[-1].acceleration.append(acc)
-            else:
-                self._data.append(
-                    FramePoint(frame.time, gps, acc)
-                )
+        self.poly_graph_key = 'poly_journey_graph'
 
     @staticmethod
     def parse(objs):
@@ -118,7 +82,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                 **objs
             )
 
-        # TODO: do this from an object serialization
         raise NotImplementedError(
             'Can\'t parse journey from type %s' % (type(objs))
         )
@@ -136,6 +99,49 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             return Journey(
                 **fast_json.loads(journey_file.read())
             )
+
+    def append(self, obj):
+        """
+        NB: appending needs to be chronological (can be reversed, just so
+        long as it's consistent) as if no accelerometer data it assigns
+        the accelerometer data to the previously seen gps
+
+        Though journey data may not have time it will (should) always be
+        chronological
+        """
+        # TODO: warn if not chronological
+        if isinstance(obj, FramePoint):
+            self._data.append(
+                obj
+            )
+        else:
+            # Most datapoints are only accelerometer so we need to find the
+            # closest point with gps in the past to add the accelerometer
+            # data to
+
+            frame = Frame.parse(obj)
+
+            if not frame.gps.is_populated:
+                if not hasattr(self, 'last_gps'):
+                    return
+                if self.last_gps is None:
+                    return
+                frame.gps = self.last_gps
+            else:
+                self.last_gps = frame.gps
+
+            if len(self._data) == 0:
+                self._data.append(
+                    FramePoint(frame.time, frame.gps, frame.acceleration)
+                )
+                return
+
+            if self._data[-1].gps == frame.gps:
+                self._data[-1].acceleration.append(frame.acceleration)
+            else:
+                self._data.append(
+                    FramePoint(frame.time, frame.gps, frame.acceleration)
+                )
 
     def get_indirect_distance(self, n_seconds=10):
         """
@@ -357,10 +363,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
-        caches_key = 'poly_journey_graph'
-
-        if network_cache.get(caches_key, self.content_hash) is None:
-            logger.debug(f'{caches_key} > {self.content_hash} not found in cache, generating...')
+        if network_cache.get(self.poly_graph_key, self.content_hash) is None:
+            logger.debug(f'{self.poly_graph_key} > {self.content_hash} not found in cache, generating...')
 
             points = self.get_multi_points()
 
@@ -375,9 +379,9 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
             # TODO: might want to merge our edge_quality_data with edge data
 
-            network_cache.set(caches_key, self.content_hash, network)
+            network_cache.set(self.poly_graph_key, self.content_hash, network)
 
-        return network_cache.get(caches_key, self.content_hash)
+        return network_cache.get(self.poly_graph_key, self.content_hash)
 
     @property
     def all_points(self):
