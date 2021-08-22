@@ -5,8 +5,7 @@ from contextlib import closing
 from collections import defaultdict
 from typing import (
     Any,
-    List,
-    Dict
+    List
 )
 
 import osmnx as ox
@@ -103,7 +102,7 @@ class Journeys(
             **plot_kwargs
         )
 
-    def get_mega_journeys(self) -> Dict[str, Journey]:
+    def get_mega_journeys(self):
         megas = defaultdict(Journey)
 
         for journey in self:
@@ -116,7 +115,7 @@ class Journeys(
         return megas
 
     @property
-    def edge_quality_map(self) -> Dict[str, Dict[str: Any]]:
+    def edge_quality_map(self):
         """
         Get a map between edge_hash and road quality of the road. edge_map
         being edge id and road quality being something that hasn't been
