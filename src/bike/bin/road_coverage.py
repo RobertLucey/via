@@ -13,25 +13,40 @@ def print_coverage(journeys, min_edge_usage):
     :param min_edge_usage:
     """
 
-    for key, journey in journeys.get_mega_journeys().items():
+    journeys_graph = journeys.bounding_graph
+    used_edge_ids = []
+    used_edge_data = {}
+
+    for journey in journeys:
         bounding_graph = journey.bounding_graph
         used_edges = journey.edge_quality_map
-        used_edge_ids = []
-        total_length = 0
-        used_length = 0
         for (u, v, k, d) in bounding_graph.edges(keys=True, data=True):
             combined_id = get_combined_id(u, v)
             if combined_id in used_edge_ids:
                 continue
             used_edge_ids.append(combined_id)
-            if all([
-                combined_id in used_edges,
-                used_edges.get(combined_id, {}).get('count', -1) >= min_edge_usage
-            ]):
-                used_length += d['length']
-            total_length += d['length']
-        coverage_perc = (used_length / total_length) * 100
-        print('Coverage %s: %s%%' % (key, round(coverage_perc, 2)))
+
+            if combined_id in used_edges:
+                if combined_id not in used_edge_data.keys():
+                    used_edge_data[combined_id] = {
+                        'used_times': 1,
+                        **d
+                    }
+                else:
+                    used_edge_data[combined_id]['used_times'] += 1
+
+    total_length = 0
+    for (u, v, k, d) in journeys_graph.edges(keys=True, data=True):
+        total_length += d['length']
+
+    used_length = sum(
+        [
+            d['length'] for d in used_edge_data.values() if d['used_times'] >= min_edge_usage
+        ]
+    )
+
+    coverage_perc = (used_length / total_length) * 100
+    print('Coverage: %s%%' % (round(coverage_perc, 2)))
 
 
 def main():
