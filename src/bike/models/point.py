@@ -1,5 +1,6 @@
 import hashlib
 import statistics
+from numbers import Number
 
 import reverse_geocoder
 from shapely.geometry import (
@@ -7,6 +8,7 @@ from shapely.geometry import (
     Point
 )
 
+from bike.settings import MIN_ACC_SCORE
 from bike.place_cache import place_cache
 from bike.models.generic import (
     GenericObject,
@@ -38,9 +40,16 @@ class FramePoint(GenericObject):
         self.gps = GPSPoint.parse(gps)
 
         if isinstance(acceleration, list):
-            self.acceleration = acceleration
+            self.acceleration = [a for a in acceleration if a >= MIN_ACC_SCORE]
         else:
-            self.acceleration = [acceleration]
+            if acceleration is None:
+                acceleration = 0
+            assert isinstance(acceleration, Number)
+            self.acceleration = [a for a in [acceleration] if a >= MIN_ACC_SCORE]
+
+    def append_acceleration(self, acc: float):
+        if acc >= MIN_ACC_SCORE:
+            self.acceleration.append(acc)
 
     @staticmethod
     def parse(obj):
@@ -51,7 +60,7 @@ class FramePoint(GenericObject):
             return FramePoint(
                 obj.get('time', None),
                 obj['gps'],
-                obj['acc']
+                obj['acc'] if obj['acc'] >= MIN_ACC_SCORE else None
             )
         else:
             raise NotImplementedError(

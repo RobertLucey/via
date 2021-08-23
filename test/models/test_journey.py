@@ -179,13 +179,14 @@ class JourneyTest(TestCase):
         for dp in test_data:
             journey.append(dp)
 
+        print(journey.serialize())
         self.assertEqual(
             journey.serialize(),
             {
                 'uuid': str(journey.uuid),
                 'data': [
-                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [None, 1, 1, 1, 1], 'time': 2},
-                    {'gps': {'lat': 1.1, 'lng': 2.2, 'elevation': None}, 'acc': [None], 'time': 7}
+                    {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 1, 1, 1], 'time': 2},
+                    {'gps': {'lat': 1.1, 'lng': 2.2, 'elevation': None}, 'acc': [], 'time': 7}
                 ],
                 'transport_type': None,
                 'suspension': None,

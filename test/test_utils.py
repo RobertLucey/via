@@ -138,3 +138,6 @@ class UtilTest(TestCase):
     def test_get_edge_colours(self):
         # TODO: once not doing random quality
         pass
+
+    def test_update_edge_data(self):
+        pass

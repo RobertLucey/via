@@ -9,6 +9,10 @@ from shapely.ops import cascaded_union
 import networkx as nx
 import osmnx as ox
 
+from bike.settings import (
+    MIN_ACC_SCORE,
+    MIN_PER_JOURNEY_USAGE  # TODO: use
+)
 from bike import logger
 from bike.utils import (
     window,
@@ -137,7 +141,7 @@ class Journey(
                 return
 
             if self._data[-1].gps == frame.gps:
-                self._data[-1].acceleration.append(frame.acceleration)
+                self._data[-1].append_acceleration(frame.acceleration)
             else:
                 self._data.append(
                     FramePoint(frame.time, frame.gps, frame.acceleration)
@@ -257,18 +261,28 @@ class Journey(
 
         :rtype: dict
         """
+
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
-            data[edge_id] = {
-                'avg': int(
-                    statistics.mean(
-                        [edge['avg_road_quality'] for edge in single_edge_data]
-                    )
-                ),
-                'count': len(single_edge_data)
-            }
+            qualities = [edge['avg_road_quality'] for edge in single_edge_data]
+            if len(qualities) == 0:
+                data[edge_id] = {
+                    'avg': 0,
+                    'count': 0
+                }
+            else:
+                data[edge_id] = {
+                    'avg': int(
+                        statistics.mean(
+                            qualities
+                        )
+                    ),
+                    'count': len(qualities)
+                }
 
-        return data
+        return {
+            edge_id: d for edge_id, d in data.items() if d['count'] >= MIN_PER_JOURNEY_USAGE
+        }
 
     @property
     def edge_data(self):
@@ -291,12 +305,14 @@ class Journey(
                 ]
             )
 
+            edge_data = get_edge_data(
+                route_graph,
+                our_origin.uuid,
+                our_destination.uuid,
+            )
+
             data[get_combined_id(edge[0][0], edge[0][1])].append(
-                get_edge_data(
-                    route_graph,
-                    our_origin.uuid,
-                    our_destination.uuid,
-                )
+                edge_data
             )
 
         nearest_edge.save()
