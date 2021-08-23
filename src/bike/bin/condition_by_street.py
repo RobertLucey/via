@@ -1,5 +1,4 @@
 import argparse
-import statistics
 from collections import defaultdict
 
 from bike.utils import (
@@ -16,44 +15,33 @@ def print_condition(journeys, min_edge_usage):
     :param min_edge_usage:
     """
 
-    for key, journey in journeys.get_mega_journeys().items():
+    journeys_graph = journeys.graph
+    used_edge_data = defaultdict(list)
 
-        bounding_graph = journey.graph
-        used_edges = journey.edge_quality_map
+    used_edges = journeys.edge_quality_map
+    for (u, v, k, d) in journeys_graph.edges(keys=True, data=True):
+        combined_id = get_combined_id(u, v)
+        try:
+            used_edge_data[d['name']] = {
+                **used_edges[combined_id],
+                **d
+            }
+        except:
+            pass
 
-        merged_edge_data = {}
+    name_quality_map = defaultdict(list)
+    for edge in used_edge_data.values():
+        for name in force_list(edge.get('name', [])):
+            name_quality_map[name].append(edge['avg'])
 
-        for (u, v, k, d) in bounding_graph.edges(keys=True, data=True):
-            combined_id = get_combined_id(u, v)
-            if all([
-                combined_id in used_edges,
-                used_edges.get(combined_id, {}).get('count', -1) >= min_edge_usage
-            ]):
-                merged_edge_data[combined_id] = {
-                    **used_edges[combined_id],
-                    **d
-                }
+    name_quality_map = sorted(
+        used_edge_data.items(),
+        key=lambda x: x[1]['avg'],
+        reverse=True
+    )
 
-        name_quality_map = defaultdict(list)
-        for edge in merged_edge_data.values():
-            for name in force_list(edge.get('name', [])):
-                name_quality_map[name].append(edge['avg'])
-
-        name_quality_map = {
-            k: statistics.mean(v) for k, v in name_quality_map.items()
-        }
-        name_quality_map = sorted(
-            name_quality_map.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )
-
-        print('==========\nFrom %s' % (key))
-
-        for street_name, quality in name_quality_map:
-            print('%s: %s' % (street_name.ljust(30), round(quality, 2)))
-
-        print()
+    for street_name, quality in name_quality_map:
+        print('%s: %s' % (street_name.ljust(30), quality['avg']))
 
 
 def main():
