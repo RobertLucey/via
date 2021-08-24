@@ -10,8 +10,9 @@ import networkx as nx
 import osmnx as ox
 
 from bike.settings import (
-    MIN_ACC_SCORE,
-    MIN_PER_JOURNEY_USAGE  # TODO: use
+    MIN_PER_JOURNEY_USAGE,
+    MIN_METRES_PER_SECOND,
+    MAX_METRES_PER_SECOND
 )
 from bike import logger
 from bike.utils import (
@@ -133,6 +134,23 @@ class Journey(
                 frame.gps = self.last_gps
             else:
                 self.last_gps = frame.gps
+
+            # Remove points that are too slow / fast in relation to
+            # the previous point
+            if len(self._data) > 0:
+                if frame.gps.is_populated:
+                    distance = self._data[-1].distance_from(frame.gps)
+                    time_diff = frame.time - self._data[-1].time
+                    metres_per_second = distance / time_diff
+
+                    # if distance is 0 it is only an accelerometer point
+                    # so isn't subject to this filter
+                    if all([
+                        distance != 0,
+                        metres_per_second < MIN_METRES_PER_SECOND,
+                        metres_per_second > MAX_METRES_PER_SECOND
+                    ]):
+                        return
 
             if len(self._data) == 0:
                 self._data.append(
