@@ -60,6 +60,8 @@ class Journey(
 
         self.extend(data)
 
+        self.version = kwargs.get('version', None)
+
         self.is_culled = kwargs.get('is_culled', False)
         self.is_sent = kwargs.get('is_sent', False)
 
@@ -206,6 +208,7 @@ class Journey(
     def serialize(self, minimal=False, exclude_time=False):
         data = {
             'uuid': str(self.uuid),
+            'version': self.version,
             'data': super().serialize(exclude_time=exclude_time),
             'transport_type': self.transport_type,
             'suspension': self.suspension,
