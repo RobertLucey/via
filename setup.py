@@ -4,6 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'packaging',
     'reverse_geocoder',
     'fast_json',
     'boto3',

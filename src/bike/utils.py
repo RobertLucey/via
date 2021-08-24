@@ -17,6 +17,10 @@ import osmnx as ox
 import fast_json
 
 from bike import logger
+from bike.settings import (
+    MIN_JOURNEY_VERSION,
+    MAX_JOURNEY_VERSION
+)
 from bike.constants import (
     DATA_DIR,
     REMOTE_DATA_DIR,
@@ -82,6 +86,8 @@ def iter_journeys(transport_type=None, source=None, place=None):
     from bike.models.journey import Journey
     for journey_file in get_data_files(transport_type=transport_type, source=source):
         journey = Journey.from_file(journey_file)
+        if journey.version < MIN_JOURNEY_VERSION or journey.version > MAX_JOURNEY_VERSION:
+            continue
         if place is not None:
             if journey.is_in_place(place):
                 yield journey

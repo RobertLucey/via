@@ -1,3 +1,4 @@
+packaging
 reverse_geocoder
 fast_json
 boto3

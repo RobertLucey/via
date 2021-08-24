@@ -1,5 +1,6 @@
 import statistics
 from collections import defaultdict
+from packaging import version
 
 import geopandas as gpd
 import fast_json
@@ -60,7 +61,7 @@ class Journey(
 
         self.extend(data)
 
-        self.version = kwargs.get('version', None)
+        self._version = kwargs.get('version', None)
 
         self.is_culled = kwargs.get('is_culled', False)
         self.is_sent = kwargs.get('is_sent', False)
@@ -208,7 +209,7 @@ class Journey(
     def serialize(self, minimal=False, exclude_time=False):
         data = {
             'uuid': str(self.uuid),
-            'version': self.version,
+            'version': str(self.version),
             'data': super().serialize(exclude_time=exclude_time),
             'transport_type': self.transport_type,
             'suspension': self.suspension,
@@ -426,3 +427,11 @@ class Journey(
         Return all the points in this journey
         """
         return self._data
+
+    @property
+    def version(self):
+        if isinstance(self._version, version.Version):
+            return self._version
+        if isinstance(self._version, type(None)):
+            return version.parse('0.0.0')
+        return version.parse(self._version)

@@ -183,7 +183,7 @@ class JourneyTest(TestCase):
         self.assertEqual(
             journey.serialize(),
             {
-                'version': None,
+                'version': '0.0.0',
                 'uuid': str(journey.uuid),
                 'data': [
                     {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 1, 1, 1], 'time': 2},
