@@ -67,6 +67,14 @@ class FramePoint(GenericObject):
                 'Can\'t parse Point from type %s' % (type(obj))
             )
 
+    def speed_between(self, point):
+        metres_per_second = None
+        distance = self.distance_from(point.gps)
+        if distance != 0:
+            time_diff = point.time - self.time
+            metres_per_second = distance / time_diff
+        return metres_per_second
+
     def distance_from(self, point):
         """
 

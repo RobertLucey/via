@@ -1,3 +1,4 @@
+import math
 import os
 import glob
 import json
@@ -26,6 +27,7 @@ from bike.constants import (
     REMOTE_DATA_DIR,
     DEFAULT_EDGE_COLOUR
 )
+from bike.models.gps import GPSPoint
 
 
 def is_journey_data_file(potential_journey_file: str) -> bool:
@@ -390,3 +392,29 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
             )
 
     return graph
+
+
+def get_angle(origin, dst, ignore_order=False):
+    """
+
+    :kwarg ignore_order:
+    """
+    if ignore_order:
+        ordered = sorted([origin, dst], key=lambda x: x.lat)
+        return (ordered[0].lng - ordered[1].lng) / (ordered[0].lat - ordered[1].lat)
+    return (origin.lng - dst.lng) / (origin.lat - dst.lat)
+
+
+def get_edge_angle(nodes, edge, ignore_order=False):
+
+    origin = nodes[edge[0][0][0]]
+    dst = nodes[edge[0][0][1]]
+
+    origin = GPSPoint(origin['y'], origin['x'])
+    dst = GPSPoint(dst['y'], dst['x'])
+
+    return get_angle(origin, dst, ignore_order=ignore_order)
+
+
+def angle_between_slopes(s1, s2):
+    return math.degrees(math.atan((s2-s1)/(1+(s2*s1))))
