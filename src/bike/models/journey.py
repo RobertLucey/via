@@ -80,6 +80,8 @@ class Journey(
         self.bounding_graph_key = 'bbox_journey_graph'
         self.poly_graph_key = 'poly_journey_graph'
 
+        self.too_slow = False
+
     @staticmethod
     def parse(objs):
         if isinstance(objs, Journey):
@@ -138,27 +140,26 @@ class Journey(
             else:
                 self.last_gps = frame.gps
 
-            # Remove points that are too slow / fast in relation to
-            # the previous point
-            if len(self._data) > 0:
-                if frame.gps.is_populated:
-                    distance = self._data[-1].distance_from(frame.gps)
-                    time_diff = frame.time - self._data[-1].time
-                    metres_per_second = distance / time_diff
-
-                    # if distance is 0 it is only an accelerometer point
-                    # so isn't subject to this filter
-                    if all([
-                        distance != 0,
-                        metres_per_second < MIN_METRES_PER_SECOND,
-                        metres_per_second > MAX_METRES_PER_SECOND
-                    ]):
-                        return
-
             if len(self._data) == 0:
                 self._data.append(
                     FramePoint(frame.time, frame.gps, frame.acceleration)
                 )
+                return
+
+            # Remove points that are too slow / fast in relation to
+            # the previous point
+            if frame.gps.is_populated:
+                metres_per_second = self._data[-1].speed_between(frame)
+                if metres_per_second is not None:
+                    if any([
+                        metres_per_second < MIN_METRES_PER_SECOND,
+                        metres_per_second > MAX_METRES_PER_SECOND
+                    ]):
+                        self.too_slow = True
+                    else:
+                        self.too_slow = False
+
+            if self.too_slow:
                 return
 
             if self._data[-1].gps == frame.gps:
