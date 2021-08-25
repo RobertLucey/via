@@ -17,7 +17,7 @@ from bike.utils import (
     flatten,
     get_journeys,
     angle_between_slopes,
-    get_angle
+    get_slope
 )
 from bike.constants import (
     REMOTE_DATA_DIR,
@@ -145,9 +145,9 @@ class UtilTest(TestCase):
     def test_update_edge_data(self):
         pass
 
-    def test_get_angle(self):
+    def test_get_slope(self):
         self.assertEqual(
-            get_angle(
+            get_slope(
                 GPSPoint(0, 0),
                 GPSPoint(1, 1),
             ),
@@ -155,7 +155,7 @@ class UtilTest(TestCase):
         )
 
         self.assertEqual(
-            get_angle(
+            get_slope(
                 GPSPoint(1, 1),
                 GPSPoint(0, 0),
             ),

@@ -394,28 +394,28 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
     return graph
 
 
-def get_angle(origin, dst):
-    """
-
-    :kwarg ignore_order:
-    """
+def get_slope(origin: GPSPoint, dst: GPSPoint):
     return (origin.lng - dst.lng) / (origin.lat - dst.lat)
 
 
-def get_edge_angle(nodes, edge):
-
+def get_edge_slope(nodes, edge):
+    """
+    Given an edge, get the slope of it
+    """
     origin = nodes[edge[0][0][0]]
     dst = nodes[edge[0][0][1]]
 
     origin = GPSPoint(origin['y'], origin['x'])
     dst = GPSPoint(dst['y'], dst['x'])
 
-    return get_angle(origin, dst)
+    return get_slope(origin, dst)
 
 
 def angle_between_slopes(s1, s2, ensure_positive=False):
     """
 
+    :param s1:
+    :param s2:
     :kwargs ensure_positive: Ensure the result is always positive
         Useful in comparisons where you don't care about direction
         and want -45 to also equal 135 for example
