@@ -394,18 +394,15 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
     return graph
 
 
-def get_angle(origin, dst, ignore_order=False):
+def get_angle(origin, dst):
     """
 
     :kwarg ignore_order:
     """
-    if ignore_order:
-        ordered = sorted([origin, dst], key=lambda x: x.lat)
-        return (ordered[0].lng - ordered[1].lng) / (ordered[0].lat - ordered[1].lat)
     return (origin.lng - dst.lng) / (origin.lat - dst.lat)
 
 
-def get_edge_angle(nodes, edge, ignore_order=False):
+def get_edge_angle(nodes, edge):
 
     origin = nodes[edge[0][0][0]]
     dst = nodes[edge[0][0][1]]
@@ -413,8 +410,18 @@ def get_edge_angle(nodes, edge, ignore_order=False):
     origin = GPSPoint(origin['y'], origin['x'])
     dst = GPSPoint(dst['y'], dst['x'])
 
-    return get_angle(origin, dst, ignore_order=ignore_order)
+    return get_angle(origin, dst)
 
 
-def angle_between_slopes(s1, s2):
-    return math.degrees(math.atan((s2-s1)/(1+(s2*s1))))
+def angle_between_slopes(s1, s2, ensure_positive=False):
+    """
+
+    :kwargs ensure_positive: Ensure the result is always positive
+        Useful in comparisons where you don't care about direction
+        and want -45 to also equal 135 for example
+    """
+    degrees = math.degrees(math.atan((s2 - s1) / (1 + (s2 * s1))))
+    if ensure_positive:
+        if degrees < 0:
+            degrees = 180 + degrees
+    return degrees
