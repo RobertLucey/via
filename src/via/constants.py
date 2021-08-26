@@ -1,16 +1,17 @@
 import os
 
 
-BASE_PATH = '/opt/bike/' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/bike'
+BASE_PATH = '/opt/via/' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/via'
 
 DATA_DIR = os.path.join(BASE_PATH, 'data')
 REMOTE_DATA_DIR = os.path.join(DATA_DIR, 'remote')
 CACHE_DIR = os.path.join(DATA_DIR, 'cache')
 EDGE_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_cache')
+EDGE_DATA_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_data_cache')
 NETWORK_CACHE_DIR = os.path.join(CACHE_DIR, 'network_cache')
 GEOJSON_DIR = os.path.join(CACHE_DIR, 'geojson')
 
-LOG_LOCATION = '/var/log/bike/bike.log' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/log/bike/bike.log'
+LOG_LOCATION = '/var/log/via/via.log' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/log/via/via.log'
 
 DEFAULT_EDGE_COLOUR = '#E1E1E1'
 

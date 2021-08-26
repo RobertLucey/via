@@ -1,6 +1,6 @@
 import argparse
 
-from bike.utils import (
+from via.utils import (
     get_journeys,
     get_combined_id
 )

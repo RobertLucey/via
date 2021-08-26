@@ -17,17 +17,17 @@ from networkx.classes.multidigraph import MultiDiGraph
 import osmnx as ox
 import fast_json
 
-from bike import logger
-from bike.settings import (
+from via import logger
+from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION
 )
-from bike.constants import (
+from via.constants import (
     DATA_DIR,
     REMOTE_DATA_DIR,
     DEFAULT_EDGE_COLOUR
 )
-from bike.models.gps import GPSPoint
+from via.models.gps import GPSPoint
 
 
 def is_journey_data_file(potential_journey_file: str) -> bool:
@@ -65,7 +65,7 @@ def get_journeys(transport_type=None, source=None, place=None):
     :kwarg place: The place to get journeys within
     :rtype: Journey
     """
-    from bike.models.journeys import Journeys
+    from via.models.journeys import Journeys
     return Journeys(
         data=list(
             iter_journeys(
@@ -85,7 +85,7 @@ def iter_journeys(transport_type=None, source=None, place=None):
     :kwarg source: The data dir to get from
     :kwarg place: The place to get journeys within
     """
-    from bike.models.journey import Journey
+    from via.models.journey import Journey
     for journey_file in get_data_files(transport_type=transport_type, source=source):
         journey = Journey.from_file(journey_file)
         if journey.version < MIN_JOURNEY_VERSION or journey.version > MAX_JOURNEY_VERSION:
@@ -105,7 +105,7 @@ def get_data_files(transport_type=None, source=None) -> List[str]:
     :rtype: list
     :return: a list of file paths to journey files
     """
-    from bike.models.journey import Journey
+    from via.models.journey import Journey
     files = []
 
     path = DATA_DIR

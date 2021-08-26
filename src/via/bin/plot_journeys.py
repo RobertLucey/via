@@ -1,6 +1,6 @@
 import argparse
 
-from bike.utils import get_journeys
+from via.utils import get_journeys
 
 
 def main():

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from bike.place_cache import PlaceCache
+from via.place_cache import PlaceCache
 
 
 class PlaceCacheTest(TestCase):

@@ -2,10 +2,10 @@ import json
 
 from unittest import TestCase
 
-from bike.models.journey import Journey
-from bike.models.frame import Frame
+from via.models.journey import Journey
+from via.models.frame import Frame
 
-from bike.edge_cache import get_edge_data
+from via.edge_cache import get_edge_data
 
 
 class EdgeCacheTest(TestCase):

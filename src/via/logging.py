@@ -3,7 +3,7 @@ import sys
 import logging
 from logging.handlers import RotatingFileHandler
 
-from bike.constants import LOG_LOCATION
+from via.constants import LOG_LOCATION
 
 
 fmt = '%(asctime)s|%(levelname)s| %(message)s'
@@ -34,7 +34,7 @@ class ColourfulFormatter(logging.Formatter):
 
 
 
-logger = logging.Logger('bike', logging.DEBUG)
+logger = logging.Logger('via', logging.DEBUG)
 
 os.makedirs(
     os.path.dirname(LOG_LOCATION),

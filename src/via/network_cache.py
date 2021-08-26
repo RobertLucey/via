@@ -3,8 +3,8 @@ import pickle
 
 from networkx.classes.multidigraph import MultiDiGraph
 
-from bike.settings import VERSION
-from bike.constants import NETWORK_CACHE_DIR
+from via.settings import VERSION
+from via.constants import NETWORK_CACHE_DIR
 
 
 class SingleNetworkCache():

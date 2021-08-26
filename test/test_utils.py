@@ -5,7 +5,7 @@ from unittest import TestCase
 
 import time
 
-from bike.utils import (
+from via.utils import (
     get_ox_colours,
     is_journey_data_file,
     get_data_files,
@@ -19,11 +19,11 @@ from bike.utils import (
     angle_between_slopes,
     get_slope
 )
-from bike.constants import (
+from via.constants import (
     REMOTE_DATA_DIR,
     DATA_DIR
 )
-from bike.models.gps import GPSPoint
+from via.models.gps import GPSPoint
 
 
 @sleep_until(0.5)

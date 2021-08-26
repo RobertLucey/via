@@ -10,25 +10,26 @@ from shapely.ops import cascaded_union
 import networkx as nx
 import osmnx as ox
 
-from bike.settings import (
+from via.settings import (
     MIN_PER_JOURNEY_USAGE,
     MIN_METRES_PER_SECOND,
-    MAX_METRES_PER_SECOND
+    MAX_METRES_PER_SECOND,
+    GPS_INCLUDE_RATIO
 )
-from bike import logger
-from bike.utils import (
+from via import logger
+from via.utils import (
     window,
     get_combined_id,
     get_edge_colours,
     get_network_from_transport_type
 )
-from bike.nearest_edge import nearest_edge
-from bike.constants import POLY_POINT_BUFFER
-from bike.models.point import FramePoint, FramePoints
-from bike.models.frame import Frame
-from bike.edge_cache import get_edge_data
-from bike.network_cache import network_cache
-from bike.models.journey_mixins import (
+from via.nearest_edge import nearest_edge
+from via.constants import POLY_POINT_BUFFER
+from via.models.point import FramePoint, FramePoints
+from via.models.frame import Frame
+from via.edge_cache import get_edge_data
+from via.network_cache import network_cache
+from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
     BoundingGraphMixin
@@ -51,6 +52,8 @@ class Journey(
         :kwarg suspension: If using suspension or not, defaults
             to settings.SUSPENSION
         """
+        self.gps_inclusion_iter = 0
+        self.too_slow = False
 
         data = []
         if 'data' in kwargs:
@@ -80,8 +83,6 @@ class Journey(
         self.bounding_graph_key = 'bbox_journey_graph'
         self.poly_graph_key = 'poly_journey_graph'
 
-        self.too_slow = False
-
     @staticmethod
     def parse(objs):
         if isinstance(objs, Journey):
@@ -102,7 +103,7 @@ class Journey(
         Given a file get a Journey object
 
         :param filepath: Path to a saved journey file
-        :rtype: bike.models.journey.Journey
+        :rtype: via.models.journey.Journey
         """
         logger.debug('Loading journey from %s', filepath)
         with open(filepath, 'r') as journey_file:
@@ -138,7 +139,11 @@ class Journey(
                     return
                 frame.gps = self.last_gps
             else:
-                self.last_gps = frame.gps
+                if self.gps_inclusion_iter % GPS_INCLUDE_RATIO == 0:
+                    self.last_gps = frame.gps
+                else:
+                    frame.gps = self.last_gps
+                self.gps_inclusion_iter += 1
 
             if len(self._data) == 0:
                 self._data.append(
@@ -205,6 +210,7 @@ class Journey(
         :rtype: float
         :return: avg speed in metres per second
         """
+        print(self._data)
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
     def serialize(self, minimal=False, exclude_time=False):

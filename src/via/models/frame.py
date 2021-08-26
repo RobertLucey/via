@@ -1,8 +1,8 @@
-from bike.models.generic import (
+from via.models.generic import (
     GenericObject,
     GenericObjects
 )
-from bike.models.gps import GPSPoint
+from via.models.gps import GPSPoint
 
 
 class Frame(GenericObject):
@@ -108,7 +108,7 @@ class Frames(GenericObjects):
     def origin(self):
         """
 
-        :rtype: bike.models.Frame
+        :rtype: via.models.Frame
         :return: The first frame of the journey
         """
         return self[0]
@@ -117,7 +117,7 @@ class Frames(GenericObjects):
     def destination(self):
         """
 
-        :rtype: bike.models.Frame
+        :rtype: via.models.Frame
         :return: The last frame of the journey
         """
         return self[-1]

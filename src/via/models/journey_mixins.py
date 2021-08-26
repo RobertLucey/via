@@ -6,15 +6,15 @@ import shapely
 from networkx.readwrite import json_graph
 import osmnx as ox
 
-from bike import logger
-from bike.utils import (
+from via import logger
+from via.utils import (
     filter_nodes_from_geodataframe,
     filter_edges_from_geodataframe,
     update_edge_data
 )
-from bike.nearest_edge import nearest_edge
-from bike.network_cache import network_cache
-from bike.constants import GEOJSON_DIR
+from via.nearest_edge import nearest_edge
+from via.network_cache import network_cache
+from via.constants import GEOJSON_DIR
 
 
 class SnappedRouteGraphMixin():

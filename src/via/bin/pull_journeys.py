@@ -3,8 +3,8 @@ import boto3
 
 import requests
 
-from bike import logger
-from bike.constants import REMOTE_DATA_DIR
+from via import logger
+from via.constants import REMOTE_DATA_DIR
 
 
 def main():

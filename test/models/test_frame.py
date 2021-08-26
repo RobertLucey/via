@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from bike.models.frame import (
+from via.models.frame import (
     Frame,
     Frames
 )

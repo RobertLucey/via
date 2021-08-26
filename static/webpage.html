@@ -45,7 +45,7 @@
           {
             style: function(feature) {
               return {
-                color: get_colour(Math.max.apply(Math, [feature.properties.avg], 30) / 30),  // 30 is just a fairly high cap
+                color: getColour(Math.max.apply(Math, [feature.properties.avg], 40) / 40),  // 30 is just a fairly high cap, TODO: get the actual height
                 weight: 5
               };
             },
@@ -85,7 +85,7 @@
 
     <div>
       <input type="file" onchange="read_file(this)"/>
-      Learn more about this project <a href="https://github.com/RobertLucey/bike">HERE</a>
+      Learn more about this project <a href="https://github.com/RobertLucey/via">HERE</a>
     </div>
     <hr>
     <div>

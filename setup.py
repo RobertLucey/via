@@ -17,21 +17,21 @@ INSTALL_REQUIRES = (
 )
 
 setup(
-    name='bike',
+    name='via',
     version='0.0.1',
     python_requires='>=3.6',
     description='Bike',
     author='Robert Lucey',
-    url='https://github.com/RobertLucey/bike',
+    url='https://github.com/RobertLucey/via',
     packages=find_packages('src'),
     package_dir={'': 'src'},
     install_requires=INSTALL_REQUIRES,
     entry_points={
         'console_scripts': [
-            'pull_journeys = bike.bin.pull_journeys:main',
-            'plot_journeys = bike.bin.plot_journeys:main',
-            'road_coverage = bike.bin.road_coverage:main',
-            'condition_by_street = bike.bin.condition_by_street:main'
+            'pull_journeys = via.bin.pull_journeys:main',
+            'plot_journeys = via.bin.plot_journeys:main',
+            'road_coverage = via.bin.road_coverage:main',
+            'condition_by_street = via.bin.condition_by_street:main'
         ]
     }
 )

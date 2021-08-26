@@ -8,13 +8,13 @@ from shapely.geometry import (
     Point
 )
 
-from bike.settings import MIN_ACC_SCORE
-from bike.place_cache import place_cache
-from bike.models.generic import (
+from via.settings import MIN_ACC_SCORE
+from via.place_cache import place_cache
+from via.models.generic import (
     GenericObject,
     GenericObjects
 )
-from bike.models.gps import GPSPoint
+from via.models.gps import GPSPoint
 
 
 class FramePoint(GenericObject):
@@ -47,9 +47,15 @@ class FramePoint(GenericObject):
             assert isinstance(acceleration, Number)
             self.acceleration = [a for a in [acceleration] if a >= MIN_ACC_SCORE]
 
-    def append_acceleration(self, acc: float):
-        if acc >= MIN_ACC_SCORE:
-            self.acceleration.append(acc)
+    def append_acceleration(self, acc):
+        if isinstance(acc, list):
+            for item in acc:
+                self.append_acceleration(item)
+        elif isinstance(acc, type(None)):
+            return
+        else:
+            if acc >= MIN_ACC_SCORE:
+                self.acceleration.append(acc)
 
     @staticmethod
     def parse(obj):
@@ -152,7 +158,7 @@ class FramePoints(GenericObjects):
     def origin(self):
         """
 
-        :rtype: bike.models.Frame
+        :rtype: via.models.Frame
         :return: The first frame of the journey
         """
         return self[0]
@@ -161,7 +167,7 @@ class FramePoints(GenericObjects):
     def destination(self):
         """
 
-        :rtype: bike.models.Frame
+        :rtype: via.models.Frame
         :return: The last frame of the journey
         """
         return self[-1]

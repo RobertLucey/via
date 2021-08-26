@@ -1,4 +1,4 @@
-from bike.utils import get_combined_id
+from via.utils import get_combined_id
 
 
 EDGE_CACHE = {}

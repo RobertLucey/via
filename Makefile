@@ -24,6 +24,6 @@ quick_build:
 test: build test_requirements quick_test
 
 quick_test:
-	$(IN_ENV) $(TEST_CONTEXT) nosetests --with-coverage --cover-package=bike --cover-erase
+	$(IN_ENV) $(TEST_CONTEXT) nosetests --with-coverage --cover-package=via --cover-erase
 	$(IN_ENV) coverage report -m
 	$(IN_ENV) coverage html

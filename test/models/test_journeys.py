@@ -5,9 +5,9 @@ import os
 
 from unittest import TestCase, skip
 
-from bike.models.journey import Journey
-from bike.models.journeys import Journeys
-from bike.models.frame import Frame
+from via.models.journey import Journey
+from via.models.journeys import Journeys
+from via.models.frame import Frame
 
 
 class JourneysTest(TestCase):

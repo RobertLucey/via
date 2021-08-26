@@ -7,8 +7,8 @@ import mock
 
 from unittest import TestCase, skip
 
-from bike.models.journey import Journey
-from bike.models.frame import Frame
+from via.models.journey import Journey
+from via.models.frame import Frame
 
 
 class JourneyTest(TestCase):
@@ -75,8 +75,8 @@ class JourneyTest(TestCase):
         #    0.0
         #)
 
-    @mock.patch('bike.models.journey.Journey.get_indirect_distance', return_value=1000)
-    @mock.patch('bike.models.journey.Journey.duration', 10)
+    @mock.patch('via.models.journey.Journey.get_indirect_distance', return_value=1000)
+    @mock.patch('via.models.journey.Journey.duration', 10)
     def test_get_avg_speed(self, mock_get_indirect_distance):
         journey = Journey()
         self.assertEqual(

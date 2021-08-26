@@ -3,22 +3,19 @@ import hashlib
 import multiprocessing
 from contextlib import closing
 from collections import defaultdict
-from typing import (
-    Any,
-    List
-)
+from typing import List
 
 import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
 
-from bike.models.generic import GenericObjects
-from bike import logger
-from bike.models.journey import Journey
-from bike.utils import (
+from via.models.generic import GenericObjects
+from via import logger
+from via.models.journey import Journey
+from via.utils import (
     get_edge_colours,
     flatten
 )
-from bike.models.journey_mixins import (
+from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
     BoundingGraphMixin
@@ -124,14 +121,14 @@ class Journeys(
         :rtype: dict
         """
 
-        pool = multiprocessing.Pool(multiprocessing.cpu_count())
-        journey_edge_quality_maps = pool.map(
-            get_journey_edge_quality_map,
-            self
-        )
+        #pool = multiprocessing.Pool(multiprocessing.cpu_count())
+        #journey_edge_quality_maps = pool.map(
+        #    get_journey_edge_quality_map,
+        #    self
+        #)
 
         # Use this when profiling
-        #journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
+        journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
 
         edge_quality_map = defaultdict(list)
         for journey_edge_quality_map in journey_edge_quality_maps:

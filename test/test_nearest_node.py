@@ -7,8 +7,8 @@ import osmnx as ox
 
 from unittest import TestCase
 
-from bike.nearest_node import NearestNodeCache
-from bike.models.frame import Frame, Frames
+from via.nearest_node import NearestNodeCache
+from via.models.frame import Frame, Frames
 
 
 class NearestNodeTest(TestCase):

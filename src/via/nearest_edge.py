@@ -3,7 +3,7 @@ import osmnx as ox
 
 import fast_json
 
-from bike.constants import EDGE_CACHE_DIR
+from via.constants import EDGE_CACHE_DIR
 
 
 class NearestEdgeCache():
