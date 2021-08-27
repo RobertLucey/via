@@ -210,7 +210,6 @@ class Journey(
         :rtype: float
         :return: avg speed in metres per second
         """
-        print(self._data)
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
     def serialize(self, minimal=False, exclude_time=False):
