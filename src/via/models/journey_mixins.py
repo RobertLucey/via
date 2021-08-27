@@ -57,6 +57,30 @@ class SnappedRouteGraphMixin():
 
 class GeoJsonMixin():
 
+    def save_geojson(self):
+        geojson_file = os.path.join(
+            GEOJSON_DIR,
+            self.content_hash + '.geojson'
+        )
+
+        if not os.path.exists(geojson_file):
+            logger.debug(f'{geojson_file} not found, generating...')
+
+            data = self.geojson
+
+            if not os.path.exists(geojson_file):
+                os.makedirs(
+                    os.path.join(GEOJSON_DIR),
+                    exist_ok=True
+                )
+
+            with open(geojson_file, 'w') as json_file:
+                fast_json.dump(
+                    data,
+                    json_file,
+                    indent=4
+                )
+
     @property
     def geojson(self):
         """
@@ -67,53 +91,35 @@ class GeoJsonMixin():
             self.content_hash + '.geojson'
         )
 
-        if os.path.exists(geojson_file):
-            geojson_features = None
-            with open(geojson_file, 'r') as json_file:
-                geojson_features = fast_json.loads(json_file.read())
-        else:
-            logger.debug(f'{geojson_file} not found, generating...')
+        logger.debug(f'{geojson_file} generating...')
 
-            json_links = json_graph.node_link_data(
-                self.snapped_route_graph
-            )['links']
+        json_links = json_graph.node_link_data(
+            self.snapped_route_graph
+        )['links']
 
-            geojson_features = {
-                'type': 'FeatureCollection',
-                'features': []
+        geojson_features = {
+            'type': 'FeatureCollection',
+            'features': []
+        }
+
+        for link in json_links:
+            if 'geometry' not in link:
+                continue
+
+            feature = {
+                'type': 'Feature',
+                'properties': {}
             }
 
-            for link in json_links:
-                if 'geometry' not in link:
-                    continue
+            for k in link:
+                if k == 'geometry':
+                    feature['geometry'] = shapely.geometry.mapping(
+                        link['geometry']
+                    )
+                else:
+                    feature['properties'][k] = link[k]
 
-                feature = {
-                    'type': 'Feature',
-                    'properties': {}
-                }
-
-                for k in link:
-                    if k == 'geometry':
-                        feature['geometry'] = shapely.geometry.mapping(
-                            link['geometry']
-                        )
-                    else:
-                        feature['properties'][k] = link[k]
-
-                geojson_features['features'].append(feature)
-
-            if not os.path.exists(geojson_file):
-                os.makedirs(
-                    os.path.join(GEOJSON_DIR),
-                    exist_ok=True
-                )
-
-            with open(geojson_file, 'w') as json_file:
-                fast_json.dump(
-                    geojson_features,
-                    json_file,
-                    indent=4
-                )
+            geojson_features['features'].append(feature)
 
         return geojson_features
 
