@@ -19,7 +19,7 @@ def main():
         '--transport-type',
         dest='transport_type',
         default=None,
-        help='bike/car/scoorter or whatever else is on the app'
+        help='bike/car/scooter or whatever else is on the app'
     )
     parser.add_argument(
         '--place',
