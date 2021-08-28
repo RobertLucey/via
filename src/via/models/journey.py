@@ -20,8 +20,7 @@ from via import logger
 from via.utils import (
     window,
     get_combined_id,
-    get_edge_colours,
-    get_network_from_transport_type
+    get_edge_colours
 )
 from via.nearest_edge import nearest_edge
 from via.constants import POLY_POINT_BUFFER
@@ -72,9 +71,7 @@ class Journey(
         self.transport_type = kwargs.get('transport_type', None)
         self.suspension = kwargs.get('suspension', None)
 
-        self.network_type = get_network_from_transport_type(
-            self.transport_type
-        )
+        self.network_type = kwargs.get('network_type', 'all')
 
         self.included_journeys = []
 
