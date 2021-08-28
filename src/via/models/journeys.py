@@ -176,7 +176,7 @@ class Journeys(
 
     @staticmethod
     def from_files(filepaths):
-        with closing(multiprocessing.Pool(multiprocessing.cpu_count())) as pool:
+        with closing(multiprocessing.Pool(multiprocessing.cpu_count() - 1)) as pool:
             journeys = list(pool.imap_unordered(Journey.from_file, filepaths))
         return Journeys(
             data=journeys
