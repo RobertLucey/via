@@ -121,14 +121,14 @@ class Journeys(
         :rtype: dict
         """
 
-        pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
-        journey_edge_quality_maps = pool.map(
-            get_journey_edge_quality_map,
-            self
-        )
+        #pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
+        #journey_edge_quality_maps = pool.map(
+        #    get_journey_edge_quality_map,
+        #    self
+        #)
 
         # Use this when profiling
-        #journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
+        journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
 
         edge_quality_map = defaultdict(list)
         for journey_edge_quality_map in journey_edge_quality_maps:
