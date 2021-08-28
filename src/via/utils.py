@@ -340,6 +340,11 @@ def flatten(lst: List) -> List[Any]:
 
 
 def get_network_from_transport_type(transport_type: str) -> str:
+
+    # FIXME: if we plot multiple journeys we need to use common type
+    # Either figure out something or do this silly thing
+    return 'all'
+
     if transport_type is None:
         return 'all'
 
