@@ -60,12 +60,12 @@ class Frame(GenericObject):
     def road_quality(self):
         return int(self.acceleration.quality * 100)
 
-    def serialize(self, exclude_time=False):
+    def serialize(self, **kwargs):
         data = {
             'gps': self.gps.serialize(),
             'acc': self.acceleration
         }
-        if not exclude_time:
+        if kwargs.get('include_time', True):
             data['time'] = round(self.time, 2)
         return data
 
@@ -140,5 +140,5 @@ class Frames(GenericObjects):
         """
         return self[0].distance_from(self[-1])
 
-    def serialize(self, exclude_time=False):
-        return [frame.serialize(exclude_time=exclude_time) for frame in self]
+    def serialize(self, include_time=True):
+        return [frame.serialize(include_time=include_time) for frame in self]

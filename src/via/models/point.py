@@ -17,7 +17,49 @@ from via.models.generic import (
 from via.models.gps import GPSPoint
 
 
-class FramePoint(GenericObject):
+class Context(object):
+
+    def __init__(self, *args, **kwargs):
+        raise Exception()
+
+    @property
+    def is_context_populated(self):
+        return self.context_pre != [] and self.context_post != []
+
+    # have some function to get the direction we're coming from / going to so we can better tell what road the point is on
+
+    def set_context(self, pre=None, post=None):
+        if not self.is_context_populated:
+            self.context_pre = pre
+            self.context_post = post
+
+    @property
+    def angle_incoming(self):
+        """
+        From earliest pre to current
+        """
+        pass
+
+    @property
+    def angle_outgoing(self):
+        pass
+
+    @property
+    def dist_to_earliest(self):
+        pass
+
+    @property
+    def dist_to_latest(self):
+        pass
+
+    def serialize(self, include_time=True):
+        return {
+            'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.pre],
+            'post': [p.serialize(include_time=include_time, include_context=False) for p in self.post]
+        }
+
+
+class FramePoint(GenericObject, Context):
     """
     Data which snaps to the gps giving something like
     {gps: (1, 2), acc: [1,2,3], time: 1}
@@ -35,17 +77,22 @@ class FramePoint(GenericObject):
         :param gps: GPSPoint or dict serialization of GPSPoint
         :param acceneration:
         """
+
+        self.context_pre = []
+        self.context_post = []
+
         super().__init__()
+
         self.time = time
         self.gps = GPSPoint.parse(gps)
 
         if isinstance(acceleration, list):
-            self.acceleration = [a for a in acceleration if a >= MIN_ACC_SCORE]
+            self.acceleration = [acc for acc in acceleration if acc >= MIN_ACC_SCORE]
         else:
             if acceleration is None:
                 acceleration = 0
             assert isinstance(acceleration, Number)
-            self.acceleration = [a for a in [acceleration] if a >= MIN_ACC_SCORE]
+            self.acceleration = [acc for acc in [acceleration] if acc >= MIN_ACC_SCORE]
 
     def append_acceleration(self, acc):
         if isinstance(acc, list):
@@ -106,14 +153,18 @@ class FramePoint(GenericObject):
         except:
             return 0
 
-    def serialize(self, exclude_time=False):
+    def serialize(self, include_time=True, include_context=True):
         data = {
             'gps': self.gps.serialize(),
-            'acc': list(self.acceleration)
+            'acc': list(self.acceleration),
         }
-        if not exclude_time:
+        if include_time:
             data['time'] = round(self.time, 2)
-
+        if include_context:
+            data['context'] = {
+                'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.context_pre],
+                'post': [p.serialize(include_time=include_time, include_context=False) for p in self.context_post],
+            }
         return data
 
     @property
@@ -190,8 +241,8 @@ class FramePoints(GenericObjects):
         """
         return self[0].distance_from(self[-1])
 
-    def serialize(self, exclude_time=False):
-        return [frame.serialize(exclude_time=exclude_time) for frame in self]
+    def serialize(self, include_time=False, include_context=True):
+        return [frame.serialize(include_time=include_time, include_context=include_context) for frame in self]
 
     def get_multi_points(self):
         """
@@ -220,7 +271,7 @@ class FramePoints(GenericObjects):
     def content_hash(self):
         return hashlib.md5(
             str([
-                point.serialize() for point in self
+                point.serialize(include_time=True, include_context=True) for point in self
             ]).encode()
         ).hexdigest()
 

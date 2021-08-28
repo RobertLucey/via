@@ -108,6 +108,14 @@ class Journey(
                 **fast_json.loads(journey_file.read())
             )
 
+    def set_contexts(self):
+        for (one, two, three, four, five, six, seven) in window(self, window_size=7):
+            if not four.is_context_populated:
+                four.set_context(
+                    pre=[one, two, three],
+                    post=[five, six, seven]
+                )
+
     def append(self, obj):
         """
         NB: appending needs to be chronological (can be reversed, just so
@@ -171,6 +179,9 @@ class Journey(
                     FramePoint(frame.time, frame.gps, frame.acceleration)
                 )
 
+        # Might not want to do this every append but works for now
+        self.set_contexts()
+
     def get_indirect_distance(self, n_seconds=10):
         """
         NB: Data must be chronological
@@ -209,11 +220,11 @@ class Journey(
         """
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
-    def serialize(self, minimal=False, exclude_time=False):
+    def serialize(self, minimal=False, include_time=True, include_context=True):
         data = {
             'uuid': str(self.uuid),
             'version': str(self.version),
-            'data': super().serialize(exclude_time=exclude_time),
+            'data': super().serialize(include_time=include_time, include_context=include_context),
             'transport_type': self.transport_type,
             'suspension': self.suspension,
             'is_culled': self.is_culled,
