@@ -33,11 +33,11 @@ class SingleNetworkCache():
 
         for net in self.data:
             if is_within(journey.bbox, net['bbox']):
+                logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
                 return net['network']
 
         for net in self.data:
             if journey.gps_hash == net['hash']:
-                logger.info('Using a larger network')
                 return net['network']
 
         return None
