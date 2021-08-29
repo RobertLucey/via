@@ -3,8 +3,7 @@ import hashlib
 import uuid
 import json
 
-import mock
-
+from mock import patch
 from unittest import TestCase, skip
 
 from via.models.journey import Journey
@@ -13,8 +12,9 @@ from via.models.frame import Frame
 
 class JourneyTest(TestCase):
 
+    @patch('via.settings.MIN_METRES_PER_SECOND', 0)
+    @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def setUp(self):
-
         with open('test/resources/just_route.json') as json_file:
             self.test_data = json.load(json_file)
 
@@ -80,8 +80,8 @@ class JourneyTest(TestCase):
         #    0.0
         #)
 
-    @mock.patch('via.models.journey.Journey.get_indirect_distance', return_value=1000)
-    @mock.patch('via.models.journey.Journey.duration', 10)
+    @patch('via.models.journey.Journey.get_indirect_distance', return_value=1000)
+    @patch('via.models.journey.Journey.duration', 10)
     def test_get_avg_speed(self, mock_get_indirect_distance):
         journey = Journey()
         self.assertEqual(
@@ -107,6 +107,8 @@ class JourneyTest(TestCase):
             770
         )
 
+    @patch('via.settings.MIN_METRES_PER_SECOND', 0)
+    @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def test_parse(self):
         self.assertEqual(
             Journey.parse(self.test_journey).serialize(),
@@ -164,6 +166,8 @@ class JourneyTest(TestCase):
         # TODO: need to have real data / not random data for the road quality
         pass
 
+    @patch('via.settings.MIN_METRES_PER_SECOND', 0)
+    @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def test_toggle_gps_acc(self):
         """
         If I don't sort out the phone thing cause I don't want to this should

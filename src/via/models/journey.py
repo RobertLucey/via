@@ -10,12 +10,7 @@ from shapely.ops import cascaded_union
 import networkx as nx
 import osmnx as ox
 
-from via.settings import (
-    MIN_PER_JOURNEY_USAGE,
-    MIN_METRES_PER_SECOND,
-    MAX_METRES_PER_SECOND,
-    GPS_INCLUDE_RATIO
-)
+from via import settings
 from via import logger
 from via.utils import (
     window,
@@ -144,7 +139,7 @@ class Journey(
                     return
                 frame.gps = self.last_gps
             else:
-                if self.gps_inclusion_iter % GPS_INCLUDE_RATIO == 0:
+                if self.gps_inclusion_iter % settings.GPS_INCLUDE_RATIO == 0:
                     self.last_gps = frame.gps
                 else:
                     frame.gps = self.last_gps
@@ -162,8 +157,8 @@ class Journey(
                 metres_per_second = self._data[-1].speed_between(frame)
                 if metres_per_second is not None:
                     if any([
-                        metres_per_second < MIN_METRES_PER_SECOND,
-                        metres_per_second > MAX_METRES_PER_SECOND
+                        metres_per_second < settings.MIN_METRES_PER_SECOND,
+                        metres_per_second > settings.MAX_METRES_PER_SECOND
                     ]):
                         self.too_slow = True
                     else:
@@ -317,7 +312,7 @@ class Journey(
                 }
 
         return {
-            edge_id: d for edge_id, d in data.items() if d['count'] >= MIN_PER_JOURNEY_USAGE
+            edge_id: d for edge_id, d in data.items() if d['count'] >= settings.MIN_PER_JOURNEY_USAGE
         }
 
     @property

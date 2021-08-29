@@ -3,6 +3,7 @@ import hashlib
 import uuid
 import os
 
+from mock import patch
 from unittest import TestCase, skip
 
 from via.models.journey import Journey
@@ -12,6 +13,8 @@ from via.models.frame import Frame
 
 class JourneysTest(TestCase):
 
+    @patch('via.settings.MIN_METRES_PER_SECOND', 0)
+    @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def setUp(self):
         with open('test/resources/just_route.json') as json_file:
             self.test_data = json.load(json_file)
