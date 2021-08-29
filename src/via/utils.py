@@ -375,9 +375,13 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
     for start, end, _ in graph.edges:
         graph_edge_id = get_combined_id(start, end)
         if graph_edge_id in edge_data_map:
-            graph[start][end][0].update(
-                edge_data_map[graph_edge_id]
-            )
+            try:
+                graph[start][end][0].update(
+                    edge_data_map[graph_edge_id]
+                )
+            except Exception as ex:
+                logger.error('Could not update edge: %s %s', start, end)
+
 
     return graph
 

@@ -1,9 +1,49 @@
 import os
-import osmnx as ox
 
 import fast_json
 
 from via.constants import EDGE_CACHE_DIR
+from via.utils import get_combined_id
+
+import numpy as np
+from rtree.index import Index as RTreeIndex
+from shapely.geometry import Point
+
+from osmnx import utils_graph
+
+
+def nearest_edges(G, X, Y, return_dist=False):
+    if not (hasattr(X, "__iter__") and hasattr(Y, "__iter__")):
+        X = np.array([X])
+        Y = np.array([Y])
+
+    if np.isnan(X).any() or np.isnan(Y).any():  # pragma: no cover
+        raise ValueError("`X` and `Y` cannot contain nulls")
+    geoms = utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
+
+    rtree = RTreeIndex()
+    for pos, bounds in enumerate(geoms.bounds.values):
+        rtree.insert(pos, bounds)
+
+    ne_dist = list()
+    for xy in zip(X, Y):
+        dists = geoms.iloc[list(rtree.nearest(xy, num_results=6))].distance(Point(xy))
+
+        used_edges = []
+        edges = []
+        distances = []
+        for k, v in dists.to_dict().items():
+            if get_combined_id(k[0], k[1]) not in used_edges:
+                edges.append(k)
+                distances.append(v)
+                used_edges.append(get_combined_id(k[0], k[1]))
+
+        ne_dist.append((edges, distances))
+
+    ne, dist = zip(*ne_dist)
+
+    return list(ne), list(dist)
+
 
 
 class NearestEdgeCache():
@@ -15,12 +55,11 @@ class NearestEdgeCache():
         self.data = {}
         self.last_save_len = -1
 
-    def get(self, graph, frames, return_dist=False):
+    def get(self, graph, frames):
         """
 
         :param graph:
         :param frames: list of frames to get nearest edges of
-        :kwarg return_dist: to return the distance alongside the edge id
         :rtype: list or list of tuples
         :return: list of of edge ids or tuple of edge_id and distance
         """
@@ -39,7 +78,7 @@ class NearestEdgeCache():
         }
 
         if frame_ids_to_get != []:
-            results = ox.distance.nearest_edges(
+            results = nearest_edges(
                 graph,
                 [id_frame_map[frame_id].gps.lng for frame_id in frame_ids_to_get],
                 [id_frame_map[frame_id].gps.lat for frame_id in frame_ids_to_get],
@@ -60,17 +99,13 @@ class NearestEdgeCache():
 
             for frame_id, edge_data in frame_id_result_map.items():
                 edge_data = list(edge_data)
-                edge_data[0] = [int(i) for i in edge_data[0]]
-                edge_data[1] = float(edge_data[1])
-                self.data[frame_id] = edge_data
+                self.data[frame_id] = list(zip(edge_data[0], edge_data[1]))
 
         requested_frame_edge_map = {
             str(f.gps_hash): self.data.get(str(f.gps_hash), None) for f in frames
         }
 
-        if return_dist:
-            return requested_frame_edge_map.values()
-        return [v[0] for v in requested_frame_edge_map.values()]
+        return list(requested_frame_edge_map.values())[0]
 
     def save(self):
         if any([

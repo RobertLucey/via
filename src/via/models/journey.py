@@ -331,7 +331,7 @@ class Journey(
         bounding_graph = self.graph
         route_graph = self.route_graph
 
-        nearest_edge.get(bounding_graph, self._data, return_dist=False)
+        nearest_edge.get(bounding_graph, self._data)
 
         for (our_origin, our_destination) in window(self, window_size=2):
             edge = nearest_edge.get(
@@ -340,6 +340,12 @@ class Journey(
                     our_origin
                 ]
             )
+
+            # Use the closest edge, later on use to get the best edge
+            # rather than just the closest one
+            # Maybe pass the options to a FramePoint and have that choose
+            # with the context it now has
+            edge = edge[-1]
 
             edge_data = get_edge_data(
                 route_graph,
