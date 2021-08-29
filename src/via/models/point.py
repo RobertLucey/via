@@ -1,6 +1,7 @@
 import hashlib
 import statistics
 from numbers import Number
+from operator import itemgetter
 
 import reverse_geocoder
 from shapely.geometry import (
@@ -9,6 +10,7 @@ from shapely.geometry import (
 )
 
 from via.settings import MIN_ACC_SCORE
+from via import logger
 from via.place_cache import place_cache
 from via.models.generic import (
     GenericObject,
@@ -93,6 +95,25 @@ class FramePoint(GenericObject, Context):
                 acceleration = 0
             assert isinstance(acceleration, Number)
             self.acceleration = [acc for acc in [acceleration] if acc >= MIN_ACC_SCORE]
+
+    def best_edge(self, edges, mode='nearest'):
+        """
+
+        :kwarg mode: strategy to use to get the best edge
+        """
+        if mode == 'nearest':
+            return sorted(edges, key=itemgetter(1))[0]
+        elif mode == 'matching_angle':
+            raise NotImplementedError()
+        elif mode == 'angle_nearest':
+            # A hybrid of matching angle and nearest
+            raise NotImplementedError()
+        elif mode == 'sticky':
+            # Try to stick to previous road if it makes sense
+            raise NotImplementedError()
+        else:
+            logger.warning('Can not use mode {mode} to get best edge as that is not recognised. Defaulting to nearest')
+            return sorted(edges, key=itemgetter(1))[0]
 
     def append_acceleration(self, acc):
         if isinstance(acc, list):

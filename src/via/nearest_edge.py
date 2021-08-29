@@ -27,7 +27,7 @@ def nearest_edges(G, X, Y, return_dist=False):
 
     ne_dist = list()
     for xy in zip(X, Y):
-        dists = geoms.iloc[list(rtree.nearest(xy, num_results=1))].distance(Point(xy))
+        dists = geoms.iloc[list(rtree.nearest(xy, num_results=6))].distance(Point(xy))
 
         used_edges = []
         edges = []

@@ -31,13 +31,14 @@ class SnappedRouteGraphMixin():
         edges = []
         used_node_ids = []
         for our_origin in self.all_points:
-            edge = nearest_edge.get(
+            nearest_edges = nearest_edge.get(
                 bounding_graph,
                 [
                     our_origin
                 ]
             )
-            edge = edge[-1]
+            edge = our_origin.best_edge(nearest_edges)
+
             edges.append(tuple(edge[0]))
             used_node_ids.extend([edge[0][0], edge[0][1]])
 
