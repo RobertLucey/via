@@ -19,7 +19,7 @@
 
     <script>
 
-      function getColor(value){
+      function getColour(value){
           //value from 0 to 1
           var hue=((1-value)*120).toString(10);
           return ["hsl(",hue,",100%,50%)"].join("");
@@ -45,7 +45,7 @@
           {
             style: function(feature) {
               return {
-                color: getColour(Math.max.apply(Math, [feature.properties.avg], 40) / 40),  // 30 is just a fairly high cap, TODO: get the actual height
+                color: getColour(Math.max.apply(Math, [feature.properties.avg], 50) / 50),  // 50 is just a fairly high cap, TODO: get the actual height
                 weight: 5
               };
             },
