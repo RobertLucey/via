@@ -183,6 +183,14 @@ class Journeys(
         )
 
     @property
+    def gps_hash(self) -> str:
+        return hashlib.md5(
+            str([
+                journey.gps_hash for journey in self
+            ]).encode()
+        ).hexdigest()
+
+    @property
     def content_hash(self) -> str:
         return hashlib.md5(
             str([

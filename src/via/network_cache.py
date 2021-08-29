@@ -36,7 +36,7 @@ class SingleNetworkCache():
                 return net['network']
 
         for net in self.data:
-            if journey.content_hash == net['hash']:
+            if journey.gps_hash == net['hash']:
                 logger.info('Using a larger network')
                 return net['network']
 
@@ -44,7 +44,7 @@ class SingleNetworkCache():
 
     def set(self, journey, network: MultiDiGraph):
         self.data.append({
-            'hash': journey.content_hash,
+            'hash': journey.gps_hash,
             'bbox': journey.bbox,
             'network': network
         })

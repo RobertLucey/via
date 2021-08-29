@@ -426,7 +426,7 @@ class Journey(
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
         if network_cache.get(self.poly_graph_key, self) is None:
-            logger.debug(f'{self.poly_graph_key} > {self.content_hash} not found in cache, generating...')
+            logger.debug(f'{self.poly_graph_key} > {self.gps_hash} not found in cache, generating...')
 
             points = self.get_multi_points()
 

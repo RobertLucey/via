@@ -268,6 +268,14 @@ class FramePoints(GenericObjects):
         )
 
     @property
+    def gps_hash(self):
+        return hashlib.md5(
+            str([
+                point.gps.content_hash for point in self
+            ]).encode()
+        ).hexdigest()
+
+    @property
     def content_hash(self):
         return hashlib.md5(
             str([
