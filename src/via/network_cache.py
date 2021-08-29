@@ -32,12 +32,12 @@ class SingleNetworkCache():
             self.load()
 
         for net in self.data:
-            if journey.content_hash == net['hash']:
-                logger.info('Using a larger network')
+            if is_within(journey.bbox, net['bbox']):
                 return net['network']
 
         for net in self.data:
-            if is_within(journey.bbox, net['bbox']):
+            if journey.content_hash == net['hash']:
+                logger.info('Using a larger network')
                 return net['network']
 
         return None
