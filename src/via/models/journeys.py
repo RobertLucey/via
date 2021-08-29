@@ -196,3 +196,12 @@ class Journeys(
         Return all the points in this journeys obj
         """
         return flatten([journey.all_points for journey in self._data])
+
+    @property
+    def bbox(self):
+        return {
+            'north': self.most_northern,
+            'south': self.most_southern,
+            'east': self.most_eastern,
+            'west': self.most_western
+        }

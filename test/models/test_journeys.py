@@ -78,10 +78,12 @@ class JourneysTest(TestCase):
             (len(self.test_journey._data) * 2)
         )
 
+    @patch('via.settings.MIN_METRES_PER_SECOND', 0)
+    @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def test_edge_quality_map(self):
         self.assertEqual(
             len(self.test_journeys_single.edge_quality_map),
-            74
+            73
         )
 
     def test_plot_routes_too_few(self):

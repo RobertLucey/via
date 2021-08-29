@@ -5,6 +5,16 @@ from networkx.classes.multidigraph import MultiDiGraph
 
 from via.settings import VERSION
 from via.constants import NETWORK_CACHE_DIR
+from via import logger
+
+
+def is_within(bbox, larger):
+    return all([
+        bbox['north'] < larger['north'],
+        bbox['south'] > larger['south'],
+        bbox['east'] < larger['east'],
+        bbox['west'] > larger['west'],
+    ])
 
 
 class SingleNetworkCache():
@@ -14,17 +24,30 @@ class SingleNetworkCache():
     def __init__(self, network_type: str):
         self.network_type = network_type
         self.loaded = False
-        self.data = {}
+        self.data = []
         self.last_save_len = -1
 
-    def get(self, network_hash: str) -> MultiDiGraph:
+    def get(self, journey) -> MultiDiGraph:
         if not self.loaded:
             self.load()
 
-        return self.data.get(network_hash, None)
+        for net in self.data:
+            if journey.content_hash == net['hash']:
+                logger.info('Using a larger network')
+                return net['network']
 
-    def set(self, network_hash: str, network: MultiDiGraph):
-        self.data[network_hash] = network
+        for net in self.data:
+            if is_within(journey.bbox, net['bbox']):
+                return net['network']
+
+        return None
+
+    def set(self, journey, network: MultiDiGraph):
+        self.data.append({
+            'hash': journey.content_hash,
+            'bbox': journey.bbox,
+            'network': network
+        })
         self.save()
 
     def save(self):
@@ -62,15 +85,15 @@ class NetworkCache():
     def __init__(self):
         self.network_caches = {}
 
-    def get(self, key: str, network_hash: str) -> MultiDiGraph:
+    def get(self, key: str, journey) -> MultiDiGraph:
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
-        return self.network_caches[key].get(network_hash)
+        return self.network_caches[key].get(journey)
 
-    def set(self, key: str, network_hash: str, network: MultiDiGraph):
+    def set(self, key: str, journey, network: MultiDiGraph):
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
-        self.network_caches[key].set(network_hash, network)
+        self.network_caches[key].set(journey, network)
 
 
 network_cache = NetworkCache()

@@ -410,13 +410,22 @@ class Journey(
         return graph
 
     @property
+    def bbox(self):
+        return {
+            'north': self.most_northern,
+            'south': self.most_southern,
+            'east': self.most_eastern,
+            'west': self.most_western
+        }
+
+    @property
     def graph(self):
         """
         Get a graph of the journey but excluding nodes far away from the route
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
-        if network_cache.get(self.poly_graph_key, self.content_hash) is None:
+        if network_cache.get(self.poly_graph_key, self) is None:
             logger.debug(f'{self.poly_graph_key} > {self.content_hash} not found in cache, generating...')
 
             points = self.get_multi_points()
@@ -432,9 +441,9 @@ class Journey(
 
             # TODO: might want to merge our edge_quality_data with edge data
 
-            network_cache.set(self.poly_graph_key, self.content_hash, network)
+            network_cache.set(self.poly_graph_key, self, network)
 
-        return network_cache.get(self.poly_graph_key, self.content_hash)
+        return network_cache.get(self.poly_graph_key, self)
 
     @property
     def all_points(self):
