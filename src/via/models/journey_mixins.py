@@ -37,7 +37,7 @@ class SnappedRouteGraphMixin():
                     our_origin
                 ]
             )
-            edge = edge[0]
+            edge = edge[-1]
             edges.append(tuple(edge[0]))
             used_node_ids.extend([edge[0][0], edge[0][1]])
 
