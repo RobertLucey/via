@@ -32,7 +32,7 @@ class NearestEdgeTest(TestCase):
             ]
         )
 
-        edges = [edges[0][0] for i in edges]
+        edges = [list(edges[0][0]) for i in edges]
         self.assertTrue(
             [12428414, 4161475238, 0] in edges
         )
