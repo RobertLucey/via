@@ -111,7 +111,12 @@ class Journey(
                     post=[five, six, seven]
                 )
 
-    def append(self, obj):
+    def extend(self, objs):
+        for obj in objs:
+            self.append(obj, set_contexts=False)
+        self.set_contexts()
+
+    def append(self, obj, set_contexts=True):
         """
         NB: appending needs to be chronological (can be reversed, just so
         long as it's consistent) as if no accelerometer data it assigns
@@ -174,8 +179,8 @@ class Journey(
                     FramePoint(frame.time, frame.gps, frame.acceleration)
                 )
 
-        # Might not want to do this every append but works for now
-        self.set_contexts()
+        if set_contexts:
+            self.set_contexts()
 
     def get_indirect_distance(self, n_seconds=10):
         """
