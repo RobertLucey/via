@@ -97,7 +97,7 @@ class Journey(
         :param filepath: Path to a saved journey file
         :rtype: via.models.journey.Journey
         """
-        logger.debug('Loading journey from %s', filepath)
+        logger.debug(f'Loading journey from {filepath}')
         with open(filepath, 'r') as journey_file:
             return Journey(
                 **fast_json.loads(journey_file.read())

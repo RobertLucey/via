@@ -21,14 +21,9 @@ from via.models.gps import GPSPoint
 
 class Context(object):
 
-    def __init__(self, *args, **kwargs):
-        raise Exception()
-
     @property
     def is_context_populated(self):
         return self.context_pre != [] and self.context_post != []
-
-    # have some function to get the direction we're coming from / going to so we can better tell what road the point is on
 
     def set_context(self, pre=None, post=None):
         if not self.is_context_populated:
@@ -101,6 +96,7 @@ class FramePoint(GenericObject, Context):
 
         :kwarg mode: strategy to use to get the best edge
         """
+
         if mode == 'nearest':
             return sorted(edges, key=itemgetter(1))[0]
         elif mode == 'matching_angle':
@@ -134,7 +130,7 @@ class FramePoint(GenericObject, Context):
             return FramePoint(
                 obj.get('time', None),
                 obj['gps'],
-                obj['acc'] if obj['acc'] >= MIN_ACC_SCORE else None
+                [acc for acc in obj['acc'] if acc >= MIN_ACC_SCORE]
             )
         else:
             raise NotImplementedError(
@@ -169,9 +165,12 @@ class FramePoint(GenericObject, Context):
 
     @property
     def road_quality(self):
+        if self.acceleration == []:
+            return 0
         try:
             return int(statistics.mean(self.acceleration) * 100)
         except:
+            logger.warning(f'Could not calculate road quality from: {self.acceleration}. Defauling to 0')
             return 0
 
     def serialize(self, include_time=True, include_context=True):
@@ -329,8 +328,8 @@ class FramePoints(GenericObjects):
             To see if the place name is valid try graph_from_place(place).
             Might be good to do that in here and throw an ex if it's not found
         """
-        place_bounds = place_cache.get(place_name)
         try:
+            place_bounds = place_cache.get(place_name)
             return all([
                 self.most_northern < place_bounds['north'],
                 self.most_southern > place_bounds['south'],

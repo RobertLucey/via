@@ -380,8 +380,7 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
                     edge_data_map[graph_edge_id]
                 )
             except Exception as ex:
-                logger.error('Could not update edge: %s %s', start, end)
-
+                logger.error(f'Could not update edge: {start} {end}')
 
     return graph
 
