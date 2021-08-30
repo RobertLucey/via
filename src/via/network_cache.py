@@ -27,14 +27,15 @@ class SingleNetworkCache():
         self.data = []
         self.last_save_len = -1
 
-    def get(self, journey) -> MultiDiGraph:
+    def get(self, journey, poly=True) -> MultiDiGraph:
         if not self.loaded:
             self.load()
 
-        for net in self.data:
-            if is_within(journey.bbox, net['bbox']):
-                logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
-                return net['network']
+        if not poly:
+            for net in self.data:
+                if is_within(journey.bbox, net['bbox']):
+                    logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
+                    return net['network']
 
         for net in self.data:
             if journey.gps_hash == net['hash']:
@@ -85,10 +86,10 @@ class NetworkCache():
     def __init__(self):
         self.network_caches = {}
 
-    def get(self, key: str, journey) -> MultiDiGraph:
+    def get(self, key: str, journey, poly=True) -> MultiDiGraph:
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
-        return self.network_caches[key].get(journey)
+        return self.network_caches[key].get(journey, poly=poly)
 
     def set(self, key: str, journey, network: MultiDiGraph):
         if key not in self.network_caches:
