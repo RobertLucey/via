@@ -198,7 +198,7 @@ class JourneyTest(TestCase):
                     {'gps': {'lat': 1, 'lng': 2, 'elevation': None}, 'acc': [1, 1, 1, 1], 'time': 2, 'context': {'pre': [], 'post': []}},
                     {'gps': {'lat': 1.1, 'lng': 2.2, 'elevation': None}, 'acc': [], 'time': 7, 'context': {'pre': [], 'post': []}}
                 ],
-                'transport_type': None,
+                'transport_type': 'unknown',
                 'suspension': None,
                 'is_culled': False,
                 'is_sent': False,

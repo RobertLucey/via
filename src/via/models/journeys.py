@@ -26,7 +26,8 @@ def get_journey_edge_quality_map(journey):
     edge_quality_map = defaultdict(list)
     for edge_hash, edge_quality in journey.edge_quality_map.items():
         edge_quality_map[edge_hash].append(edge_quality)
-    return edge_quality_map
+
+    return dict(edge_quality_map)
 
 
 class Journeys(
@@ -121,13 +122,12 @@ class Journeys(
         :rtype: dict
         """
 
-        #pool = multiprocessing.Pool(multiprocessing.cpu_count() - 1)
-        #journey_edge_quality_maps = pool.map(
-        #    get_journey_edge_quality_map,
-        #    self
-        #)
+        #with multiprocessing.Pool(min([multiprocessing.cpu_count() - 1, 4])) as pool:
+        #    journey_edge_quality_maps = pool.map(
+        #        get_journey_edge_quality_map,
+        #        self
+        #    )
 
-        # Use this when profiling
         journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
 
         edge_quality_map = defaultdict(list)

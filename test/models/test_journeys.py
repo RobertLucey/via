@@ -71,10 +71,10 @@ class JourneysTest(TestCase):
         journeys = self.test_journeys.get_mega_journeys()
         self.assertEqual(
             list(journeys.keys()),
-            ['None_None']  # FIXME
+            ['unknown_None']  # FIXME
         )
         self.assertEqual(
-            len(journeys['None_None']._data),  # FIXME
+            len(journeys['unknown_None']._data),  # FIXME
             (len(self.test_journey._data) * 2)
         )
 

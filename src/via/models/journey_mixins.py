@@ -1,4 +1,5 @@
 import os
+import hashlib
 
 import fast_json
 import shapely
@@ -14,7 +15,11 @@ from via.utils import (
 )
 from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
+from via.base_cache import BaseCache
 from via.constants import GEOJSON_DIR
+
+
+bounding_graph_gdfs_cache = BaseCache(cache_type='bounding_graph_gdfs_cache')
 
 
 class SnappedRouteGraphMixin():
@@ -42,10 +47,17 @@ class SnappedRouteGraphMixin():
             edges.append(tuple(edge[0]))
             used_node_ids.extend([edge[0][0], edge[0][1]])
 
-        graph_nodes, graph_edges = ox.graph_to_gdfs(
-            bounding_graph,
-            fill_edge_geometry=True
-        )
+        graph_key = hashlib.md5(str(list(bounding_graph.nodes)).encode()).hexdigest()
+        if bounding_graph_gdfs_cache.get(graph_key) is None:
+            bounding_graph_gdfs_cache.set(
+                graph_key,
+                ox.graph_to_gdfs(
+                    bounding_graph,
+                    fill_edge_geometry=True
+                )
+            )
+
+        graph_nodes, graph_edges = bounding_graph_gdfs_cache.get(graph_key)
 
         # Filter only the nodes and edges on the route and ignore the
         # buffer used to get context

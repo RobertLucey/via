@@ -6,6 +6,8 @@ from haversine import (
     Unit
 )
 
+HAVERSINE_CACHE = {}
+
 
 class GPSPoint():
     """
@@ -59,7 +61,16 @@ class GPSPoint():
         """
         if isinstance(point, GPSPoint):
             point = point.point
-        return haversine(self.point, point, unit=Unit.METERS)
+
+        key = hash((self.point, point))
+        if key not in HAVERSINE_CACHE:
+            HAVERSINE_CACHE[key] = haversine(
+                self.point,
+                point,
+                unit=Unit.METERS
+            )
+
+        return HAVERSINE_CACHE[key]
 
     def serialize(self):
         return {

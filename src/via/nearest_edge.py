@@ -2,14 +2,15 @@ import os
 
 import fast_json
 
-from via.constants import EDGE_CACHE_DIR
-from via.utils import get_combined_id
-
 import numpy as np
 from rtree.index import Index as RTreeIndex
 from shapely.geometry import Point
 
 from osmnx import utils_graph
+
+from via import logger
+from via.constants import EDGE_CACHE_DIR
+from via.utils import get_combined_id
 
 
 def nearest_edges(G, X, Y, return_dist=False):
@@ -19,6 +20,8 @@ def nearest_edges(G, X, Y, return_dist=False):
 
     if np.isnan(X).any() or np.isnan(Y).any():  # pragma: no cover
         raise ValueError("`X` and `Y` cannot contain nulls")
+
+    # This is slow, TODO might want to cache the gdfs?
     geoms = utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
 
     rtree = RTreeIndex()
@@ -108,6 +111,7 @@ class NearestEdgeCache():
         return list(requested_frame_edge_map.values())[0]
 
     def save(self):
+        logger.debug(f'Saving cache {self.fp}')
         if any([
             not os.path.exists(self.fp),
             len(self.data) > self.last_save_len and self.last_save_len >= 0
@@ -118,6 +122,7 @@ class NearestEdgeCache():
         self.last_save_len = len(self.data)
 
     def load(self):
+        logger.debug(f'Loading cache {self.fp}')
         if not os.path.exists(self.fp):
             os.makedirs(
                 os.path.dirname(self.fp),

@@ -56,10 +56,12 @@ class SingleNetworkCache():
             not os.path.exists(self.fp),
             len(self.data) > self.last_save_len and self.last_save_len >= 0
         ]):
+            logger.debug(f'Saving cache {self.fp}')
             with open(self.fp, 'wb') as f:
                 pickle.dump(self.data, f)
 
     def load(self):
+        logger.debug(f'Loading cache {self.fp}')
         if not os.path.exists(self.fp):
             os.makedirs(
                 os.path.dirname(self.fp),
@@ -74,11 +76,11 @@ class SingleNetworkCache():
 
     @property
     def dir(self) -> str:
-        return os.path.join(NETWORK_CACHE_DIR, VERSION)
+        return os.path.join(NETWORK_CACHE_DIR, VERSION, self.network_type)
 
     @property
     def fp(self) -> str:
-        return os.path.join(self.dir, f'{self.network_type}_cache.pickle')
+        return os.path.join(self.dir, 'cache.pickle')
 
 
 class NetworkCache():
@@ -95,6 +97,15 @@ class NetworkCache():
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
         self.network_caches[key].set(journey, network)
+
+    def load(self, network_type=None):
+        if network_type is not None:
+            self.network_caches[network_type] = SingleNetworkCache(network_type)
+        else:
+            networks_dir = os.path.join(NETWORK_CACHE_DIR, VERSION)
+            for network_type in os.listdir(networks_dir):
+                self.network_caches[network_type] = SingleNetworkCache(network_type)
+                self.network_caches[network_type].load()
 
 
 network_cache = NetworkCache()

@@ -86,9 +86,15 @@ def iter_journeys(transport_type=None, source=None, place=None):
     :kwarg place: The place to get journeys within
     """
     from via.models.journey import Journey
-    for journey_file in get_data_files(transport_type=transport_type, source=source):
+    for journey_file in get_data_files(
+        transport_type=transport_type,
+        source=source
+    ):
         journey = Journey.from_file(journey_file)
-        if journey.version < MIN_JOURNEY_VERSION or journey.version > MAX_JOURNEY_VERSION:
+        if any([
+            journey.version < MIN_JOURNEY_VERSION,
+            journey.version > MAX_JOURNEY_VERSION
+        ]):
             continue
         if place is not None:
             if journey.is_in_place(place):
@@ -117,9 +123,7 @@ def get_data_files(transport_type=None, source=None) -> List[str]:
     for filename in glob.iglob(path + '/**/*', recursive=True):
         if is_journey_data_file(filename):
             if transport_type is not None:
-                # FIXME: this is slow, should structure dirs by transport type
-                # (or something like that)
-                journey_transport_type = Journey.from_file(filename).transport_type
+                journey_transport_type = os.path.split(os.path.dirname(filename))[-1]
                 if journey_transport_type is not None:
                     if journey_transport_type.lower() == transport_type:
                         files.append(filename)
@@ -354,11 +358,12 @@ def filter_edges_from_geodataframe(
     dataframe: GeoDataFrame,
     edges_to_keep: List[Tuple[int, int, int]]
 ) -> GeoDataFrame:
-    edges_to_rm = []
+    to_keep = []
+    edges_to_keep = set([hash(e) for e in edges_to_keep])
     for edge in dataframe.index:
-        if edge not in edges_to_keep:
-            edges_to_rm.append(edge)
-    return dataframe.drop(edges_to_rm)
+        if hash(edge) in edges_to_keep:
+            to_keep.append(edge)
+    return dataframe.loc[to_keep]
 
 
 def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:

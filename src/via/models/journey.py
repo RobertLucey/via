@@ -63,7 +63,7 @@ class Journey(
         self.is_culled = kwargs.get('is_culled', False)
         self.is_sent = kwargs.get('is_sent', False)
 
-        self.transport_type = kwargs.get('transport_type', None)
+        self.transport_type = str(kwargs.get('transport_type', 'unknown')).lower()
         self.suspension = kwargs.get('suspension', None)
 
         self.network_type = kwargs.get('network_type', 'all')
@@ -429,6 +429,11 @@ class Journey(
         if network_cache.get(self.poly_graph_key, self, poly=True) is None:
             logger.debug(f'{self.poly_graph_key} > {self.gps_hash} not found in cache, generating...')
 
+            # TODO: might want to not use polygon for this since we could
+            # get the benefits of using a parent bbox from the cache
+
+            # Maybe use city if possible and then truncate_graph_polygon
+
             points = self.get_multi_points()
 
             buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
@@ -440,7 +445,8 @@ class Journey(
                 simplify=True
             )
 
-            # TODO: might want to merge our edge_quality_data with edge data
+            # TODO: might want to merge our edge_quality_data with
+            # edge data here
 
             network_cache.set(self.poly_graph_key, self, network)
 
