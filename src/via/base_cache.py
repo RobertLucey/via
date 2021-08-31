@@ -46,7 +46,7 @@ class BaseCache():
 
     @property
     def dir(self) -> str:
-        return os.path.join(CACHE_DIR, VERSION, self.cache_type)
+        return os.path.join(CACHE_DIR, self.cache_type, VERSION)
 
     @property
     def fp(self) -> str:
