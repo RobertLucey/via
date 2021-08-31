@@ -9,6 +9,7 @@ from shapely.geometry import Point
 from osmnx import utils_graph
 
 from via import logger
+from via.settings import VERSION
 from via.constants import EDGE_CACHE_DIR
 from via.utils import get_combined_id
 
@@ -116,7 +117,6 @@ class NearestEdgeCache():
             not os.path.exists(self.fp),
             len(self.data) > self.last_save_len and self.last_save_len >= 0
         ]):
-
             with open(self.fp, 'w') as f:
                 f.write(fast_json.dumps(self.data))
         self.last_save_len = len(self.data)
@@ -137,7 +137,7 @@ class NearestEdgeCache():
     @property
     def fp(self):
         # TODO: split by lat lng regions
-        return os.path.join(EDGE_CACHE_DIR, 'cache.json')
+        return os.path.join(EDGE_CACHE_DIR, VERSION, 'cache.json')
 
 
 nearest_edge = NearestEdgeCache()
