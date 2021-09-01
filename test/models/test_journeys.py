@@ -83,7 +83,7 @@ class JourneysTest(TestCase):
     def test_edge_quality_map(self):
         self.assertEqual(
             len(self.test_journeys_single.edge_quality_map),
-            74
+            70
         )
 
     def test_plot_routes_too_few(self):
