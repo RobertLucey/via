@@ -191,6 +191,12 @@ class FramePoint(GenericObject, Context):
     def gps_hash(self):
         return self.gps.content_hash
 
+    @property
+    def content_hash(self):
+        return hashlib.md5(
+            str(hash(tuple(self.acceleration)) + hash(tuple(self.gps.point)) + hash(self.time)).encode()
+        ).hexdigest()
+
 
 class FramePoints(GenericObjects):
 
@@ -299,7 +305,7 @@ class FramePoints(GenericObjects):
     def content_hash(self):
         return hashlib.md5(
             str([
-                point.serialize(include_time=True, include_context=True) for point in self
+                point.content_hash for point in self
             ]).encode()
         ).hexdigest()
 
