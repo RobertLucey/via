@@ -5,9 +5,9 @@ BASE_PATH = '/opt/via/' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/
 
 DATA_DIR = os.path.join(BASE_PATH, 'data')
 GENERATED_DIR = os.path.join(BASE_PATH, 'generated')
-CACHE_DIR = os.path.join(DATA_DIR, 'cache')
+CACHE_DIR = os.path.join(BASE_PATH, 'cache')
 
-REMOTE_DATA_DIR = os.path.join(DATA_DIR, 'remote')
+REMOTE_DATA_DIR = os.path.join(DATA_DIR, 'raw')
 
 EDGE_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_cache')
 EDGE_DATA_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_data_cache')
