@@ -347,11 +347,12 @@ def filter_nodes_from_geodataframe(
     dataframe: GeoDataFrame,
     nodes_to_keep: List[int]
 ) -> GeoDataFrame:
-    nodes_to_rm = []
+    to_keep = []
+    nodes_to_keep = set(nodes_to_keep)
     for node in dataframe.index:
-        if node not in nodes_to_keep:
-            nodes_to_rm.append(node)
-    return dataframe.drop(nodes_to_rm)
+        if node in nodes_to_keep:
+            to_keep.append(node)
+    return dataframe.loc[to_keep]
 
 
 def filter_edges_from_geodataframe(
@@ -421,3 +422,12 @@ def angle_between_slopes(s1, s2, ensure_positive=False):
         if degrees < 0:
             degrees = 180 + degrees
     return degrees
+
+
+def is_within(bbox, larger):
+    return all([
+        bbox['north'] <= larger['north'],
+        bbox['south'] >= larger['south'],
+        bbox['east'] <= larger['east'],
+        bbox['west'] >= larger['west']
+    ])

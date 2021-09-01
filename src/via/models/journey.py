@@ -72,8 +72,7 @@ class Journey(
 
         self.last_gps = None
 
-        self.bounding_graph_key = 'bbox_journey_graph'
-        self.poly_graph_key = 'poly_journey_graph'
+        self.poly_graph_key = 'bbox_journeys_graph'
 
     @staticmethod
     def parse(objs):
@@ -98,6 +97,12 @@ class Journey(
         :rtype: via.models.journey.Journey
         """
         logger.debug(f'Loading journey from {filepath}')
+
+        # TODO: should cache stages of processed files from raw (currently,
+        # which uses frames instead of frame points) to processed (which
+        # it will use frame points) so we can skip the building up of context
+        # when we should be able to find from a raw file path
+
         with open(filepath, 'r') as journey_file:
             return Journey(
                 **fast_json.loads(journey_file.read())
@@ -419,21 +424,56 @@ class Journey(
             'west': self.most_western
         }
 
+
     @property
-    def graph(self):
+    def bounding_graph(self):
         """
         Get a graph of the journey but excluding nodes far away from the route
 
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
-        if network_cache.get(self.poly_graph_key, self, poly=True) is None:
-            logger.debug(f'{self.poly_graph_key} > {self.gps_hash} not found in cache, generating...')
+
+        network_name = 'bbox'
+
+        if network_cache.get(network_name, self, poly=False) is None:
+            logger.debug(f'{network_name} > {self.gps_hash} not found in cache, generating...')
+
+            # Maybe use city if possible and then truncate_graph_polygon.
+            # Doing that might not even be faster but if we want to cache
+            # the individual journey it could be good
+            network = ox.graph_from_bbox(
+                self.most_northern,
+                self.most_southern,
+                self.most_eastern,
+                self.most_western,
+                network_type=self.network_type,
+                simplify=True
+            )
+
+            # TODO: might want to merge our edge_quality_data with
+            # edge data here
+
+            network_cache.set(network_name, self, network)
+
+        return network_cache.get(network_name, self, poly=False)
+
+    @property
+    def poly_graph(self):
+        """
+        Get a graph of the journey but excluding nodes far away from the route
+
+        :rtype: networkx.classes.multidigraph.MultiDiGraph
+        """
+
+        network_name = 'journey_poly'
+
+        if network_cache.get(network_name, self, poly=True) is None:
+            logger.debug(f'{network_name} > {self.gps_hash} not found in cache, generating...')
 
             # TODO: might want to not use polygon for this since we could
             # get the benefits of using a parent bbox from the cache
 
             # Maybe use city if possible and then truncate_graph_polygon
-
             points = self.get_multi_points()
 
             buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
@@ -448,9 +488,18 @@ class Journey(
             # TODO: might want to merge our edge_quality_data with
             # edge data here
 
-            network_cache.set(self.poly_graph_key, self, network)
+            network_cache.set(network_name, self, network)
 
-        return network_cache.get(self.poly_graph_key, self, poly=True)
+        return network_cache.get(network_name, self, poly=True)
+
+    @property
+    def graph(self):
+        """
+        Get a graph of the journey but excluding nodes far away from the route
+
+        :rtype: networkx.classes.multidigraph.MultiDiGraph
+        """
+        return self.bounding_graph
 
     @property
     def all_points(self):

@@ -47,8 +47,6 @@ class Journeys(
         elif len(set(network_types)) == 1:
             self.network_type = network_types[0]
 
-        self.bounding_graph_key = 'bbox_journeys_graph'
-
     def plot_routes(
         self,
         use_closest_edge_from_base=False,

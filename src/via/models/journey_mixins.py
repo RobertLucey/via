@@ -153,8 +153,8 @@ class BoundingGraphMixin():
             self.most_western
         )
 
-        if network_cache.get(self.bounding_graph_key, self, poly=False) is None:
-            logger.debug(f'{self.bounding_graph_key} > {self.gps_hash} not found in cache, generating...')
+        if network_cache.get('bbox', self, poly=False) is None:
+            logger.debug(f'bbox > {self.gps_hash} not found in cache, generating...')
             network = ox.graph_from_bbox(
                 self.most_northern,
                 self.most_southern,
@@ -164,9 +164,9 @@ class BoundingGraphMixin():
                 simplify=True
             )
             network_cache.set(
-                self.bounding_graph_key,
+                'bbox',
                 self,
                 network
             )
 
-        return network_cache.get(self.bounding_graph_key, self, poly=False)
+        return network_cache.get('bbox', self, poly=False)

@@ -5,6 +5,8 @@ from typing import Mapping
 
 import osmnx as ox
 
+from via.utils import is_within
+
 
 class PlaceCache():
 
@@ -17,6 +19,15 @@ class PlaceCache():
                 'west': -6.433500
             }
         }
+
+    def get_by_bbox(self, cmp_bbox):
+        for name, bbox in self.data.items():
+            if is_within(cmp_bbox, bbox):
+                return {
+                    'name': name,
+                    'bbox': bbox
+                }
+        return None
 
     def get(self, place_name: str) -> Mapping[str, float]:
         """

@@ -1,20 +1,14 @@
 import os
 import pickle
 
+import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
 
 from via.settings import VERSION
 from via.constants import NETWORK_CACHE_DIR
 from via import logger
-
-
-def is_within(bbox, larger):
-    return all([
-        bbox['north'] < larger['north'],
-        bbox['south'] > larger['south'],
-        bbox['east'] < larger['east'],
-        bbox['west'] > larger['west'],
-    ])
+from via.utils import is_within
+from via.place_cache import place_cache
 
 
 class SingleNetworkCache():
@@ -31,11 +25,43 @@ class SingleNetworkCache():
         if not self.loaded:
             self.load()
 
+        # if not poly and we find within a bbox we should be able to do that
+        # truncate_graph_polygon. Don't need to save that poly graph if we
+        # want to optimize for storage. Can see how it does anyways
+
         if not poly:
             for net in self.data:
                 if is_within(journey.bbox, net['bbox']):
                     logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
                     return net['network']
+
+            # see if we can use a place
+            if place_cache.get_by_bbox(journey.bbox) is not None:
+                bbox = place_cache.get_by_bbox(journey.bbox)['bbox']
+
+                network = ox.graph_from_bbox(
+                    bbox['north'],
+                    bbox['south'],
+                    bbox['east'],
+                    bbox['west'],
+                    network_type='all',
+                    simplify=True
+                )
+
+                self.data.append(
+                    {
+                        'hash': hash(str(bbox)),
+                        'bbox': {
+                            'north': bbox['north'],
+                            'south': bbox['south'],
+                            'east': bbox['east'],
+                            'west': bbox['west'],
+                        },
+                        'network': network
+                    }
+                )
+                self.save()
+                return network
 
         for net in self.data:
             if journey.gps_hash == net['hash']:
