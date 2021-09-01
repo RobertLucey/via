@@ -14,17 +14,17 @@ def print_coverage(journeys, min_edge_usage):
     """
 
     journeys_graph = journeys.bounding_graph
-    used_edge_ids = []
+    used_edge_ids = set()
     used_edge_data = {}
 
     for journey in journeys:
         bounding_graph = journey.bounding_graph
-        used_edges = journey.edge_quality_map
+        used_edges = set(list(journey.edge_quality_map.keys()))
         for (u, v, k, d) in bounding_graph.edges(keys=True, data=True):
             combined_id = get_combined_id(u, v)
             if combined_id in used_edge_ids:
                 continue
-            used_edge_ids.append(combined_id)
+            used_edge_ids.add(combined_id)
 
             if combined_id in used_edges:
                 if combined_id not in used_edge_data.keys():
@@ -52,6 +52,8 @@ def print_coverage(journeys, min_edge_usage):
 def main():
 
     parser = argparse.ArgumentParser()
+
+    # TODO: ability to define a bbox / polygon for the coverage to cover
 
     parser.add_argument(
         '--min-edge-usage',
