@@ -158,10 +158,12 @@ class JourneyTest(TestCase):
             '5a0155e8bea8eb4994917744546fb9aa'
         )
 
+    @skip('todo')
     def test_plot_route_use_condition(self):
         # TODO: need to have real data / not random data for the road quality
         pass
 
+    @skip('todo')
     def test_edge_quality_map(self):
         # TODO: need to have real data / not random data for the road quality
         pass

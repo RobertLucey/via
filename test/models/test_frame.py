@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from via.models.frame import (
     Frame,
@@ -32,6 +32,7 @@ class FrameTest(TestCase):
             1
         )
 
+    @skip('todo')
     def test_distance_from_point(self):
         pass
 
@@ -97,5 +98,6 @@ class FramesTest(TestCase):
             1
         )
 
+    @skip('todo')
     def test_quality(self):
         pass

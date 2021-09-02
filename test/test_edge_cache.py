@@ -1,6 +1,6 @@
 import json
 
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from via.models.journey import Journey
 from via.models.frame import Frame
@@ -31,6 +31,7 @@ class EdgeCacheTest(TestCase):
             {0: {'osmid': 14039949, 'oneway': True, 'name': 'York Street', 'highway': 'unclassified', 'maxspeed': '30', 'length': 34.217}}
         )
 
+    @skip('todo')
     def test_caching(self):
         # Make sure it just does get_edge_data once
         pass
