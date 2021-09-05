@@ -34,28 +34,20 @@ optional arguments:
                         it to be included in the final data (1 per journey)
 ```
 
-### Get some stats of journeys
-
-### Road Coverage
-
-This will give a % of how much of the roads there is data of. You can make sure that there are at least 10 points of info for a road to be counted as having sufficient data to be counted
+### Generate geojson files
 
 ```
-usage: road_coverage.py [-h] [--min-edge-usage MIN_EDGE_USAGE]
-                        [--transport-type TRANSPORT_TYPE] [--place PLACE]
+usage: generate_geojson.py [-h] [--transport-type TRANSPORT_TYPE]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --min-edge-usage MIN_EDGE_USAGE
-                        The minimum number of times an edge has to be used for
-                        it to be included in the final data (1 per journey)
   --transport-type TRANSPORT_TYPE
-                        bike/car/scoorter or whatever else is on the app
-  --place PLACE         What place to limit the data to (so you don't try to
-                        visualize too big an area). Must be an osmnx
-                        recognised place / format for example "Dublin,
-                        Ireland"
+                        bike/car/scooter or whatever else is on the app.
+                        Generates all if not specified
 ```
+
+### Get some stats of journeys
+
 
 ### Condition by Street
 

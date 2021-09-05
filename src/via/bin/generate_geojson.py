@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import fast_json
@@ -8,17 +9,32 @@ from via.utils import get_journeys
 
 def main():
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--transport-type',
+        dest='transport_type',
+        default=None,
+        help='bike/car/scooter or whatever else is on the app. Generates all if not specified'
+    )
+    args = parser.parse_args()
+
     os.makedirs(
         os.path.join(GEOJSON_DIR),
         exist_ok=True
     )
 
-    config = [
-        {'transport_type': None, 'name': 'all'},
-        {'transport_type': 'bike', 'name': 'bike'},
-        {'transport_type': 'car', 'name': 'car'},
-        {'transport_type': 'bus', 'name': 'bus'}
-    ]
+    if args.transport_type is None:
+        config = [
+            {'transport_type': None, 'name': 'all'},
+            {'transport_type': 'bike', 'name': 'bike'},
+            {'transport_type': 'car', 'name': 'car'},
+            {'transport_type': 'bus', 'name': 'bus'}
+        ]
+    else:
+        config = [
+            {'transport_type': args.transport_type, 'name': args.transport_type}
+        ]
+
     for config_item in config:
         geojson_file = os.path.join(
             GEOJSON_DIR,
