@@ -5,7 +5,10 @@ import json
 import time
 from numbers import Number
 from functools import wraps
-from itertools import islice, chain
+from itertools import (
+    islice,
+    chain
+)
 from typing import (
     Any,
     List,
@@ -16,10 +19,6 @@ from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
 import osmnx as ox
 import fast_json
-import pyproj
-import shapely.ops as ops
-from shapely.geometry.polygon import Polygon
-from functools import partial
 
 from via import logger
 from via.settings import (
@@ -27,6 +26,7 @@ from via.settings import (
     MAX_JOURNEY_VERSION
 )
 from via.constants import (
+    METRES_PER_DEGREE,
     DATA_DIR,
     REMOTE_DATA_DIR,
     DEFAULT_EDGE_COLOUR
@@ -428,37 +428,48 @@ def angle_between_slopes(s1, s2, ensure_positive=False):
     return degrees
 
 
-def is_within(bbox, larger):
+def is_within(bbox, potentially_larger_bbox):
+    """
+
+    :param bbox:
+    :param potentially_larger_bbox:
+    """
     return all([
-        bbox['north'] <= larger['north'],
-        bbox['south'] >= larger['south'],
-        bbox['east'] <= larger['east'],
-        bbox['west'] >= larger['west']
+        bbox['north'] <= potentially_larger_bbox['north'],
+        bbox['south'] >= potentially_larger_bbox['south'],
+        bbox['east'] <= potentially_larger_bbox['east'],
+        bbox['west'] >= potentially_larger_bbox['west']
     ])
 
 
 def area_from_coords(obj):
+    if 'north' in obj.keys():
+        vert = obj['north'] - obj['south']
+        hori = obj['east'] - obj['west']
 
-    # TODO: Allow for polys
-    geom = Polygon(
-        [
-            (obj['north'], obj['west']),
-            (obj['north'], obj['east']),
-            (obj['south'], obj['east']),
-            (obj['south'], obj['west']),
-            (obj['north'], obj['west'])
-        ]
-    )
-    geom_area = ops.transform(
-        partial(
-            pyproj.transform,
-            pyproj.Proj(init='EPSG:4326'),
-            pyproj.Proj(
-                proj='aea',
-                lat_1=geom.bounds[1],
-                lat_2=geom.bounds[3]
-            )
-        ),
-        geom)
+        return (vert * METRES_PER_DEGREE) * (hori * METRES_PER_DEGREE)
 
-    return geom_area.area
+    else:
+        raise NotImplementedError()
+        # TODO: Allow for normal polys. Below is an example of doing it for a bbox
+        #geom = Polygon(
+        #    [
+        #        (obj['north'], obj['west']),
+        #        (obj['north'], obj['east']),
+        #        (obj['south'], obj['east']),
+        #        (obj['south'], obj['west']),
+        #        (obj['north'], obj['west'])
+        #    ]
+        #)
+        #return ops.transform(
+        #    partial(
+        #        pyproj.transform,
+        #        pyproj.Proj('EPSG:4326'),
+        #        pyproj.Proj(
+        #            proj='aea',
+        #            lat_1=geom.bounds[1],
+        #            lat_2=geom.bounds[3]
+        #        )
+        #    ),
+        #    geom
+        #).area

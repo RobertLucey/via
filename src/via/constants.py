@@ -1,5 +1,6 @@
 import os
 
+METRES_PER_DEGREE = 110574.38855780
 
 BASE_PATH = '/opt/via/' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/via'
 

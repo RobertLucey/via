@@ -36,20 +36,16 @@ class SingleNetworkCache():
             candidates = []
             for net in self.data:
                 if is_within(journey.bbox, net['bbox']):
-                    candidates.append(
-                        {
-                            'area': area_from_coords(net['bbox']),
-                            'net': net
-                        }
-                    )
+                    candidates.append(net)
 
             if candidates != []:
+                # TODO: say how much bigger it is or something
                 logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
                 selection = sorted(
                     candidates,
-                    key=lambda x: x['area']
+                    key=lambda x: area_from_coords(x['bbox'])
                 )
-                return selection[0]['net']['network']
+                return selection[0]['network']
 
             # see if we can use a place
             if place_cache.get_by_bbox(journey.bbox) is not None:
