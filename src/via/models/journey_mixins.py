@@ -140,11 +140,7 @@ class GeoJsonMixin():
 
 class BoundingGraphMixin():
 
-    @property
-    def bounding_graph(self):
-        """
-        Get a rectangular graph which contains the journey
-        """
+    def get_bounding_graph(self, use_graph_cache=True):
         logger.debug(
             'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
             self.most_northern,
@@ -153,7 +149,7 @@ class BoundingGraphMixin():
             self.most_western
         )
 
-        if network_cache.get('bbox', self, poly=False) is None:
+        if use_graph_cache is False or network_cache.get('bbox', self, poly=False) is None:
             logger.debug(f'bbox > {self.gps_hash} not found in cache, generating...')
             network = ox.graph_from_bbox(
                 self.most_northern,
@@ -170,3 +166,10 @@ class BoundingGraphMixin():
             )
 
         return network_cache.get('bbox', self, poly=False)
+
+    @property
+    def bounding_graph(self):
+        """
+        Get a rectangular graph which contains the journey
+        """
+        return self.get_bounding_graph(use_graph_cache=True)

@@ -49,6 +49,7 @@ class Journeys(
 
     def plot_routes(
         self,
+        use_graph_cache=False,
         use_closest_edge_from_base=False,
         min_edge_usage=1,
         colour_map_name='bwr',
@@ -72,7 +73,7 @@ class Journeys(
         if len(self) == 1:
             logger.warning('To use Journeys effectively multiple journeys must be used, only one found')
 
-        base = self.graph
+        base = self.get_graph(use_graph_cache=False)
         if use_closest_edge_from_base:
             edge_colours = get_edge_colours(
                 base,
@@ -168,9 +169,12 @@ class Journeys(
         """
         return min([journey.most_western for journey in self])
 
+    def get_graph(self, use_graph_cache=True):
+        return self.get_bounding_graph(use_graph_cache=use_graph_cache)
+
     @property
     def graph(self) -> MultiDiGraph:
-        return self.bounding_graph
+        return self.get_graph(use_graph_cache=True)
 
     @staticmethod
     def from_files(filepaths):
