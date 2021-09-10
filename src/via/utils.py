@@ -16,6 +16,10 @@ from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
 import osmnx as ox
 import fast_json
+import pyproj
+import shapely.ops as ops
+from shapely.geometry.polygon import Polygon
+from functools import partial
 
 from via import logger
 from via.settings import (
@@ -431,3 +435,30 @@ def is_within(bbox, larger):
         bbox['east'] <= larger['east'],
         bbox['west'] >= larger['west']
     ])
+
+
+def area_from_coords(obj):
+
+    # TODO: Allow for polys
+    geom = Polygon(
+        [
+            (obj['north'], obj['west']),
+            (obj['north'], obj['east']),
+            (obj['south'], obj['east']),
+            (obj['south'], obj['west']),
+            (obj['north'], obj['west'])
+        ]
+    )
+    geom_area = ops.transform(
+        partial(
+            pyproj.transform,
+            pyproj.Proj(init='EPSG:4326'),
+            pyproj.Proj(
+                proj='aea',
+                lat_1=geom.bounds[1],
+                lat_2=geom.bounds[3]
+            )
+        ),
+        geom)
+
+    return geom_area.area
