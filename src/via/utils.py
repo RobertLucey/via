@@ -126,7 +126,7 @@ def get_data_files(transport_type=None, source=None) -> List[str]:
 
     for filename in glob.iglob(path + '/**/*', recursive=True):
         if is_journey_data_file(filename):
-            if transport_type is not None:
+            if transport_type not in {None, 'all'}:
                 journey_transport_type = os.path.split(os.path.dirname(filename))[-1]
                 if journey_transport_type is not None:
                     if journey_transport_type.lower() == transport_type:
