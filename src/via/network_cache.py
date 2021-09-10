@@ -7,7 +7,10 @@ from networkx.classes.multidigraph import MultiDiGraph
 from via.settings import VERSION
 from via.constants import NETWORK_CACHE_DIR
 from via import logger
-from via.utils import is_within
+from via.utils import (
+    is_within,
+    area_from_coords
+)
 from via.place_cache import place_cache
 
 
@@ -30,10 +33,23 @@ class SingleNetworkCache():
         # want to optimize for storage. Can see how it does anyways
 
         if not poly:
+            candidates = []
             for net in self.data:
                 if is_within(journey.bbox, net['bbox']):
-                    logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
-                    return net['network']
+                    candidates.append(
+                        {
+                            'area': area_from_coords(net['bbox']),
+                            'net': net
+                        }
+                    )
+
+            if candidates != []:
+                logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
+                selection = sorted(
+                    candidates,
+                    key=lambda x: x['area']
+                )
+                return selection[0]['net']['network']
 
             # see if we can use a place
             if place_cache.get_by_bbox(journey.bbox) is not None:
@@ -70,6 +86,9 @@ class SingleNetworkCache():
         return None
 
     def set(self, journey, network: MultiDiGraph):
+        if not self.loaded:
+            self.load()
+
         self.data.append({
             'hash': journey.gps_hash,
             'bbox': journey.bbox,
