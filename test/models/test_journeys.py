@@ -90,11 +90,11 @@ class JourneysTest(TestCase):
         with self.assertRaises(Exception):
             Journeys().plot_routes()
 
-    @skip('not implemented')
     def test_plot_routes_nothing_fancy(self):
         img_uuid = str(uuid.uuid4())
         fp = os.path.join('/tmp/', img_uuid) + '.jpg'
         self.test_journeys.plot_routes(
+            use_graph_cache=False,
             plot_kwargs={
                 'show': False,
                 'save': True,
@@ -104,7 +104,7 @@ class JourneysTest(TestCase):
 
         self.assertEqual(
             hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            'cf5f2b5fcdb64e2f264c3ad566ef134b'
+            'f4fcaa75907705cd4630fc02ef3ee1c8'
         )
 
     @skip('not implemented')
