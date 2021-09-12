@@ -1,4 +1,4 @@
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from via.base_cache import BaseCache
 
@@ -18,21 +18,38 @@ class BaseCacheTest(TestCase):
             'blahblah'
         )
 
-    @skip('todo')
     def test_get(self):
-        pass
+        cache = BaseCache(cache_type='test_get')
+        cache.set('one', 1)
+        self.assertEqual(
+            cache.get('one'),
+            1
+        )
 
-    @skip('todo')
-    def test_set(self):
-        pass
-
-    @skip('todo')
     def test_save(self):
-        pass
+        cache = BaseCache(cache_type='test_get')
+        cache.set('one', 1)
+        cache.save()
 
-    @skip('todo')
+        cache = BaseCache(cache_type='test_get')
+        self.assertEqual(
+            cache.get('one'),
+            1
+        )
+
     def test_load_content(self):
-        pass
+        cache = BaseCache(cache_type='test_get')
+        cache.set('one', 1)
+        cache.save()
+
+        cache = BaseCache(cache_type='test_get')
+        cache.load()
+        self.assertEqual(
+            cache.data,
+            {
+                'one': 1
+            }
+        )
 
     def test_load_empty(self):
         cache = BaseCache(cache_type='blahblah')
