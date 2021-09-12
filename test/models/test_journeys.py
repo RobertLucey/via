@@ -5,6 +5,8 @@ import os
 
 from mock import patch
 from unittest import TestCase, skip
+from PIL import Image
+import imagehash
 
 from via.models.journey import Journey
 from via.models.journeys import Journeys
@@ -102,10 +104,10 @@ class JourneysTest(TestCase):
             }
         )
 
-        self.assertEqual(
-            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            'f4fcaa75907705cd4630fc02ef3ee1c8'
-        )
+        hash_generated = imagehash.average_hash(Image.open(fp))
+        hash_resource = imagehash.average_hash(Image.open('test/resources/images/route_1.jpg'))
+
+        self.assertEqual(hash_generated, hash_resource)
 
     @skip('not implemented')
     def test_plot_routes_use_closest(self):

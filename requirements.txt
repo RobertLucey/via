@@ -8,3 +8,5 @@ osmnx
 scikit-learn
 requests
 geopandas
+imagehash
+pillow

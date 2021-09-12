@@ -13,7 +13,9 @@ INSTALL_REQUIRES = (
     'osmnx',
     'scikit-learn',
     'requests',
-    'geopandas'
+    'geopandas',
+    'imagehash',
+    'pillow'
 )
 
 setup(
