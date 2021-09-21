@@ -58,8 +58,7 @@
           {
             style: function(feature) {
               return {
-                color: '#FF0000',
-                //color: getColour(Math.max.apply(Math, [feature.properties.avg], 50) / 50),  // 50 is just a fairly high cap, TODO: get the actual height
+                color: getColour(Math.max.apply(Math, [feature.properties.avg], 50) / 50),  // 50 is just a fairly high cap, TODO: get the actual height
                 weight: 5
               };
             },
@@ -138,26 +137,32 @@
 
     <!-- Handle form submission etc -->
     <script>
+      function update_map_from_form() {
+        $.get(
+          'pull_journeys',
+          {
+            'earliest_time': $('#earliest_date').val(),
+            'latest_time': $('#latest_date').val(),
+            'journey_type': $('input[name="journey_type"]:checked').val(),
+            'limit': $('#limit').val()
+          }
+        ).done(function(resp) {
+          console.log(resp);
+          load_geojson(resp['resp']['geojson'], clear_previous=true);
+        });
+      }
+
       document.getElementById('pull_journeys_form').addEventListener('submit',
         function(e) {
           e.preventDefault();
           console.log("form submitted...");
 
-          $.get(
-            'pull_journeys',
-            {
-              'earliest_time': $('#earliest_date').val(),
-              'latest_time': $('#latest_date').val(),
-              'journey_type': $('input[name="journey_type"]:checked').val(),
-              'limit': $('#limit').val()
-            }
-          ).done(function(resp) {
-            console.log(resp);
-            load_geojson(resp['resp']['geojson'], clear_previous=true);
-            // alert(resp);
-          });
+          update_map_from_form();
         }
       );
+
+      // Call initially to have data show on map.
+      update_map_from_form();
     </script>
   </body>
 </html>
