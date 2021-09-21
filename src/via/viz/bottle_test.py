@@ -1,3 +1,4 @@
+from via.viz.dummy_data import full_journey
 import bottle
 
 
@@ -32,6 +33,9 @@ def pull_journeys():
             'latest_time': latest_time,
             'journey_type': journey_type,
             'limit': limit
+        },
+        'resp': {
+            'geojson': full_journey
         },
         'status': 'sure'
     }

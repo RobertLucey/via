@@ -21,9 +21,9 @@
     <script>
 
       function getColour(value){
-          //value from 0 to 1
-          var hue=((1-value)*120).toString(10);
-          return ["hsl(",hue,",100%,50%)"].join("");
+        //value from 0 to 1
+        var hue=((1-value)*120).toString(10);
+        return ["hsl(",hue,",100%,50%)"].join("");
       }
 
       // This map is global scope.
@@ -46,7 +46,8 @@
           {
             style: function(feature) {
               return {
-                color: getColour(Math.max.apply(Math, [feature.properties.avg], 50) / 50),  // 50 is just a fairly high cap, TODO: get the actual height
+                color: '#FF0000',
+                //color: getColour(Math.max.apply(Math, [feature.properties.avg], 50) / 50),  // 50 is just a fairly high cap, TODO: get the actual height
                 weight: 5
               };
             },
@@ -137,7 +138,8 @@
             }
           ).done(function(resp) {
             console.log(resp);
-            alert(resp);
+            load_geojson(resp['resp']['geojson']);
+            // alert(resp);
           });
         }
       );
