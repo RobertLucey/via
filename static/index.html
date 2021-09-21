@@ -133,13 +133,15 @@
 
         <input type="submit" value="Submit">
       </form>
+      
+      <button id='update_journeys_button'>Update Journeys</button>
     </div>
 
     <!-- Handle form submission etc -->
     <script>
       function update_map_from_form() {
         $.get(
-          'pull_journeys',
+          'get_journeys',
           {
             'earliest_time': $('#earliest_date').val(),
             'latest_time': $('#latest_date').val(),
@@ -147,6 +149,7 @@
             'limit': $('#limit').val()
           }
         ).done(function(resp) {
+          console.log("get_journeys response:")
           console.log(resp);
           load_geojson(resp['resp']['geojson'], clear_previous=true);
         });
@@ -160,6 +163,17 @@
           update_map_from_form();
         }
       );
+
+      document.getElementById('update_journeys_button').onclick = function () { 
+        $.get(
+          'update_journeys',
+          {}
+        ).done(function(resp) {
+          console.log("update_journeys response:");
+          console.log(resp);
+        });
+      };
+
 
       // Call initially to have data show on map.
       update_map_from_form();
