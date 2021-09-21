@@ -1,5 +1,10 @@
+from via.constants import GEOJSON_DIR
+from via import logger
 from via.viz.dummy_data import full_journey
+
 import bottle
+import json
+import os
 
 
 @bottle.route('/hello')
@@ -27,6 +32,21 @@ def pull_journeys():
     journey_type = bottle.request.query.journey_type
     limit = bottle.request.query.limit
 
+    geojson_file = os.path.join(
+        GEOJSON_DIR,
+        f'{journey_type}.geojson'
+    )
+
+    try:
+        with open(geojson_file) as fh:
+            geojson_data = json.load(fh)
+        status = 200
+    except Exception as e:
+        logger.warning(f'GeoJSON not found at {geojson_file}')
+        geojson_data = full_journey
+        # Interestingly there's no status code for "Return OK with caveats"
+        status = 203
+
     return {
         'req': {
             'earliest_time': earliest_time,
@@ -35,9 +55,9 @@ def pull_journeys():
             'limit': limit
         },
         'resp': {
-            'geojson': full_journey
+            'geojson': geojson_data
         },
-        'status': 'sure'
+        'status': status
     }
 
 
