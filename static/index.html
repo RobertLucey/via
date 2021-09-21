@@ -39,9 +39,21 @@
         accessToken: "REDACTED"
       }).addTo(map);
 
-      function load_geojson(data) {
+      // This is declared global scope so it can be deleted as needed.
+      var geojson_layer = L.geoJson();
+
+
+      function clear_geojson() {
+        map.removeLayer(geojson_layer);
+      }
+
+      function load_geojson(data, clear_previous=false) {
         // Triggered on file upload with the GeoJSON object.
-        L.geoJSON(
+        if (clear_previous) {
+          clear_geojson();
+        }
+
+        geojson_layer = L.geoJSON(
           data,
           {
             style: function(feature) {
@@ -66,7 +78,8 @@
               });
             }
           }
-        ).addTo(map);
+        )
+        geojson_layer.addTo(map);
       }
 
       // These two methods just read a JSON file when one is selected and
@@ -140,7 +153,7 @@
             }
           ).done(function(resp) {
             console.log(resp);
-            load_geojson(resp['resp']['geojson']);
+            load_geojson(resp['resp']['geojson'], clear_previous=true);
             // alert(resp);
           });
         }
