@@ -1,6 +1,7 @@
 <html>
   <head>
     <title>Leaflet Example Test?</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
@@ -91,5 +92,55 @@
     <div>
       TODO: Default to something and add some links to load certain types of data without needing to provide a file
     </div>
+    <div id="inputs_container">
+      <form id="pull_journeys_form">
+        <!-- Time ranges: -->
+        <label for="earliest_date">Earliest:</label>
+        <input type="date" id="earliest_date" name="earliest_date" min="2021-08-01" value="2021-08-01">
+
+        <label for="latest_date">Latest:</label>
+        <input type="date" id="latest_date" name="latest_date" max="2021-12-30" value="2021-12-30"><br/><br/>
+        <!-- End time ranges -->
+
+        <!-- Journey type: -->
+        <input type="radio" id="all_journeys" name="journey_type" value="All Journeys">
+        <label for="all_journeys">All Journeys</label><br>
+        <input type="radio" checked="checked" id="bike" name="journey_type" value="Bike">
+        <label for="bike">Bike</label><br>
+        <input type="radio" id="not_bike" name="journey_type" value="Not Bike">
+        <label for="not_bike">Not Bike</label><br>
+        <!-- End journey type -->
+
+        <!-- Limit response: -->
+        <label for="limit">Limit:</label>
+        <input type="number" id="limit" name="limit" min="1" max="5000" value="10">
+        <!-- End limit response -->
+
+        <input type="submit" value="Submit">
+      </form>
+    </div>
+
+    <!-- Handle form submission etc -->
+    <script>
+      document.getElementById('pull_journeys_form').addEventListener('submit',
+        function(e) {
+          e.preventDefault();
+          console.log("form submitted...");
+
+          $.get(
+            'pull_journeys',
+            {
+              'earliest_time': $('#earliest_date').val(),
+              'latest_time': $('#latest_date').val(),
+              'journey_type': $('input[name="journey_type"]:checked').val(),
+              'limit': $('#limit').val()
+            }
+          ).done(function(resp) {
+            console.log(resp);
+            alert(resp);
+          });
+        }
+      );
+    </script>
   </body>
 </html>
