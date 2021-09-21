@@ -43,7 +43,9 @@ def pull_journeys():
         status = 200
     except Exception as e:
         logger.warning(f'GeoJSON not found at {geojson_file}')
+        logger.warning(f'Exception: {e}')
         geojson_data = full_journey
+
         # Interestingly there's no status code for "Return OK with caveats"
         status = 203
 
