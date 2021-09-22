@@ -25,3 +25,5 @@ BUILDROOT/
 SRPMS/
 SOURCES/
 cache/
+
+.env

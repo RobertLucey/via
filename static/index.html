@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>Leaflet Example Test?</title>
+    <title>Via Web UI</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
     <!-- Make sure you put this AFTER Leaflet's CSS -->
@@ -19,7 +19,6 @@
     <div id="map_div"></div>
 
     <script>
-
       function getColour(value){
         //value from 0 to 1
         var hue=((1-value)*120).toString(10);
@@ -80,31 +79,12 @@
         )
         geojson_layer.addTo(map);
       }
-
-      // These two methods just read a JSON file when one is selected and
-      // return an Object.
-      function _read_file(file) {
-        return new Promise((resolve, reject) => {
-          let fr = new FileReader();
-          fr.onload = x=> resolve(fr.result);
-          fr.readAsText(file);
-        })
-      }
-
-      async function read_file(file_input) {
-        let file_content = await _read_file(file_input.files[0]);
-        load_geojson(JSON.parse(file_content));
-      }
     </script>
 
     <div>
-      <input type="file" onchange="read_file(this)"/>
       Learn more about this project <a href="https://github.com/RobertLucey/via">HERE</a>
     </div>
     <hr>
-    <div>
-      TODO: Default to something and add some links to load certain types of data without needing to provide a file
-    </div>
     <div id="inputs_container">
       <form id="pull_journeys_form">
         <!-- Time ranges: -->

@@ -28,5 +28,5 @@ quick_test:
 	$(IN_ENV) coverage report -m
 	$(IN_ENV) coverage html
 
-run_bottle:
+run_bottle: build
 	$(IN_ENV) $(PYTHON) src/via/viz/bottle_test.py
