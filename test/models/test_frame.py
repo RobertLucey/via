@@ -32,9 +32,19 @@ class FrameTest(TestCase):
             1
         )
 
-    @skip('todo')
     def test_distance_from_point(self):
-        pass
+        frame_1 = Frame(
+            0.0,
+            {'lat': 0.0, 'lng': 0.0},
+            1.0
+        )
+        frame_2 = Frame(
+            0.0,
+            {'lat': 0.0, 'lng': 1.0},
+            1.0
+        )
+        self.assertTrue(111500 > frame_1.distance_from(frame_2) > 111000)
+        self.assertTrue(111500 > frame_1.distance_from(frame_2.gps) > 111000)
 
     def test_serialize(self):
         self.assertEqual(
