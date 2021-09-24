@@ -11,17 +11,6 @@ import os
 import time
 
 
-@bottle.route('/hello')
-def hello():
-    return "Hello!!"
-
-
-@bottle.route('/')
-@bottle.route('/hello/<name>')
-def greet(name='Stranger'):
-    return bottle.template('Hello {{name}}, how are you??', name=name)
-
-
 @bottle.route('/static/:filename#.*#')
 def send_static(filename):
     return bottle.static_file(filename, root='static/')
