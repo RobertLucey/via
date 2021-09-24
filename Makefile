@@ -29,4 +29,4 @@ quick_test:
 	$(IN_ENV) coverage html
 
 run_bottle: build
-	$(IN_ENV) $(PYTHON) src/via/viz/bottle.py
+	$(IN_ENV) via_bottle

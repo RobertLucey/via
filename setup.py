@@ -4,6 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'backoff',
     'packaging',
     'reverse_geocoder',
     'fast_json',
@@ -35,7 +36,8 @@ setup(
             'plot_journeys = via.bin.plot_journeys:main',
             'road_coverage = via.bin.road_coverage:main',
             'condition_by_street = via.bin.condition_by_street:main',
-            'generate_geojson = via.bin.generate_geojson:main'
+            'generate_geojson = via.bin.generate_geojson:main',
+            'via_bottle = via.bin.bottle_entry:main'
         ]
     }
 )
