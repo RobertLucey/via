@@ -70,3 +70,16 @@ optional arguments:
                         recognised place / format for example "Dublin,
                         Ireland"
 ```
+
+### Docker
+
+A web interface has been Dockerized and is available [here](https://hub.docker.com/repository/docker/conorjf/via-web).
+The easiest way to run locally is to use the available `docker-compose` file.
+Note that you will need some AWS credentials to pass to this. These should be
+placed in a `.env` file in the same working directory as `docker-compose.yaml`
+as follows:
+
+```
+AWS_ACCESS_KEY_ID=XXXXXXXXXXXXXXXXXXXX
+AWS_SECRET_ACCESS_KEY=XXXXXXXXXXXXXXXXXXXXXXXXX
+```

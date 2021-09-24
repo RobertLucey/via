@@ -15,7 +15,8 @@ INSTALL_REQUIRES = (
     'requests',
     'geopandas',
     'imagehash',
-    'pillow'
+    'pillow',
+    'bottle'
 )
 
 setup(
