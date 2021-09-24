@@ -45,8 +45,7 @@ def main():
         with open(geojson_file, 'w') as json_file:
             fast_json.dump(
                 journeys.geojson,
-                json_file,
-                indent=4
+                json_file
             )
 
 
