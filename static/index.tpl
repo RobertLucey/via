@@ -82,7 +82,7 @@
     </script>
 
     <div>
-      Learn more about this project <a href="https://github.com/RobertLucey/via">HERE</a>
+      Learn more about this project <a href="https://github.com/RobertLucey/via">HERE</a> Download the latest Via.apk <a href="https://github.com/RobertLucey/via-app/releases/latest">HERE</a>
     </div>
     <hr>
     <div id="inputs_container">
