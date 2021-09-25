@@ -15,7 +15,7 @@ from via.viz.dummy_data import full_journey
 
 
 @bottle.route('/static/:filename#.*#')
-def send_static(filename):
+def render_page(filename):
     return bottle.template(
         os.path.join('static', filename),
         initial_coords=[settings.VIZ_INITIAL_LAT, settings.VIZ_INITIAL_LNG],
@@ -126,7 +126,7 @@ def get_journeys():
 
 @bottle.route('/')
 def send_index():
-    return send_static('index.tpl')
+    return render_page('index.tpl')
 
 
 def main():
