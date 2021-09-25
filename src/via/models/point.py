@@ -109,7 +109,7 @@ class FramePoint(GenericObject, Context):
             raise NotImplementedError()
         else:
             logger.warning('Can not use mode {mode} to get best edge as that is not recognised. Defaulting to nearest')
-            return sorted(edges, key=itemgetter(1))[0]
+            return self.best_edge(edges, mode='nearest')
 
     def append_acceleration(self, acc):
         if isinstance(acc, list):
