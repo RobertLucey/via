@@ -26,7 +26,7 @@
       }
 
       // This map is global scope.
-      var map = L.map('map_div').setView([53.35, -6.26], 12);
+      var map = L.map('map_div').setView({{initial_coords}}, {{initial_zoom}});
       // Public token from Mapbox is here. It can be left in, it's not secret.
       L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGhvbmVtYW4iLCJhIjoiY2tzazlwendiMDZ3NTJvcG50dzBlZDIzZCJ9.L0wR8vdrRgO4RQR6yLF6UA', {
         // Attribution must be left in for ToS reasons.

@@ -6,6 +6,7 @@ import backoff
 import bottle
 
 from via import logger
+from via import settings
 
 from via.bin.pull_journeys import main as pull_journeys_main
 from via.bin.generate_geojson import main as generate_geojson_main
@@ -15,7 +16,11 @@ from via.viz.dummy_data import full_journey
 
 @bottle.route('/static/:filename#.*#')
 def send_static(filename):
-    return bottle.static_file(filename, root='static/')
+    return bottle.template(
+        os.path.join('static', filename),
+        initial_coords=[settings.VIZ_INITIAL_LAT, settings.VIZ_INITIAL_LNG],
+        initial_zoom=settings.VIZ_INITIAL_ZOOM
+    )
 
 
 @backoff.on_exception(
@@ -121,7 +126,7 @@ def get_journeys():
 
 @bottle.route('/')
 def send_index():
-    return send_static('index.html')
+    return send_static('index.tpl')
 
 
 def main():

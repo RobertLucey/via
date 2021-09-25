@@ -19,5 +19,8 @@ MAX_JOURNEY_VERSION = version.parse(os.getenv('MAX_JOURNEY_VERSION', '999.999.99
 # Intervals are generally 2 seconds
 GPS_INCLUDE_RATIO = int(os.getenv('GPS_INCLUDE_RATIO', '2'))
 
-# FIXME: this but less bad
+VIZ_INITIAL_LAT = float(os.getenv('VIZ_INITIAL_LAT', 53.35))
+VIZ_INITIAL_LNG = float(os.getenv('VIZ_INITIAL_LNG', -6.26))
+VIZ_INITIAL_ZOOM = int(os.getenv('VIZ_INITIAL_ZOOM', 12))
+
 VERSION = pkg_resources.require('via')[0].version
