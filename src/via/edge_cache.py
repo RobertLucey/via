@@ -4,7 +4,7 @@ from via.utils import get_combined_id
 EDGE_CACHE = {}
 
 
-def get_edge_data(graph, origin_uuid: str, destination_uuid: str):
+def get_edge_data(origin_uuid: str, destination_uuid: str, graph=None):
     """
 
     :param origin_uuid: osmid of the origin node
@@ -17,6 +17,10 @@ def get_edge_data(graph, origin_uuid: str, destination_uuid: str):
     try:
         return EDGE_CACHE[combined_id]
     except KeyError:
+        if graph is None:
+            # Since we can provide no more context
+            return None
+
         EDGE_CACHE[combined_id] = graph.get_edge_data(
             origin_uuid,
             destination_uuid

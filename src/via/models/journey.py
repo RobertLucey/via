@@ -349,9 +349,9 @@ class Journey(
             edge = our_origin.best_edge(nearest_edges)
 
             edge_data = get_edge_data(
-                route_graph,
                 our_origin.uuid,
                 our_destination.uuid,
+                graph=route_graph
             )
 
             data[get_combined_id(edge[0][0], edge[0][1])].append(

@@ -27,7 +27,7 @@ class EdgeCacheTest(TestCase):
 
     def test_get(self):
         self.assertEqual(
-            get_edge_data(self.test_journey.graph, 389281, 135109553),
+            get_edge_data(389281, 135109553, graph=self.test_journey.graph),
             {0: {'osmid': 14039949, 'oneway': True, 'name': 'York Street', 'highway': 'unclassified', 'maxspeed': '30', 'length': 34.217}}
         )
 
