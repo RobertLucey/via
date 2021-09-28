@@ -73,7 +73,13 @@ class GPSPoint():
         return HAVERSINE_CACHE[key]
 
     def slope_between(self, dst):
-        return (self.lng - dst.lng) / (self.lat - dst.lat)
+        from via.models.point import FramePoint
+        if isinstance(dst, FramePoint):
+            dst = dst.gps
+        try:
+            return (self.lng - dst.lng) / (self.lat - dst.lat)
+        except ZeroDivisionError:
+            return 0
 
     def serialize(self):
         return {
