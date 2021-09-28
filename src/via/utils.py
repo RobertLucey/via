@@ -412,7 +412,7 @@ def get_edge_slope(nodes, edge):
     return get_slope(origin, dst)
 
 
-def angle_between_slopes(s1, s2, ensure_positive=False):
+def angle_between_slopes(s1, s2, ensure_positive=False, absolute=False):
     """
 
     :param s1:
@@ -422,6 +422,8 @@ def angle_between_slopes(s1, s2, ensure_positive=False):
         and want -45 to also equal 135 for example
     """
     degrees = math.degrees(math.atan((s2 - s1) / (1 + (s2 * s1))))
+    if absolute:
+        degrees = abs(degrees)
     if ensure_positive:
         if degrees < 0:
             degrees = 180 + degrees

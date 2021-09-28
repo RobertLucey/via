@@ -17,29 +17,72 @@ from via.models.generic import (
     GenericObjects
 )
 from via.models.gps import GPSPoint
+from via.utils import angle_between_slopes
 
 
 class Context(object):
-
-    @property
-    def is_context_populated(self):
-        return self.context_pre != [] and self.context_post != []
 
     def set_context(self, pre=None, post=None):
         if not self.is_context_populated:
             self.context_pre = pre
             self.context_post = post
 
-    @property
-    def angle_incoming(self):
+    def get_slope_incoming(self, mode='near'):
         """
-        From earliest pre to current
+
+        :kwarg mode: near or far - how much context should be used
         """
-        pass
+        if mode == 'far':
+            return self.context_pre[0].gps.slope_between(self.gps)
+        elif mode == 'near':
+            return self.context_pre[-1].gps.slope_between(self.gps)
+        raise ValueError('Mode %s not recognised' % (mode))
+
+    def get_slope_outgoing(self, mode='near'):
+        """
+
+        :kwarg mode: near or far - how much context should be used
+        """
+        if mode == 'far':
+            return self.gps.slope_between(self.context_post[-1].gps)
+        elif mode == 'near':
+            return self.gps.slope_between(self.context_post[0].gps)
+        raise ValueError('Mode %s not recognised' % (mode))
+
+    def get_slope_around_point(self, mode='near'):
+        """
+        Get the slope of the few points around the point.
+
+        Useful in getting a slope associated with the slope so we can
+        compare it to the slope of a road
+
+        :kwarg mode: near or far - how much context should be used
+        """
+        if mode == 'far':
+            return self.context_pre[0].gps.slope_between(
+                self.context_post[-1]
+            )
+        elif mode == 'near':
+            return self.context_pre[-1].gps.slope_between(
+                self.context_post[0]
+            )
+
+        raise ValueError('Mode %s not recognised' % (mode))
+
+    def get_in_out_angle(self, mode='near'):
+        """
+        :kwarg mode: near or far - how much context should be used
+        """
+        # TODO: Rename this function, ew
+        return angle_between_slopes(
+            self.get_slope_incoming(mode=mode),
+            self.get_slope_outgoing(mode=mode),
+            absolute=True
+        )
 
     @property
-    def angle_outgoing(self):
-        pass
+    def is_context_populated(self):
+        return self.context_pre != [] and self.context_post != []
 
     @property
     def dist_to_earliest(self):
@@ -96,7 +139,6 @@ class FramePoint(GenericObject, Context):
 
         :kwarg mode: strategy to use to get the best edge
         """
-
         if mode == 'nearest':
             return sorted(edges, key=itemgetter(1))[0]
         elif mode == 'matching_angle':

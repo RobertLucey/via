@@ -72,6 +72,9 @@ class GPSPoint():
 
         return HAVERSINE_CACHE[key]
 
+    def slope_between(self, dst):
+        return (self.lng - dst.lng) / (self.lat - dst.lat)
+
     def serialize(self):
         return {
             'lat': self.lat,
