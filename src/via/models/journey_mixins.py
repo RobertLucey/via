@@ -42,7 +42,12 @@ class SnappedRouteGraphMixin():
                     our_origin
                 ]
             )
-            edge = our_origin.best_edge(nearest_edges)
+
+            edge = our_origin.get_best_edge(
+                nearest_edges,
+                mode='matching_angle',
+                graph=bounding_graph
+            )
 
             edges.append(tuple(edge[0]))
             used_node_ids.extend([edge[0][0], edge[0][1]])

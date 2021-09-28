@@ -346,7 +346,11 @@ class Journey(
                 ]
             )
 
-            edge = our_origin.best_edge(nearest_edges)
+            edge = our_origin.get_best_edge(
+                nearest_edges,
+                mode='matching_angle',
+                graph=bounding_graph
+            )
 
             edge_data = get_edge_data(
                 our_origin.uuid,
@@ -504,8 +508,12 @@ class Journey(
     @property
     def all_points(self):
         """
-        Return all the points in this journey
+        Return all the points in this journey.
+
+        May be a bit expensive since it sets contexts. Can probably get away
+        with selectively doing this
         """
+        self.set_contexts()
         return self._data
 
     @property

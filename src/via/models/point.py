@@ -134,24 +134,69 @@ class FramePoint(GenericObject, Context):
             assert isinstance(acceleration, Number)
             self.acceleration = [acc for acc in [acceleration] if acc >= MIN_ACC_SCORE]
 
-    def best_edge(self, edges, mode='nearest'):
+    def get_best_edge(self, edges, graph=None, mode=None):
         """
 
         :kwarg mode: strategy to use to get the best edge
         """
+
+        default_mode = 'nearest'
+        if mode is None:
+            mode = default_mode
+
         if mode == 'nearest':
             return sorted(edges, key=itemgetter(1))[0]
         elif mode == 'matching_angle':
-            raise NotImplementedError()
+            if not self.is_context_populated:
+                logger.debug('Cannot use mode \'%s\' as no point context is set, using mode \'%s\'', mode, default_mode)
+                # can probably warn if there's no post AND no pre, that would show there was no context ever set on the journey?
+                return self.get_best_edge(edges, mode='nearest')
+            if not graph:
+                logger.warning('graph not supplied to get_best_edge and mode \'%s\' was selected. Defaulting to mode \'%s\'', mode, default_mode)
+                return self.get_best_edge(edges, mode=default_mode)
+
+            edge_node_data = []
+            slope_around = self.get_slope_around_point()
+
+            for edge in edges:
+                try:
+                    origin = graph.nodes[edge[0][0]]
+                    dst = graph.nodes[edge[0][1]]
+                    data = {
+                        'edge': edge,
+                        'origin': GPSPoint(origin['y'], origin['x']),
+                        'dst': GPSPoint(dst['y'], dst['x']),
+                    }
+                    data['slope'] = data['origin'].slope_between(
+                        data['dst']
+                    )
+                    data['angle_between'] = angle_between_slopes(
+                        slope_around,
+                        data['slope'],
+                        absolute=True
+                    )
+                    edge_node_data.append(
+                        data
+                    )
+                except Exception as ex:
+                    logger.warning('Could not get edge data: %s: %s', edge, ex)
+
+            return sorted(
+                edge_node_data,
+                key=lambda x: x['angle_between']
+            )[0]['edge']
         elif mode == 'angle_nearest':
+            # TODO: if there's only a diff of x, use the nearest or something, should probably weight
+            # TODO: reuse a load from matching_angle
             # A hybrid of matching angle and nearest
             raise NotImplementedError()
         elif mode == 'sticky':
             # Try to stick to previous road if it makes sense
+            # Might want to be sticky on top of some other mode? Not important now
             raise NotImplementedError()
         else:
-            logger.warning('Can not use mode {mode} to get best edge as that is not recognised. Defaulting to nearest')
-            return self.best_edge(edges, mode='nearest')
+            logger.warning('Can not use mode \'%s\' to get best edge as that is not recognised. Defaulting to mode \'%s\'', mode, default_mode)
+            return self.get_best_edge(edges, mode=default_mode)
 
     def append_acceleration(self, acc):
         if isinstance(acc, list):
