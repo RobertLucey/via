@@ -23,4 +23,7 @@ VIZ_INITIAL_LAT = float(os.getenv('VIZ_INITIAL_LAT', 53.35))
 VIZ_INITIAL_LNG = float(os.getenv('VIZ_INITIAL_LNG', -6.26))
 VIZ_INITIAL_ZOOM = int(os.getenv('VIZ_INITIAL_ZOOM', 12))
 
+NEAREST_EDGE_METHOD = os.getenv('NEAREST_EDGE_METHOD', 'angle_nearest')
+CLOSE_ANGLE_TO_ROAD = float(os.getenv('CLOSE_ANGLE_TO_ROAD', 15))
+
 VERSION = pkg_resources.require('via')[0].version

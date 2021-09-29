@@ -348,7 +348,7 @@ class Journey(
 
             edge = our_origin.get_best_edge(
                 nearest_edges,
-                mode='matching_angle',
+                mode=settings.NEAREST_EDGE_METHOD,
                 graph=bounding_graph
             )
 

@@ -9,7 +9,7 @@ from shapely.geometry import (
     Point
 )
 
-from via.settings import MIN_ACC_SCORE
+from via import settings
 from via import logger
 from via.place_cache import place_cache
 from via.models.generic import (
@@ -127,72 +127,105 @@ class FramePoint(GenericObject, Context):
         self.gps = GPSPoint.parse(gps)
 
         if isinstance(acceleration, list):
-            self.acceleration = [acc for acc in acceleration if acc >= MIN_ACC_SCORE]
+            self.acceleration = [acc for acc in acceleration if acc >= settings.MIN_ACC_SCORE]
         else:
             if acceleration is None:
                 acceleration = 0
             assert isinstance(acceleration, Number)
-            self.acceleration = [acc for acc in [acceleration] if acc >= MIN_ACC_SCORE]
+            self.acceleration = [acc for acc in [acceleration] if acc >= settings.MIN_ACC_SCORE]
+
+    def get_edges_with_context(self, graph, edges):
+        edge_node_data = []
+        slope_around = self.get_slope_around_point()
+
+        for edge in edges:
+            try:
+                origin = graph.nodes[edge[0][0]]
+                dst = graph.nodes[edge[0][1]]
+                data = {
+                    'edge': edge,
+                    'origin': GPSPoint(origin['y'], origin['x']),
+                    'dst': GPSPoint(dst['y'], dst['x']),
+                }
+                data['slope'] = data['origin'].slope_between(
+                    data['dst']
+                )
+                data['angle_between'] = angle_between_slopes(
+                    slope_around,
+                    data['slope'],
+                    absolute=True
+                )
+                edge_node_data.append(
+                    data
+                )
+            except Exception as ex:
+                logger.warning('Could not get edge data: %s: %s', edge, ex)
+
+        return edge_node_data
 
     def get_best_edge(self, edges, graph=None, mode=None):
         """
 
         :kwarg mode: strategy to use to get the best edge
         """
-
         default_mode = 'nearest'
+        modes_require_graph = {'matching_angle', 'angle_nearest'}
+        modes_require_context = {'matching_angle', 'angle_nearest'}
+
+        def nearest():
+            return sorted(edges, key=itemgetter(1))[0]
+
+        def matching_angle():
+            return sorted(
+                self.get_edges_with_context(graph, edges),
+                key=lambda x: x['angle_between']
+            )[0]['edge']
+
+        def angle_nearest():
+            # Find a middleground between the best angle match and the
+            # nearest by distance
+            edges_by_angle = sorted(
+                self.get_edges_with_context(graph, edges),
+                key=lambda x: x['angle_between']
+            )
+
+            best_edge = edges_by_angle[0]
+            for edge in edges_by_angle:
+                # if best angle match is x degrees within the next and the
+                # next is closer, use the closer one
+                if all([
+                    edge['angle_between'] < settings.CLOSE_ANGLE_TO_ROAD,
+                    edge['edge'][1] < best_edge['edge'][1]
+                ]):
+                    best_edge = edge
+
+            return best_edge['edge']
+
         if mode is None:
             mode = default_mode
 
-        if mode == 'nearest':
-            return sorted(edges, key=itemgetter(1))[0]
-        elif mode == 'matching_angle':
-            if not self.is_context_populated:
-                logger.debug('Cannot use mode \'%s\' as no point context is set, using mode \'%s\'', mode, default_mode)
-                # can probably warn if there's no post AND no pre, that would show there was no context ever set on the journey?
-                return self.get_best_edge(edges, mode='nearest')
+        if mode in modes_require_graph:
             if not graph:
                 logger.warning('graph not supplied to get_best_edge and mode \'%s\' was selected. Defaulting to mode \'%s\'', mode, default_mode)
                 return self.get_best_edge(edges, mode=default_mode)
 
-            edge_node_data = []
-            slope_around = self.get_slope_around_point()
+        if mode in modes_require_context:
+            if not self.is_context_populated:
+                logger.debug('Cannot use mode \'%s\' as point context is not populated, using mode \'%s\'', mode, default_mode)
+                # can probably warn if there's no post AND no pre, that would
+                # show there was no context ever set on the journey?
+                return self.get_best_edge(edges, mode='nearest')
 
-            for edge in edges:
-                try:
-                    origin = graph.nodes[edge[0][0]]
-                    dst = graph.nodes[edge[0][1]]
-                    data = {
-                        'edge': edge,
-                        'origin': GPSPoint(origin['y'], origin['x']),
-                        'dst': GPSPoint(dst['y'], dst['x']),
-                    }
-                    data['slope'] = data['origin'].slope_between(
-                        data['dst']
-                    )
-                    data['angle_between'] = angle_between_slopes(
-                        slope_around,
-                        data['slope'],
-                        absolute=True
-                    )
-                    edge_node_data.append(
-                        data
-                    )
-                except Exception as ex:
-                    logger.warning('Could not get edge data: %s: %s', edge, ex)
-
-            return sorted(
-                edge_node_data,
-                key=lambda x: x['angle_between']
-            )[0]['edge']
+        if mode == 'nearest':
+            return nearest()
+        elif mode == 'matching_angle':
+            return matching_angle()
         elif mode == 'angle_nearest':
-            # TODO: if there's only a diff of x, use the nearest or something, should probably weight
-            # TODO: reuse a load from matching_angle
-            # A hybrid of matching angle and nearest
-            raise NotImplementedError()
+            return angle_nearest()
         elif mode == 'sticky':
             # Try to stick to previous road if it makes sense
-            # Might want to be sticky on top of some other mode? Not important now
+            # Might want to be sticky on top of some other mode?
+            # Not important now
             raise NotImplementedError()
         else:
             logger.warning('Can not use mode \'%s\' to get best edge as that is not recognised. Defaulting to mode \'%s\'', mode, default_mode)
@@ -205,7 +238,7 @@ class FramePoint(GenericObject, Context):
         elif isinstance(acc, type(None)):
             return
         else:
-            if acc >= MIN_ACC_SCORE:
+            if acc >= settings.MIN_ACC_SCORE:
                 self.acceleration.append(acc)
 
     @staticmethod
@@ -217,7 +250,7 @@ class FramePoint(GenericObject, Context):
             return FramePoint(
                 obj.get('time', None),
                 obj['gps'],
-                [acc for acc in obj['acc'] if acc >= MIN_ACC_SCORE]
+                [acc for acc in obj['acc'] if acc >= settings.MIN_ACC_SCORE]
             )
         else:
             raise NotImplementedError(

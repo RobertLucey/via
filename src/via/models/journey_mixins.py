@@ -7,6 +7,7 @@ import shapely
 from networkx.readwrite import json_graph
 import osmnx as ox
 
+from via import settings
 from via import logger
 from via.utils import (
     filter_nodes_from_geodataframe,
@@ -45,7 +46,7 @@ class SnappedRouteGraphMixin():
 
             edge = our_origin.get_best_edge(
                 nearest_edges,
-                mode='matching_angle',
+                mode=settings.NEAREST_EDGE_METHOD,
                 graph=bounding_graph
             )
 
