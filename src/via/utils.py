@@ -60,13 +60,23 @@ def is_journey_data_file(potential_journey_file: str) -> bool:
     return True
 
 
-def get_journeys(transport_type=None, source=None, place=None):
+def get_journeys(
+    transport_type=None,
+    source=None,
+    place=None,
+    version_op=None,
+    version=None
+):
     """
     Get local journeys as Journeys
 
     :kwarg transport_type: bike|car|scooter|whatever else is on the app
     :kwarg source: The data dir to get from
     :kwarg place: The place to get journeys within
+    :kwarg version_op: The operator the journey version must pass to
+        be returned
+    :kwarg version: The version to compare with version_op and the
+        journey version
     :rtype: Journey
     """
     from via.models.journeys import Journeys
@@ -75,19 +85,31 @@ def get_journeys(transport_type=None, source=None, place=None):
             iter_journeys(
                 transport_type=transport_type,
                 source=source,
-                place=place
+                place=place,
+                version_op=version_op,
+                version=version
             )
         )
     )
 
 
-def iter_journeys(transport_type=None, source=None, place=None):
+def iter_journeys(
+    transport_type=None,
+    source=None,
+    place=None,
+    version_op=None,
+    version=None
+):
     """
     Get local journeys as iterable of Journey
 
     :kwarg transport_type: bike|car|scooter|whatever else is on the app
     :kwarg source: The data dir to get from
     :kwarg place: The place to get journeys within
+    :kwarg version_op: The operator the journey version must pass to
+        be returned
+    :kwarg version: The version to compare with version_op and the
+        journey version
     """
     from via.models.journey import Journey
     for journey_file in get_data_files(
@@ -95,16 +117,36 @@ def iter_journeys(transport_type=None, source=None, place=None):
         source=source
     ):
         journey = Journey.from_file(journey_file)
-        if any([
-            journey.version < MIN_JOURNEY_VERSION,
-            journey.version > MAX_JOURNEY_VERSION
-        ]):
-            continue
-        if place is not None:
-            if journey.is_in_place(place):
-                yield journey
-        else:
+        if should_include_journey(
+            journey,
+            place=place,
+            version_op=version_op,
+            version=version
+        ):
             yield journey
+
+
+def should_include_journey(
+    journey,
+    place=None,
+    version_op=None,
+    version=None
+):
+    if any([
+        journey.version < MIN_JOURNEY_VERSION,
+        journey.version > MAX_JOURNEY_VERSION
+    ]):
+        return False
+
+    if version_op is not None:
+        if not version_op(journey.version, version):
+            return False
+
+    if place is not None:
+        if not journey.is_in_place(place):
+            return False
+
+    return journey
 
 
 def get_data_files(transport_type=None, source=None) -> List[str]:
