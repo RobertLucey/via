@@ -71,7 +71,11 @@ class Context(object):
 
     def get_in_out_angle(self, mode='near'):
         """
+
         :kwarg mode: near or far - how much context should be used
+        :return: positive smallest angle difference between in slope and
+             out slope
+        :rtype: float
         """
         # TODO: Rename this function, ew
         return angle_between_slopes(
@@ -86,11 +90,11 @@ class Context(object):
 
     @property
     def dist_to_earliest(self):
-        pass
+        raise NotImplementedError()
 
     @property
     def dist_to_latest(self):
-        pass
+        raise NotImplementedError()
 
     def serialize(self, include_time=True):
         return {
@@ -117,7 +121,6 @@ class FramePoint(GenericObject, Context):
         :param gps: GPSPoint or dict serialization of GPSPoint
         :param acceneration:
         """
-
         self.context_pre = []
         self.context_post = []
 
@@ -135,6 +138,21 @@ class FramePoint(GenericObject, Context):
             self.acceleration = [acc for acc in [acceleration] if acc >= settings.MIN_ACC_SCORE]
 
     def get_edges_with_context(self, graph, edges):
+        """
+        Get a list of dicts, giving context to how it relates to the
+        current FramePoint
+
+        :param graph:
+        :param edges:
+        :return: list of dicts with keys
+            edge:
+            origin: GPSPoint of start of edge
+            dst: GPSPoint of end of edge
+            slope: the slope of the edge
+            angle_between: the smallest angle between the slope of the edge
+                and the slope of actual travel
+        :rtype: list
+        """
         edge_node_data = []
         slope_around = self.get_slope_around_point()
 
@@ -258,6 +276,14 @@ class FramePoint(GenericObject, Context):
             )
 
     def speed_between(self, point):
+        """
+        Get the speed between this and another point (as the crow flies) in
+        metres per second
+
+        :param point: A FramePoint obj
+        :return: metres per second
+        :rtype: float
+        """
         metres_per_second = None
         distance = self.distance_from(point.gps)
         if distance != 0:
@@ -285,6 +311,12 @@ class FramePoint(GenericObject, Context):
 
     @property
     def road_quality(self):
+        """
+        Get the average quality at this point (and a little before)
+
+        :return: mean of acceleration points
+        :rtype: float
+        """
         if self.acceleration == []:
             return 0
         try:
@@ -388,7 +420,12 @@ class FramePoints(GenericObjects):
         return self[0].distance_from(self[-1])
 
     def serialize(self, include_time=False, include_context=True):
-        return [frame.serialize(include_time=include_time, include_context=include_context) for frame in self]
+        return [
+            frame.serialize(
+                include_time=include_time,
+                include_context=include_context
+            ) for frame in self
+        ]
 
     def get_multi_points(self):
         """

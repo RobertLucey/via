@@ -518,6 +518,11 @@ class Journey(
 
     @property
     def version(self):
+        """
+        Get the version of the app used to generate this data
+
+        :rtype: version.Version
+        """
         if isinstance(self._version, version.Version):
             return self._version
         if isinstance(self._version, type(None)):
