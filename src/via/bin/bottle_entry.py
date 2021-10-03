@@ -14,13 +14,23 @@ from via.constants import GEOJSON_DIR
 from via.viz.dummy_data import full_journey
 
 
-@bottle.route('/static/:filename#.*#')
+@bottle.route('/static/resources/:filename#.*#')
+def get_static_resource(filename):
+    return bottle.static_file(filename, root='static/resources/')
+
+
+@bottle.route('/static/templates/:filename#.*#')
 def render_page(filename):
     return bottle.template(
-        os.path.join('static', filename),
+        os.path.join('static', 'templates', filename),
         initial_coords=[settings.VIZ_INITIAL_LAT, settings.VIZ_INITIAL_LNG],
         initial_zoom=settings.VIZ_INITIAL_ZOOM
     )
+
+
+@bottle.route('/favicon.ico')
+def get_favicon():
+    return get_static_resource('favicon.ico')
 
 
 @backoff.on_exception(
