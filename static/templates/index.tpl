@@ -13,10 +13,16 @@
     <link rel="stylesheet" href="static/resources/sidebar_menu.css">
     <!-- END SIDEBAR-->
 
+   <!-- FB Share config -->
+   <meta property="og:url"           content="https://via.randombits.host" />
+   <meta property="og:type"          content="website" />
+   <meta property="og:title"         content="Via - Road Quality Visualization" />
+   <meta property="og:description"   content="Visualize the quality of roads for cyclists monitoring blackspots for potholes, dangerous driver movement, and more." />
+   <meta property="og:image" content="https://via.randombits.host/static/resources/logo.jpg" />
+   <!-- End FB Share config -->
   </head>
 
   <body>
-
 
 <!-- Sidebar from: https://www.codeply.com/p/1TlcDLPfiE -->
 <!-- Bootstrap row -->
@@ -42,23 +48,85 @@
             <!-- End collapser -->
             
             <!-- logo about link -->
-            <a href="#" class="bg-dark list-group-item list-group-item-action">
+            <a href="#about-submenu" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fa fa-fw mr-3">
                          <img src='static/resources/logo.png' width="30" height="30" />
                     </span>
                     <span class="menu-collapsed">About</span>
+                    <span class="submenu-icon ml-auto"></span>
                 </div>
             </a>
+            <!-- Submenu content -->
+            <div id='about-submenu' class="collapse sidebar-submenu">
+                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
+                   <div id="about_content_container">
+                     <p>
+                        Via is a way to monitor road safety for cyclists.
+                     </p>
+                     <p>
+                        It has a strong emphasis on privacy, with no personally
+                        identifiable information being stored or transmitted, and
+                        all default options offering the strongest protections.
+                        For example, Via will not share the time of day, the
+                        beginning or end points of a journey or any means of
+                        linking one journey to another by default.
+                     </p>
+                     <p>
+                        If you want to help have a more transparent, complete
+                        coverage of cycling road quaity, you can download the
+                        app <a class="plain-link" style="display: inline" href="https://github.com/RobertLucey/via-app/releases/latest">here</a>. 
+                     </p>
+                   </div>
+                </a>
+            </div>
             <!-- End logo about link -->
 
             <!-- Explore link -->
-            <a href="#" class="bg-dark list-group-item list-group-item-action">
+            <a href="#submenu1" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fa fa-search fa-fw mr-3"></span>
                     <span class="menu-collapsed">Explore</span>
+                    <span class="submenu-icon ml-auto"></span>
                 </div>
             </a>
+            <!-- Submenu content -->
+            <div id='submenu1' class="collapse sidebar-submenu">
+                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
+                   <div id="inputs_container">
+                     <form id="pull_journeys_form">
+                       <!-- Time ranges: -->
+                       <label for="earliest_date">Earliest:</label>
+                       <input type="date" id="earliest_date" name="earliest_date" min="2021-08-01" value="2021-08-01">
+
+                       <label for="latest_date">Latest:</label>
+                       <input type="date" id="latest_date" name="latest_date" max="2021-12-30" value="2021-12-30"><br/><br/>
+                       <!-- End time ranges -->
+
+                       <!-- Journey type: -->
+                       <input type="radio" id="all_journeys" name="journey_type" value="all">
+                       <label for="all">All Journeys</label><br>
+                       <input type="radio" checked="checked" id="bike" name="journey_type" value="bike">
+                       <label for="bike">Bike</label><br>
+                       <input type="radio" id="bus" name="journey_type" value="bus">
+                       <label for="bus">Bus</label><br>
+                       <input type="radio" id="car" name="journey_type" value="car">
+                       <label for="car">Car</label><br>
+                       <!-- End journey type -->
+
+                       <!-- Limit response:
+                       <label for="limit">Limit:</label>
+                       <input type="number" id="limit" name="limit" min="1" max="5000" value="10">
+                       End limit response -->
+
+                       <input type="submit" value="Submit">
+                     </form>
+                     
+                     <button id='update_journeys_button'>Update Journeys</button>
+                   </div>
+
+                </a>
+            </div>
             <!-- End Explore link -->
 
             <!-- Examples link -->
@@ -70,8 +138,9 @@
             </a>
             <!-- End Examples link -->
 
+
             <!-- Twitter link -->
-            <a href="#" class="bg-dark list-group-item list-group-item-action">
+            <a href="https://twitter.com/intent/tweet?text=Check%20out%20Via%20-%20It%27s%20visualizing%20road%20quality%20for%20cyclists%3A%20https%3A%2F%2Fvia.randombits.host" target="_blank" class="bg-dark list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fa fa-twitter fa-fw mr-3"></span>
                     <span class="menu-collapsed">Tweet</span>
@@ -80,7 +149,7 @@
             <!-- End Twitter link -->
 
             <!-- FB link -->
-            <a href="#" class="bg-dark list-group-item list-group-item-action">
+            <a href="https://www.facebook.com/sharer/sharer.php?u=https://via.randombits.host&t=Via%20-%20Road%20Quality%20Monitoring%0A" target="_blank" class="bg-dark list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fa fa-facebook-official fa-fw mr-3"></span>
                     <span class="menu-collapsed">Share</span>
@@ -89,13 +158,15 @@
             <!-- End FB link -->
 
             <!-- Contribute link -->
-            <a href="#" class="bg-dark list-group-item list-group-item-action">
+            <a href="https://github.com/RobertLucey/via" class="bg-dark list-group-item list-group-item-action">
                 <div class="d-flex w-100 justify-content-start align-items-center">
                     <span class="fa fa-github fa-fw mr-3"></span>
                     <span class="menu-collapsed">Contribute</span>
                 </div>
             </a>
             <!-- End Contribute link -->
+
+
 
         </ul>
         <!-- List Group END-->
@@ -106,7 +177,7 @@
 
     <!-- MAIN -->
 
-    <div class="col">
+    <div class="col" style="padding-right: 0; padding-left: 0">
           <div id="map_div" style="width: 100%; height: 100%"></div>
     </div><!-- Main Col END -->
 
@@ -178,42 +249,6 @@
         geojson_layer.addTo(map);
       }
     </script>
-
-    <div>
-      Learn more about this project <a href="https://github.com/RobertLucey/via">HERE</a> Download the latest Via.apk <a href="https://github.com/RobertLucey/via-app/releases/latest">HERE</a>
-    </div>
-    <hr>
-    <div id="inputs_container">
-      <form id="pull_journeys_form">
-        <!-- Time ranges: -->
-        <label for="earliest_date">Earliest:</label>
-        <input type="date" id="earliest_date" name="earliest_date" min="2021-08-01" value="2021-08-01">
-
-        <label for="latest_date">Latest:</label>
-        <input type="date" id="latest_date" name="latest_date" max="2021-12-30" value="2021-12-30"><br/><br/>
-        <!-- End time ranges -->
-
-        <!-- Journey type: -->
-        <input type="radio" id="all_journeys" name="journey_type" value="all">
-        <label for="all">All Journeys</label><br>
-        <input type="radio" checked="checked" id="bike" name="journey_type" value="bike">
-        <label for="bike">Bike</label><br>
-        <input type="radio" id="bus" name="journey_type" value="bus">
-        <label for="bus">Bus</label><br>
-        <input type="radio" id="car" name="journey_type" value="car">
-        <label for="car">Car</label><br>
-        <!-- End journey type -->
-
-        <!-- Limit response: -->
-        <label for="limit">Limit:</label>
-        <input type="number" id="limit" name="limit" min="1" max="5000" value="10">
-        <!-- End limit response -->
-
-        <input type="submit" value="Submit">
-      </form>
-      
-      <button id='update_journeys_button'>Update Journeys</button>
-    </div>
 
     <!-- Handle form submission etc -->
     <script>

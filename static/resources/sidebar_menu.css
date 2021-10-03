@@ -23,8 +23,8 @@
 }
 
 /* Submenu item*/
-#sidebar-container .list-group .sidebar-submenu a {
-    height: 45px;
+#sidebar-container .list-group .sidebar-submenu a:not(.plain-link) {
+    height: auto;
     padding-left: 30px;
 }
 .sidebar-submenu {
