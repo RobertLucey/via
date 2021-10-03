@@ -18,6 +18,7 @@
   <body>
 
 
+<!-- Sidebar from: https://www.codeply.com/p/1TlcDLPfiE -->
 <!-- Bootstrap row -->
 <div class="row" id="body-row">
     <!-- Sidebar -->
@@ -25,11 +26,11 @@
 
         <!-- Bootstrap List Group -->
         <ul class="list-group">
-            <!-- Logo -->
+            <!-- Logo
             <li class="list-group-item logo-separator d-flex justify-content-center">
                 <img src='static/resources/logo.png' width="30" height="30" />
             </li>
-            <!-- End Logo -->
+             End Logo -->
 
             <!-- Collapser -->
             <a href="#" data-toggle="sidebar-colapse" class="bg-dark list-group-item list-group-item-action d-flex align-items-center">
@@ -39,148 +40,62 @@
                 </div>
             </a>
             <!-- End collapser -->
-
-
-
-
-
-
-            <!-- Menu with submenu -->
-
-            <a href="#submenu1" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
-
-                <div class="d-flex w-100 justify-content-start align-items-center">
-
-                    <span class="fa fa-dashboard fa-fw mr-3"></span>
-
-                    <span class="menu-collapsed">Dashboard</span>
-
-                    <span class="submenu-icon ml-auto"></span>
-
-                </div>
-
-            </a>
-
-            <!-- Submenu content -->
-
-            <div id='submenu1' class="collapse sidebar-submenu">
-
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
-
-                    <span class="menu-collapsed">Charts</span>
-
-                </a>
-
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
-
-                    <span class="menu-collapsed">Reports</span>
-
-                </a>
-
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
-
-                    <span class="menu-collapsed">Tables</span>
-
-                </a>
-
-            </div>
-
-            <a href="#submenu2" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
-
-                <div class="d-flex w-100 justify-content-start align-items-center">
-
-                    <span class="fa fa-user fa-fw mr-3"></span>
-
-                    <span class="menu-collapsed">Profile</span>
-
-                    <span class="submenu-icon ml-auto"></span>
-
-                </div>
-
-            </a>
-
-            <!-- Submenu content -->
-
-            <div id='submenu2' class="collapse sidebar-submenu">
-
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
-
-                    <span class="menu-collapsed">Settings</span>
-
-                </a>
-
-                <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
-
-                    <span class="menu-collapsed">Password</span>
-
-                </a>
-
-            </div>
-
+            
+            <!-- logo about link -->
             <a href="#" class="bg-dark list-group-item list-group-item-action">
-
                 <div class="d-flex w-100 justify-content-start align-items-center">
-
-                    <span class="fa fa-tasks fa-fw mr-3"></span>
-
-                    <span class="menu-collapsed">Tasks</span>
-
+                    <span class="fa fa-fw mr-3">
+                         <img src='static/resources/logo.png' width="30" height="30" />
+                    </span>
+                    <span class="menu-collapsed">About</span>
                 </div>
-
             </a>
+            <!-- End logo about link -->
 
-            <!-- Separator with title -->
-
-            <li class="list-group-item sidebar-separator-title text-muted d-flex align-items-center menu-collapsed">
-
-                <small>OPTIONS</small>
-
-            </li>
-
-            <!-- /END Separator -->
-
+            <!-- Explore link -->
             <a href="#" class="bg-dark list-group-item list-group-item-action">
-
                 <div class="d-flex w-100 justify-content-start align-items-center">
-
-                    <span class="fa fa-calendar fa-fw mr-3"></span>
-
-                    <span class="menu-collapsed">Calendar</span>
-
+                    <span class="fa fa-search fa-fw mr-3"></span>
+                    <span class="menu-collapsed">Explore</span>
                 </div>
-
             </a>
+            <!-- End Explore link -->
 
+            <!-- Examples link -->
             <a href="#" class="bg-dark list-group-item list-group-item-action">
-
                 <div class="d-flex w-100 justify-content-start align-items-center">
-
-                    <span class="fa fa-envelope-o fa-fw mr-3"></span>
-
-                    <span class="menu-collapsed">Messages <span class="badge badge-pill badge-primary ml-2">5</span></span>
-
+                    <span class="fa fa-lightbulb-o fa-fw mr-3"></span>
+                    <span class="menu-collapsed">Examples</span>
                 </div>
-
             </a>
+            <!-- End Examples link -->
 
-            <!-- Separator without title -->
-
-            <li class="list-group-item sidebar-separator menu-collapsed"></li>
-
-            <!-- /END Separator -->
-
+            <!-- Twitter link -->
             <a href="#" class="bg-dark list-group-item list-group-item-action">
-
                 <div class="d-flex w-100 justify-content-start align-items-center">
-
-                    <span class="fa fa-question fa-fw mr-3"></span>
-
-                    <span class="menu-collapsed">Help</span>
-
+                    <span class="fa fa-twitter fa-fw mr-3"></span>
+                    <span class="menu-collapsed">Tweet</span>
                 </div>
-
             </a>
+            <!-- End Twitter link -->
 
+            <!-- FB link -->
+            <a href="#" class="bg-dark list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-start align-items-center">
+                    <span class="fa fa-facebook-official fa-fw mr-3"></span>
+                    <span class="menu-collapsed">Share</span>
+                </div>
+            </a>
+            <!-- End FB link -->
+
+            <!-- Contribute link -->
+            <a href="#" class="bg-dark list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-start align-items-center">
+                    <span class="fa fa-github fa-fw mr-3"></span>
+                    <span class="menu-collapsed">Contribute</span>
+                </div>
+            </a>
+            <!-- End Contribute link -->
 
         </ul>
         <!-- List Group END-->

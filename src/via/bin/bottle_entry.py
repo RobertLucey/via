@@ -19,8 +19,6 @@ def get_static_resource(filename):
     return bottle.static_file(filename, root='static/resources/')
 
 
-
-
 @bottle.route('/static/templates/:filename#.*#')
 def render_page(filename):
     return bottle.template(
@@ -28,6 +26,11 @@ def render_page(filename):
         initial_coords=[settings.VIZ_INITIAL_LAT, settings.VIZ_INITIAL_LNG],
         initial_zoom=settings.VIZ_INITIAL_ZOOM
     )
+
+
+@get('/favicon.ico')
+def get_favicon():
+    return get_static_resource('favicon.ico')
 
 
 @backoff.on_exception(
