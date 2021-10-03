@@ -28,7 +28,7 @@ def render_page(filename):
     )
 
 
-@get('/favicon.ico')
+@bottle.route('/favicon.ico')
 def get_favicon():
     return get_static_resource('favicon.ico')
 
