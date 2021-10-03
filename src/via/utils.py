@@ -48,6 +48,7 @@ def is_journey_data_file(potential_journey_file: str) -> bool:
         with open(potential_journey_file, 'r') as potential_journey_file_io:
             data = fast_json.loads(potential_journey_file_io.read())
     except (json.decoder.JSONDecodeError, ValueError):
+        logger.warning('%s json could not be decoded', potential_journey_file)
         return False
     else:
         if not all([
@@ -55,6 +56,10 @@ def is_journey_data_file(potential_journey_file: str) -> bool:
             'data' in data,
             'transport_type' in data
         ]):
+            logger.warning(
+                '%s is not a data file as it does not have appropriate data',
+                potential_journey_file
+            )
             return False
 
     return True
@@ -281,6 +286,7 @@ def get_ox_colours(
     key_name=None
 ) -> List:  # TODO: better list hint, not sure what this returns
     """
+    NB: only used in local osmnx graphing
 
     :param graph: MultiDiGraph
     :param colour_map_name: osmnx recognised colour gradient
@@ -317,6 +323,7 @@ def get_edge_colours(
     edge_map=None
 ) -> List:  # TODO: better list hint, not sure what this returns
     """
+    NB: only used in local osmnx graphing
 
     :param graph: MultiDiGraph
     :param colour_map_name: osmnx recognised colour gradient
