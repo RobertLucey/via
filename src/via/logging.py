@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 from via.constants import LOG_LOCATION
 
 
-fmt = '%(asctime)s|%(levelname)s| %(message)s'
+FORMAT = '%(asctime)s|%(levelname)s| %(message)s'
 
 
 class ColourfulFormatter(logging.Formatter):
@@ -16,8 +16,8 @@ class ColourfulFormatter(logging.Formatter):
     red = "\x1b[31;21m"
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
-    format = fmt
-    format_problematic = fmt + ' (%(filename)s:%(lineno)d)'
+    format = FORMAT
+    format_problematic = FORMAT + ' (%(filename)s:%(lineno)d)'
 
     FORMATS = {
         logging.DEBUG: grey + format + reset,
@@ -31,7 +31,6 @@ class ColourfulFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
-
 
 
 logger = logging.Logger('via', logging.DEBUG)

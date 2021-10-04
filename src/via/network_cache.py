@@ -98,8 +98,8 @@ class SingleNetworkCache():
             len(self.data) > self.last_save_len and self.last_save_len >= 0
         ]):
             logger.debug(f'Saving cache {self.fp}')
-            with open(self.fp, 'wb') as f:
-                pickle.dump(self.data, f)
+            with open(self.fp, 'wb') as network_file:
+                pickle.dump(self.data, network_file)
 
     def load(self):
         logger.debug(f'Loading cache {self.fp}')
@@ -110,8 +110,8 @@ class SingleNetworkCache():
             )
             self.save()
 
-        with open(self.fp, 'rb') as f:
-            self.data = pickle.load(f)
+        with open(self.fp, 'rb') as network_file:
+            self.data = pickle.load(network_file)
         self.loaded = True
         self.last_save_len = len(self.data)
 
@@ -144,9 +144,9 @@ class NetworkCache():
             self.network_caches[network_type] = SingleNetworkCache(network_type)
         else:
             networks_dir = os.path.join(NETWORK_CACHE_DIR, VERSION)
-            for network_type in os.listdir(networks_dir):
-                self.network_caches[network_type] = SingleNetworkCache(network_type)
-                self.network_caches[network_type].load()
+            for net_type in os.listdir(networks_dir):
+                self.network_caches[net_type] = SingleNetworkCache(network_type)
+                self.network_caches[net_type].load()
 
 
 network_cache = NetworkCache()

@@ -86,8 +86,6 @@ class GeoJsonMixin():
         if not os.path.exists(geojson_file):
             logger.debug(f'{geojson_file} not found, generating...')
 
-            data = self.geojson
-
             if not os.path.exists(geojson_file):
                 os.makedirs(
                     os.path.join(GEOJSON_DIR),
@@ -96,7 +94,7 @@ class GeoJsonMixin():
 
             with open(geojson_file, 'w') as json_file:
                 fast_json.dump(
-                    data,
+                    self.geojson,
                     json_file,
                     indent=4
                 )

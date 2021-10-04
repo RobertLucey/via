@@ -1,9 +1,10 @@
 import requests
 
+import osmnx as ox
+
 from via import settings
 from via.logging import logger
 
-import osmnx as ox
 
 # overpass api clone for this so we can disable rate limiting and not feel bad
 

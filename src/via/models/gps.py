@@ -90,9 +90,9 @@ class GPSPoint():
 
     @property
     def content_hash(self) -> str:
-        '''
+        """
         A content hash that will act as an id for the data, handy for caching
-        '''
+        """
         return hashlib.md5(
             f'{self.lat} {self.lng} {self.elevation}'.encode()
         ).hexdigest()
