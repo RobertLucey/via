@@ -26,4 +26,7 @@ VIZ_INITIAL_ZOOM = int(os.getenv('VIZ_INITIAL_ZOOM', 12))
 NEAREST_EDGE_METHOD = os.getenv('NEAREST_EDGE_METHOD', 'angle_nearest')
 CLOSE_ANGLE_TO_ROAD = float(os.getenv('CLOSE_ANGLE_TO_ROAD', 15))
 
+DEFAULT_OVERPASS_API = os.getenv('DEFAULT_OVERPASS_API', 'https://overpass-api.de/api')
+CUSTOM_OVERPASS_API = os.getenv('CUSTOM_OVERPASS_API', 'http://54.73.95.15/api')
+
 VERSION = pkg_resources.require('via')[0].version
