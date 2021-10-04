@@ -4,6 +4,7 @@ import operator
 
 import fast_json
 
+from via import logger
 from via.constants import GEOJSON_DIR
 from via.utils import (
     get_journeys,
@@ -33,9 +34,9 @@ def main():
         exist_ok=True
     )
 
-    if args.transport_type is None:
+    if args.transport_type in {None, 'all'}:
         config = [
-            {'transport_type': None, 'name': 'all', 'versions': args.versions},
+            {'transport_type': 'all', 'name': 'all', 'versions': args.versions},
             {'transport_type': 'bike', 'name': 'bike', 'versions': args.versions},
             {'transport_type': 'car', 'name': 'car', 'versions': args.versions},
             {'transport_type': 'bus', 'name': 'bus', 'versions': args.versions}
@@ -46,12 +47,11 @@ def main():
         ]
 
     for config_item in config:
+        logger.info(f'Generating geojson for "{config_item["transport_type"]}"')
 
         journeys = get_journeys(transport_type=config_item['transport_type'])
 
         if args.versions:
-            # Is there a nice way to get the journeys?
-            # TODO: use above journeys
             versions = set([j.version for j in journeys])
 
             for version in versions:
@@ -62,8 +62,8 @@ def main():
 
                 journeys = Journeys(
                     data=[
-                        j for j in journeys if should_include_journey(
-                            j,
+                        journey for journey in journeys if should_include_journey(
+                            journey,
                             version_op=operator.ge,
                             version=version
                         )

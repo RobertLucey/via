@@ -14,6 +14,11 @@ from via.constants import GEOJSON_DIR
 from via.viz.dummy_data import full_journey
 
 
+@bottle.route('/')
+def send_index():
+    return render_page('index.tpl')
+
+
 @bottle.route('/static/resources/:filename#.*#')
 def get_static_resource(filename):
     return bottle.static_file(filename, root='static/resources/')
@@ -33,20 +38,12 @@ def get_favicon():
     return get_static_resource('favicon.ico')
 
 
-@backoff.on_exception(
-    backoff.expo,
-    Exception,
-    max_tries=3
-)
+@backoff.on_exception(backoff.expo, Exception, max_tries=3)
 def pull_journeys():
     pull_journeys_main()
 
 
-@backoff.on_exception(
-    backoff.expo,
-    Exception,
-    max_tries=3
-)
+@backoff.on_exception(backoff.expo, Exception, max_tries=3)
 def generate_geojson():
     generate_geojson_main()
 
@@ -60,34 +57,34 @@ def update_journeys():
     TODO: Move the helper methods from bin
     TODO: Accept GET params to only pull journeys of a particular type
     """
-    logger.info("Update journeys triggered")
+    logger.info('Update journeys triggered')
 
     try:
         pull_journeys()
-    except Exception as e:
-        logger.error(f"Exception pulling journeys: {e}")
-        logger.critical("Returning without pulling journeys.")
+    except Exception as ex:
+        logger.error(f'Exception pulling journeys: {ex}')
+        logger.critical('Returning without pulling journeys.')
         return {
-            "message": "Pulling journeys failed",
-            "status": 500
+            'message': 'Pulling journeys failed',
+            'status': 500
         }
 
-    logger.info("Journeys successfully pulled")
+    logger.info('Journeys successfully pulled')
 
     try:
         generate_geojson()
-    except Exception as e:
-        logger.error(f"Exception converting journeys to geojson: {e}")
-        logger.critical("Returning without converting journeys.")
+    except Exception as ex:
+        logger.error(f'Exception converting journeys to geojson: {ex}')
+        logger.critical('Returning without converting journeys.')
         return {
-            "message": "Converting journeys failed",
-            "status": 500
+            'message': 'Converting journeys failed',
+            'status': 500
         }
 
-    logger.info("Journeys successfully parsed to geojson")
+    logger.info('Journeys successfully parsed to geojson')
 
     return {
-        "status": 200
+        'status': 200
     }
 
 
@@ -96,7 +93,7 @@ def get_journeys():
     """
     API call to just get cached journeys. Use update_journeys to get new data.
     """
-    logger.info("Pulling cached journeys")
+    logger.info('Pulling cached journeys')
 
     earliest_time = bottle.request.query.earliest_time
     latest_time = bottle.request.query.latest_time
@@ -112,9 +109,9 @@ def get_journeys():
         with open(geojson_file) as fh:
             geojson_data = json.load(fh)
         status = 200
-    except Exception as e:
+    except Exception as ex:
         logger.warning(f'GeoJSON not found at {geojson_file}')
-        logger.warning(f'Exception: {e}')
+        logger.warning(f'Exception: {ex}')
         geojson_data = full_journey
 
         # Interestingly there's no status code for "Return OK with caveats"
@@ -134,11 +131,6 @@ def get_journeys():
     }
 
 
-@bottle.route('/')
-def send_index():
-    return render_page('index.tpl')
-
-
 def main():
 
     parser = argparse.ArgumentParser()
@@ -152,14 +144,19 @@ def main():
         action='store_true',
         dest='debug'
     )
+    parser.add_argument(
+        '--reloader',
+        action='store_true',
+        dest='reloader'
+    )
     args = parser.parse_args()
 
     bottle.debug(args.debug)
     bottle.run(
-        host="0.0.0.0",
+        host='0.0.0.0',
         port=args.port,
         debug=args.debug,
-        reloader=True
+        reloader=args.reloader
     )
 
 
