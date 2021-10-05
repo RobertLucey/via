@@ -73,7 +73,7 @@ class Journeys(
         if len(self) == 1:
             logger.warning('To use Journeys effectively multiple journeys must be used, only one found')
 
-        base = self.get_graph(use_graph_cache=False)
+        base = self.get_graph(use_graph_cache=use_graph_cache)
         if use_closest_edge_from_base:
             edge_colours = get_edge_colours(
                 base,
