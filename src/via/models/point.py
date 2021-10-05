@@ -20,7 +20,13 @@ from via.models.gps import GPSPoint
 from via.utils import angle_between_slopes
 
 
-class Context(object):
+class Context():
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.context_pre = []
+        self.context_post = []
 
     def set_context(self, pre=None, post=None):
         if not self.is_context_populated:
@@ -34,7 +40,7 @@ class Context(object):
         """
         if mode == 'far':
             return self.context_pre[0].gps.slope_between(self.gps)
-        elif mode == 'near':
+        if mode == 'near':
             return self.context_pre[-1].gps.slope_between(self.gps)
         raise ValueError('Mode %s not recognised' % (mode))
 
@@ -45,7 +51,7 @@ class Context(object):
         """
         if mode == 'far':
             return self.gps.slope_between(self.context_post[-1].gps)
-        elif mode == 'near':
+        if mode == 'near':
             return self.gps.slope_between(self.context_post[0].gps)
         raise ValueError('Mode %s not recognised' % (mode))
 
@@ -62,7 +68,7 @@ class Context(object):
             return self.context_pre[0].gps.slope_between(
                 self.context_post[-1]
             )
-        elif mode == 'near':
+        if mode == 'near':
             return self.context_pre[-1].gps.slope_between(
                 self.context_post[0]
             )
@@ -98,12 +104,12 @@ class Context(object):
 
     def serialize(self, include_time=True):
         return {
-            'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.pre],
-            'post': [p.serialize(include_time=include_time, include_context=False) for p in self.post]
+            'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.context_pre],
+            'post': [p.serialize(include_time=include_time, include_context=False) for p in self.context_post]
         }
 
 
-class FramePoint(GenericObject, Context):
+class FramePoint(Context, GenericObject):
     """
     Data which snaps to the gps giving something like
     {gps: (1, 2), acc: [1,2,3], time: 1}
@@ -121,9 +127,6 @@ class FramePoint(GenericObject, Context):
         :param gps: GPSPoint or dict serialization of GPSPoint
         :param acceneration:
         """
-        self.context_pre = []
-        self.context_post = []
-
         super().__init__()
 
         self.time = time
