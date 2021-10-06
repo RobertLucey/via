@@ -21,7 +21,7 @@ upload_pip: test build_dist
 
 build_dist: setup
 	rm -fr dist/
-	$(IN_ENV) python setup.py sdist
+	$(IN_ENV) python setup.py sdist bdist_wheel
 
 build: setup
 
