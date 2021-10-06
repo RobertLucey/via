@@ -16,6 +16,13 @@ setup:
 test_requirements:
 	$(IN_ENV) $(PYTHON) -m pip install --upgrade -r test_requirements.txt
 
+upload_pip: test build_dist
+	twine upload --repository via dist/*
+
+build_dist: setup
+	rm -fr dist/
+	$(IN_ENV) python setup.py sdist bdist_wheel
+
 build: setup
 
 quick_build:
