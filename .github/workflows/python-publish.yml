@@ -27,6 +27,7 @@ jobs:
       run: |
         sudo apt-get install make
         python -m pip install --upgrade pip
+        python -m pip install virtualenv
 
     - name: Build package
       run: make build_dist
