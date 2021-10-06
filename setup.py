@@ -21,7 +21,7 @@ INSTALL_REQUIRES = (
 )
 
 setup(
-    name='via',
+    name='via-api',
     version='0.0.1',
     python_requires='>=3.6',
     description='Bike',
