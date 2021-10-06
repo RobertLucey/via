@@ -53,7 +53,7 @@ class Context():
             return self.gps.slope_between(self.context_post[-1].gps)
         if mode == 'near':
             return self.gps.slope_between(self.context_post[0].gps)
-        raise ValueError('Mode %s not recognised' % (mode))
+        raise ValueError(f'Mode {mode} not recognised')
 
     def get_slope_around_point(self, mode='near'):
         """
@@ -73,7 +73,7 @@ class Context():
                 self.context_post[0]
             )
 
-        raise ValueError('Mode %s not recognised' % (mode))
+        raise ValueError('Mode {mode} not recognised')
 
     def get_in_out_angle(self, mode='near'):
         """
@@ -239,18 +239,18 @@ class FramePoint(Context, GenericObject):
 
         if mode == 'nearest':
             return nearest()
-        elif mode == 'matching_angle':
+        if mode == 'matching_angle':
             return matching_angle()
-        elif mode == 'angle_nearest':
+        if mode == 'angle_nearest':
             return angle_nearest()
-        elif mode == 'sticky':
+        if mode == 'sticky':
             # Try to stick to previous road if it makes sense
             # Might want to be sticky on top of some other mode?
             # Not important now
             raise NotImplementedError()
-        else:
-            logger.warning('Can not use mode \'%s\' to get best edge as that is not recognised. Defaulting to mode \'%s\'', mode, default_mode)
-            return self.get_best_edge(edges, mode=default_mode)
+
+        logger.warning('Can not use mode \'%s\' to get best edge as that is not recognised. Defaulting to mode \'%s\'', mode, default_mode)
+        return self.get_best_edge(edges, mode=default_mode)
 
     def append_acceleration(self, acc):
         if isinstance(acc, list):
@@ -273,10 +273,9 @@ class FramePoint(Context, GenericObject):
                 obj['gps'],
                 [acc for acc in obj['acc'] if acc >= settings.MIN_ACC_SCORE]
             )
-        else:
-            raise NotImplementedError(
-                'Can\'t parse Point from type %s' % (type(obj))
-            )
+        raise NotImplementedError(
+            f'Can\'t parse Point from type {type(obj)}'
+        )
 
     def speed_between(self, point):
         """

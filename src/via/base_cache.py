@@ -12,6 +12,7 @@ class BaseCache():
         assert cache_type is not None
         self.loaded = False
         self.data = {}
+        self.last_save_len = 0
         self.cache_type = cache_type
 
     def get(self, k):

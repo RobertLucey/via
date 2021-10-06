@@ -85,7 +85,7 @@ class Journey(
             )
 
         raise NotImplementedError(
-            'Can\'t parse journey from type %s' % (type(objs))
+            f'Can\'t parse journey from type {type(objs)}'
         )
 
     @staticmethod

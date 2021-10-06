@@ -41,7 +41,7 @@ class GPSPoint():
                 obj[0],
                 obj[1]
             )
-        elif isinstance(obj, dict):
+        if isinstance(obj, dict):
             return GPSPoint(
                 obj['lat'],
                 obj['lng'],

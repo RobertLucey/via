@@ -31,12 +31,11 @@ class Frame(GenericObject):
                 obj['gps'],
                 obj['acc']
             )
-        elif isinstance(obj, Frame):
+        if isinstance(obj, Frame):
             return obj
-        else:
-            raise NotImplementedError(
-                'Can\'t parse Frame from type %s' % (type(obj))
-            )
+        raise NotImplementedError(
+            'Can\'t parse Frame from type %s' % (type(obj))
+        )
 
     def distance_from(self, point):
         """
