@@ -25,7 +25,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt-get install make
+        sudo apt-get install make
         python -m pip install --upgrade pip
 
     - name: Build package
