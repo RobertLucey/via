@@ -1,6 +1,7 @@
 import hashlib
 from typing import Tuple
 
+import reverse_geocoder as rg
 from haversine import (
     haversine,
     Unit
@@ -49,7 +50,7 @@ class GPSPoint():
             )
 
         raise NotImplementedError(
-            'Can\'t parse gps from type %s' % (type(obj))
+            f'Can\'t parse gps from type {type(obj)}'
         )
 
     def distance_from(self, point) -> float:
@@ -87,6 +88,20 @@ class GPSPoint():
             'lng': self.lng,
             'elevation': self.elevation
         }
+
+    @property
+    def reverse_geo(self):
+        # TODO: make a cache for this for "close enough" positions if we end
+        # up using this frequently
+        data = dict(rg.search(
+            (self.lat, self.lng)
+        )[0])
+        del data['lat']
+        del data['lon']
+        data['place_1'] = data.pop('name', None)
+        data['place_2'] = data.pop('admin1', None)
+        data['place_3'] = data.pop('admin2', None)
+        return data
 
     @property
     def content_hash(self) -> str:

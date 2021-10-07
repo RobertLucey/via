@@ -476,12 +476,7 @@ class FramePoints(GenericObjects):
         :return: a two letter country code
         :rtype: str
         """
-        return reverse_geocoder.search(
-            (
-                self.origin.gps.lat,
-                self.origin.gps.lng
-            )
-        )[0]['cc']
+        return self.origin.gps.reverse_geo['cc']
 
     def is_in_place(self, place_name: str):
         """
