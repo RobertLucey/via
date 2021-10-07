@@ -11,6 +11,8 @@ name: Upload Python Package
 on:
   push:
     branches: ['master']
+    tags:
+      - 'v*'
 
 jobs:
   deploy:
@@ -28,6 +30,9 @@ jobs:
         sudo apt-get install make
         python -m pip install --upgrade pip
         python -m pip install virtualenv
+
+    - name: Test
+      run: make test
 
     - name: Build package
       run: make build_dist
