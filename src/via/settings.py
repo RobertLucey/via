@@ -29,4 +29,4 @@ CLOSE_ANGLE_TO_ROAD = float(os.getenv('CLOSE_ANGLE_TO_ROAD', 15))
 DEFAULT_OVERPASS_API = os.getenv('DEFAULT_OVERPASS_API', 'https://overpass-api.de/api')
 CUSTOM_OVERPASS_API = os.getenv('CUSTOM_OVERPASS_API', 'http://54.73.95.15/api')
 
-VERSION = pkg_resources.require('via')[0].version
+VERSION = pkg_resources.require('via-api')[0].version
