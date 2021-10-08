@@ -76,5 +76,5 @@ class FramePointsTest(TestCase):
         points.append(FramePoint.parse({'time': 30, 'gps': {'lat': 5, 'lng': 6}, 'acc': [1, 2, 3, 4]}))
         self.assertEqual(
             points.content_hash,
-            '1b496df3144bbc7da300b96a2a5099ef'
+            'd03c94b25fd7e06e1213746c0c7aff2c'
         )
