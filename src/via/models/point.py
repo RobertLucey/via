@@ -348,7 +348,7 @@ class FramePoint(Context, GenericObject):
     @property
     def content_hash(self):
         return hashlib.md5(
-            str(hash(tuple(self.acceleration)) + hash(tuple(self.gps.point)) + hash(self.time)).encode()
+            str(str(tuple(self.acceleration)) + str(tuple(self.gps.point)) + str(self.time)).encode()
         ).hexdigest()
 
 
