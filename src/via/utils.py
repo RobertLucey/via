@@ -70,7 +70,9 @@ def get_journeys(
     source=None,
     place=None,
     version_op=None,
-    version=None
+    version=None,
+    earliest_time=None,
+    latest_time=None,
 ):
     """
     Get local journeys as Journeys
@@ -92,7 +94,9 @@ def get_journeys(
                 source=source,
                 place=place,
                 version_op=version_op,
-                version=version
+                version=version,
+                earliest_time=earliest_time,
+                latest_time=latest_time
             )
         )
     )
@@ -103,7 +107,9 @@ def iter_journeys(
     source=None,
     place=None,
     version_op=None,
-    version=None
+    version=None,
+    earliest_time=None,
+    latest_time=None
 ):
     """
     Get local journeys as iterable of Journey
@@ -126,7 +132,9 @@ def iter_journeys(
             journey,
             place=place,
             version_op=version_op,
-            version=version
+            version=version,
+            earliest_time=earliest_time,
+            latest_time=latest_time
         ):
             yield journey
 
@@ -135,7 +143,9 @@ def should_include_journey(
     journey,
     place=None,
     version_op=None,
-    version=None
+    version=None,
+    earliest_time=None,
+    latest_time=None
 ):
     if any([
         journey.version < MIN_JOURNEY_VERSION,
@@ -149,6 +159,14 @@ def should_include_journey(
 
     if place is not None:
         if not journey.is_in_place(place):
+            return False
+
+    if earliest_time is not None:
+        if journey.timestamp < earliest_time:
+            return False
+
+    if latest_time is not None:
+        if journey.timestamp > latest_time:
             return False
 
     return journey

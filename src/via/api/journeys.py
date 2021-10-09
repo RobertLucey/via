@@ -1,3 +1,5 @@
+import datetime
+
 import bottle
 
 from via import logger
@@ -33,8 +35,8 @@ def generate_geojson_api():
 def get_geojson():
     logger.info('Pulling cached journeys')
 
-    earliest_time = bottle.request.query.earliest_time
-    latest_time = bottle.request.query.latest_time
+    earliest_time = datetime.datetime.strptime(bottle.request.query.earliest_time, '%Y-%m')
+    latest_time = datetime.datetime.strptime(bottle.request.query.latest_time, '%Y-%m')
     journey_type = bottle.request.query.journey_type
 
     try:
@@ -48,8 +50,26 @@ def get_geojson():
         )
     except FileNotFoundError:
         # TODO: generate and serve back
+        generate.generate_geojson(
+            journey_type,
+            earliest_time=earliest_time,
+            latest_time=latest_time,
+            place=None,  # TODO
+            version=None,  # TODO
+            version_op=None,  # TODO
+        )
+
+        data = retrieve.get_geojson(
+            journey_type,
+            earliest_time=earliest_time,
+            latest_time=latest_time,
+            place=None,  # TODO
+            version=None,  # TODO
+            version_op=None,  # TODO
+        )
         return {
-            'status': 404
+            'data': data,
+            'status': 200
         }
     else:
         return {

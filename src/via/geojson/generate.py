@@ -30,17 +30,21 @@ def get_generation_config(transport_type=None, version=None, earliest_time=None,
     return config
 
 
-def generate_geojson(transport_type=None, version=False):
+def generate_geojson(transport_type, version=False, version_op=None, earliest_time=None, latest_time=None, place=None):
 
     os.makedirs(
         os.path.join(GEOJSON_DIR),
         exist_ok=True
     )
 
-    for config_item in get_generation_config(transport_type, version):
+    for config_item in get_generation_config(transport_type=transport_type, version=version, earliest_time=earliest_time, latest_time=latest_time, place=place):
         logger.info(f'Generating geojson for "{config_item["transport_type"]}"')
 
-        journeys = get_journeys(transport_type=config_item['transport_type'])
+        journeys = get_journeys(
+            transport_type=config_item['transport_type'],
+            earliest_time=earliest_time,
+            latest_time=latest_time,
+        )
 
         if version:
             version = set([journey.version for journey in journeys])

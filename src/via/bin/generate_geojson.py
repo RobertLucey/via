@@ -20,7 +20,7 @@ def main():
     args = parser.parse_args()
 
     generate_geojson(
-        transport_type=args.transport_type,
+        args.transport_type,
         version=args.version
     )
 

@@ -6,8 +6,8 @@ def parse_start_date(earliest_date):
     if earliest_date is None:
         return '2021-01'
 
-    if datetime.datetime.strptime(earliest_date, '%Y-%m') < datetime.datetime(2021, 1, 1):
-        return '2023-01'
+    if earliest_date < datetime.datetime(2021, 1, 1):
+        return '2021-01'
 
     return earliest_date
 
@@ -16,7 +16,7 @@ def parse_end_date(latest_date):
     if latest_date is None:
         return '2023-12'
 
-    if datetime.datetime.strptime(latest_date, '%Y-%m') > datetime.datetime(2023, 12, 31):
+    if latest_date > datetime.datetime(2023, 12, 31):
         return '2023-12'
 
     return latest_date

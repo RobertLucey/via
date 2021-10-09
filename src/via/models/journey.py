@@ -1,3 +1,5 @@
+import datetime
+from dateutil.parser import parse
 import statistics
 from collections import defaultdict
 from packaging import version
@@ -67,6 +69,7 @@ class Journey(
         self.suspension = kwargs.get('suspension', None)
 
         self.network_type = kwargs.get('network_type', 'all')
+        self._timestamp = kwargs.get('timestamp', None)
 
         self.included_journeys = []
 
@@ -292,6 +295,13 @@ class Journey(
             edge_color=edge_colours,
             **plot_kwargs
         )
+
+    @property
+    def timestamp(self):
+        if self._timestamp is None:
+            # FIXME: We shouldn't need to do this but the ui always includes earliest / latest as a filter
+            return datetime.datetime(2021, 1, 1)
+        return parse(self._timestamp)
 
     @property
     def edge_quality_map(self):
