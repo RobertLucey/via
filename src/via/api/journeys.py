@@ -4,31 +4,10 @@ import bottle
 
 from via import logger
 
-from via.pull_journeys import pull_journeys
 from via.geojson import (
     generate,
     retrieve
 )
-
-
-@bottle.route('/journeys/update_journeys')
-def pull_journeys_api():
-    logger.info('Update journeys triggered')
-    pull_journeys()
-    logger.info('Journeys successfully pulled')
-    return {
-        'status': 200
-    }
-
-
-@bottle.route('/journeys/generate_geojson')
-def generate_geojson_api():
-    logger.info('Generate geojson triggered')
-    generate.generate_geojson()
-    logger.info('Journeys successfully parsed to geojson')
-    return {
-        'status': 200
-    }
 
 
 @bottle.route('/journeys/get_geojson')

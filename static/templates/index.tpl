@@ -122,7 +122,6 @@
                                    <input type="submit" value="Submit">
                                </form>
 
-                               <button id='update_journeys_button'>Update Journeys</button>
                            </div>
                         </a>
                     </div>
