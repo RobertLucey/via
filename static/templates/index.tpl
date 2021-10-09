@@ -265,16 +265,6 @@
                 }
             );
 
-            document.getElementById('update_journeys_button').onclick = function () {
-                $.get(
-                    'journeys/generate_geojson',
-                    {}
-                ).done(function(resp) {
-                    console.log("update_journeys response:");
-                    console.log(resp);
-                });
-            };
-
             // Call initially to have data show on map.
             update_map_from_form();
         </script>
