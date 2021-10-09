@@ -97,10 +97,10 @@
                                <form id="pull_journeys_form">
                                    <!-- Time ranges: -->
                                    <label for="earliest_date">Earliest:</label>
-                                   <input type="date" id="earliest_date" name="earliest_date" min="2021-08-01" value="2021-08-01">
+                                   <input type="month" id="earliest_date" name="earliest_date" min="2021-01" value="2021-01">
 
-                                   <label for="latest_date">Latest:</label>
-                                   <input type="date" id="latest_date" name="latest_date" max="2021-12-30" value="2021-12-30"><br/><br/>
+                                   <label for="latest_date">Latest (inclusive):</label>
+                                   <input type="month" id="latest_date" name="latest_date" max="2023-12" value="2023-12"><br/><br/>
                                    <!-- End time ranges -->
 
                                    <!-- Journey type: -->
@@ -243,7 +243,7 @@
         <script>
             function update_map_from_form() {
                 $.get(
-                    'get_journeys',
+                    'journeys/get_geojson',
                     {
                         'earliest_time': $('#earliest_date').val(),
                         'latest_time': $('#latest_date').val(),
@@ -253,7 +253,7 @@
                 ).done(function(resp) {
                     console.log("get_journeys response:")
                     console.log(resp);
-                    load_geojson(resp['resp']['geojson'], clear_previous=true);
+                    load_geojson(resp['data'], clear_previous=true);
                 });
             }
 
@@ -268,7 +268,7 @@
 
             document.getElementById('update_journeys_button').onclick = function () {
                 $.get(
-                    'update_journeys',
+                    'journeys/generate_geojson',
                     {}
                 ).done(function(resp) {
                     console.log("update_journeys response:");
