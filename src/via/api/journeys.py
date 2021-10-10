@@ -28,7 +28,6 @@ def get_geojson():
             version_op=None,  # TODO
         )
     except FileNotFoundError:
-        # TODO: generate and serve back
         generate.generate_geojson(
             journey_type,
             earliest_time=earliest_time,
