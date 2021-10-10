@@ -45,12 +45,5 @@ def get_geojson():
             version=None,  # TODO
             version_op=None,  # TODO
         )
-        return {
-            'data': data,
-            'status': 200
-        }
-    else:
-        return {
-            'data': data,
-            'status': 200
-        }
+
+    return data

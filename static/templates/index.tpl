@@ -252,7 +252,7 @@
                 ).done(function(resp) {
                     console.log("get_journeys response:")
                     console.log(resp);
-                    load_geojson(resp['data'], clear_previous=true);
+                    load_geojson(resp, clear_previous=true);
                 });
             }
 

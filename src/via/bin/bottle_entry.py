@@ -2,6 +2,7 @@ import argparse
 
 import bottle
 from via.api import *
+from via.api.info import *
 from via.api.journeys import *
 
 
