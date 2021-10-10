@@ -1,5 +1,6 @@
 import datetime
 from dateutil.parser import parse
+from functools import lru_cache
 import statistics
 from collections import defaultdict
 from packaging import version
@@ -92,6 +93,7 @@ class Journey(
         )
 
     @staticmethod
+    @lru_cache(maxsize=500)
     def from_file(filepath: str):
         """
         Given a file get a Journey object
