@@ -12,7 +12,7 @@ from via.geojson import (
 
 @bottle.route('/journeys/get_geojson')
 def get_geojson():
-    logger.info('Pulling cached journeys')
+    logger.info('Getting GeoJSON')
 
     earliest_time = datetime.datetime.strptime(bottle.request.query.earliest_time, '%Y-%m')
     latest_time = datetime.datetime.strptime(bottle.request.query.latest_time, '%Y-%m')

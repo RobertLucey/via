@@ -1,8 +1,8 @@
 import os
+import time
+import stat
 
 import fast_json
-
-from via import logger
 
 from via.constants import GEOJSON_DIR
 from via.geojson.utils import generate_basename
@@ -15,9 +15,8 @@ def get_geojson(
     place=None,
     version=False,
     version_op=None,
+    max_age=60*60*12
 ):
-    logger.info('Pulling cached journeys')
-
     if journey_type is None:
         journey_type = 'all'
 
@@ -33,6 +32,9 @@ def get_geojson(
         GEOJSON_DIR,
         f'{basename}.geojson'
     )
+
+    if time.time() - os.stat(geojson_file)[stat.ST_MTIME] > max_age:
+        raise FileNotFoundError()
 
     geojson_data = []
     with open(geojson_file) as fh:
