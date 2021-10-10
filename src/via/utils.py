@@ -3,6 +3,7 @@ import os
 import glob
 import json
 import time
+from functools import lru_cache
 from numbers import Number
 from functools import wraps
 from itertools import (
@@ -34,6 +35,7 @@ from via.constants import (
 from via.models.gps import GPSPoint
 
 
+@lru_cache(maxsize=10000)
 def is_journey_data_file(potential_journey_file: str) -> bool:
     """
 
