@@ -1,5 +1,6 @@
 import os
 import pickle
+import hashlib
 
 import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
@@ -62,7 +63,7 @@ class SingleNetworkCache():
 
                 self.data.append(
                     {
-                        'hash': hash(str(bbox)),
+                        'hash': hashlib.md5(str(bbox).encode()).hexdigest(),
                         'bbox': {
                             'north': bbox['north'],
                             'south': bbox['south'],
@@ -145,7 +146,7 @@ class NetworkCache():
         else:
             networks_dir = os.path.join(NETWORK_CACHE_DIR, VERSION)
             for net_type in os.listdir(networks_dir):
-                self.network_caches[net_type] = SingleNetworkCache(network_type)
+                self.network_caches[net_type] = SingleNetworkCache(net_type)
                 self.network_caches[net_type].load()
 
 
