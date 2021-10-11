@@ -1,4 +1,5 @@
-import hashlib
+from cached_property import cached_property
+
 from typing import Tuple
 
 import reverse_geocoder as rg
@@ -63,7 +64,7 @@ class GPSPoint():
         if isinstance(point, GPSPoint):
             point = point.point
 
-        key = hash((self.point, point))
+        key = self.content_hash
         if key not in HAVERSINE_CACHE:
             HAVERSINE_CACHE[key] = haversine(
                 self.point,
@@ -89,7 +90,7 @@ class GPSPoint():
             'elevation': self.elevation
         }
 
-    @property
+    @cached_property
     def reverse_geo(self):
         # TODO: make a cache for this for "close enough" positions if we end
         # up using this frequently
@@ -103,14 +104,12 @@ class GPSPoint():
         data['place_3'] = data.pop('admin2', None)
         return data
 
-    @property
+    @cached_property
     def content_hash(self) -> str:
         """
         A content hash that will act as an id for the data, handy for caching
         """
-        return hashlib.md5(
-            f'{self.lat} {self.lng} {self.elevation}'.encode()
-        ).hexdigest()
+        return int.from_bytes(f'{self.lat} {self.lng} {self.elevation}'.encode(), 'little') % 2**100
 
     @property
     def point(self) -> Tuple[float]:

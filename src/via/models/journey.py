@@ -5,6 +5,7 @@ import statistics
 from collections import defaultdict
 from packaging import version
 
+from cached_property import cached_property
 import geopandas as gpd
 import fast_json
 
@@ -305,7 +306,7 @@ class Journey(
             return datetime.datetime(2021, 1, 1)
         return parse(self._timestamp)
 
-    @property
+    @cached_property
     def edge_quality_map(self):
         """
         Get a map between edge_hash and road quality of the road. edge_map
@@ -378,7 +379,7 @@ class Journey(
 
         return data
 
-    @property
+    @cached_property
     def route_graph(self):
         """
         Get a graph of the journey without snapping to closest node / edge

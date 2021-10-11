@@ -1,9 +1,9 @@
 import hashlib
-import statistics
 from numbers import Number
 from operator import itemgetter
 
-import reverse_geocoder
+import numpy
+from cached_property import cached_property
 from shapely.geometry import (
     MultiPoint,
     Point
@@ -322,7 +322,7 @@ class FramePoint(Context, GenericObject):
         if self.acceleration == []:
             return 0
         try:
-            return int(statistics.mean(self.acceleration) * 100)
+            return int(numpy.mean(self.acceleration) * 100)
         except:
             logger.warning(f'Could not calculate road quality from: {self.acceleration}. Defauling to 0')
             return 0
@@ -345,11 +345,9 @@ class FramePoint(Context, GenericObject):
     def gps_hash(self):
         return self.gps.content_hash
 
-    @property
+    @cached_property
     def content_hash(self):
-        return hashlib.md5(
-            str(str(tuple(self.acceleration)) + str(tuple(self.gps.point)) + str(self.time)).encode()
-        ).hexdigest()
+        return int.from_bytes(f'{self.acceleration} {self.gps.point} {self.time}'.encode(), 'little') % 2**100
 
 
 class FramePoints(GenericObjects):
@@ -468,7 +466,7 @@ class FramePoints(GenericObjects):
             ]).encode()
         ).hexdigest()
 
-    @property
+    @cached_property
     def country(self):
         """
         Get what country this journey started in
