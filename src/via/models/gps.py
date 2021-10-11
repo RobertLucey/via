@@ -64,7 +64,7 @@ class GPSPoint():
         if isinstance(point, GPSPoint):
             point = point.point
 
-        key = self.content_hash
+        key = hash((self.point, point))
         if key not in HAVERSINE_CACHE:
             HAVERSINE_CACHE[key] = haversine(
                 self.point,
