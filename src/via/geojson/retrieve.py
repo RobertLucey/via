@@ -13,7 +13,7 @@ def get_geojson(
     earliest_time=None,
     latest_time=None,
     place=None,
-    version=False,
+    version=None,
     version_op=None,
     max_age=60*60*12
 ):

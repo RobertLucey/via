@@ -1,5 +1,6 @@
 import datetime
 import urllib
+from packaging.version import Version
 
 
 def parse_start_date(earliest_date):
@@ -38,7 +39,7 @@ def generate_basename(
         'latest_time': parse_end_date(latest_time),
         'place': place
     }
-    if data['version'] in {None, False}:
+    if data['version'] in {None, False, '0.0.0', Version('0.0.0')}:
         del data['version']
         del data['version_op']
     if data['place'] is None:
