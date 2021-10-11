@@ -25,7 +25,7 @@ setup(
     name='via-api',
     version='0.0.1',
     python_requires='>=3.6',
-    description='Bike',
+    description='Analysing and serving crowdsourced road quality data',
     author='Robert Lucey',
     url='https://github.com/RobertLucey/via',
     packages=find_packages('src'),
