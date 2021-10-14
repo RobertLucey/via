@@ -33,6 +33,9 @@ def get_geojson(
         f'{basename}.geojson'
     )
 
+    if not os.path.exists(geojson_file):
+        raise FileNotFoundError()
+
     if time.time() - os.stat(geojson_file)[stat.ST_MTIME] > max_age:
         raise FileNotFoundError()
 
