@@ -14,7 +14,12 @@ from via.constants import REMOTE_DATA_DIR
 from via.models.journey import Journey
 
 
-def pull_journeys():
+def pull_journeys(cache_graphs=True):
+    """
+
+    :kwargs cache_graphs: cache the graphs of pulled journeys so we don't
+        need to do it again later when we need them
+    """
     s3 = boto3.client('s3', region_name=S3_REGION)
 
     if not os.path.exists(REMOTE_DATA_DIR):
@@ -36,6 +41,9 @@ def pull_journeys():
     logger.info(f'Downloading {len(journey_files_to_download)} files')
 
     for filename in journey_files_to_download:
+
+        journey_id = os.path.splitext(filename)[0]
+
         tmp_filepath = f'/tmp/{journey_id}.json'
 
         s3.download_file(
@@ -45,6 +53,10 @@ def pull_journeys():
         )
 
         journey = Journey.from_file(tmp_filepath)
+
+        if cache_graphs:
+            logger.info(f'Caching graphs for {journey_id}')
+            journey.bounding_graph
 
         local_filepath = os.path.join(
             REMOTE_DATA_DIR,
