@@ -1,5 +1,6 @@
 import os
 import hashlib
+from collections import defaultdict
 
 import fast_json
 import shapely
@@ -104,6 +105,38 @@ class GeoJsonMixin():
         """
         Write and return a GeoJSON object string of the graph.
         """
+
+        def _geojson_from_snapped():
+            json_links = json_graph.node_link_data(
+                self.snapped_route_graph
+            )['links']
+
+            geojson_features = {
+                'type': 'FeatureCollection',
+                'features': []
+            }
+
+            for link in json_links:
+                if 'geometry' not in link:
+                    continue
+
+                feature = {
+                    'type': 'Feature',
+                    'properties': {}
+                }
+
+                for k in link:
+                    if k == 'geometry':
+                        feature['geometry'] = shapely.geometry.mapping(
+                            link['geometry']
+                        )
+                    else:
+                        feature['properties'][k] = link[k]
+
+                geojson_features['features'].append(feature)
+
+            return geojson_features
+
         geojson_file = os.path.join(
             GEOJSON_DIR,
             self.content_hash + '.geojson'
@@ -111,35 +144,35 @@ class GeoJsonMixin():
 
         logger.debug(f'{geojson_file} generating...')
 
-        json_links = json_graph.node_link_data(
-            self.snapped_route_graph
-        )['links']
+        from via.models.journeys import Journeys
 
-        geojson_features = {
-            'type': 'FeatureCollection',
-            'features': []
-        }
+        if isinstance(self, Journeys):
+            region_map = defaultdict(Journeys)
 
-        for link in json_links:
-            if 'geometry' not in link:
-                continue
+            for journey in self:
+                # use place_2 as place_1 is too specific and a journey that
+                # starts in a place_1 could share roads with a journey that
+                # starts in a different area nearby
+                # This is also a possible issue with place_2 but will happen
+                # much less, still a FIXME
+                region_name = journey.origin.gps.reverse_geo['place_2']
+                region_map[region_name].append(journey)
 
-            feature = {
-                'type': 'Feature',
-                'properties': {}
-            }
+            if len(region_map) > 1:
+                geo_features = []
+                for k, v in region_map.items():
+                    logger.debug(f'Getting geojson features of journeys group in region: {k}')
+                    geo_features.extend(v.geojson['features'])
 
-            for k in link:
-                if k == 'geometry':
-                    feature['geometry'] = shapely.geometry.mapping(
-                        link['geometry']
-                    )
-                else:
-                    feature['properties'][k] = link[k]
+                geo_features = {
+                    'type': 'FeatureCollection',
+                    'features': geo_features
+                }
+                return geo_features
+            else:
+                return _geojson_from_snapped()
 
-            geojson_features['features'].append(feature)
-
-        return geojson_features
+        return _geojson_from_snapped()
 
 
 class BoundingGraphMixin():
