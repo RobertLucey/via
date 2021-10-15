@@ -60,9 +60,9 @@ def generate_geojson(
             latest_time=latest_time,
         )
 
-        version = set([journey.version for journey in journeys])
+        versions = set([journey.version for journey in journeys])
 
-        for version in version:
+        for version in versions:
 
             basename = generate_basename(
                 name=config_item['name'],
