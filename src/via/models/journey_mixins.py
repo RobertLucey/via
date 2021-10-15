@@ -132,7 +132,23 @@ class GeoJsonMixin():
                         )
                     else:
                         feature['properties'][k] = link[k]
-
+                useless_properties = {
+                    'oneway',
+                    'length',
+                    'osmid',
+                    'highway',
+                    'source',
+                    'target',
+                    'key',
+                    'maxspeed',
+                    'lanes',
+                    'ref'
+                }
+                for useless_property in useless_properties:
+                    try:
+                        del feature['properties'][useless_property]
+                    except:
+                        pass
                 geojson_features['features'].append(feature)
 
             return geojson_features
