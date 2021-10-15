@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from via.base_cache import BaseCache
+from via import settings
 
 
 class BaseCacheTest(TestCase):
@@ -60,11 +61,11 @@ class BaseCacheTest(TestCase):
     def test_dir(self):
         self.assertEqual(
             BaseCache(cache_type='blahblah').dir,
-            '/tmp/via/cache/blahblah/0.0.1'
+            f'/tmp/via/cache/blahblah/{settings.version}'
         )
 
     def test_fp(self):
         self.assertEqual(
             BaseCache(cache_type='blahblah').fp,
-            '/tmp/via/cache/blahblah/0.0.1/cache.pickle'
+            f'/tmp/via/cache/blahblah/{settings.version}/cache.pickle'
         )
