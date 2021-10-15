@@ -8,68 +8,9 @@ All uploaded data is public and no accounts required. Neat privacy to make it ve
 
 ## Usage
 
-To get a quick start into playing with journeys you can use one of the test resource journeys. I'll put up an actual one once I get hardware delivered
-Run `pull_journeys` before doing anything to make sure you have some data to work with.
-
-### Plot the road quality of a city
-
-```
-usage: plot_journeys.py [-h] [--closest-edge]
-                        [--transport-type TRANSPORT_TYPE] [--place PLACE]
-                        [--min-edge-usage MIN_EDGE_USAGE]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --closest-edge        Use the closest route to the coordinates plotted on
-                        the actual journey. If no, similar journeys are not
-                        likely to overlap
-  --transport-type TRANSPORT_TYPE
-                        bike/car/scoorter or whatever else is on the app
-  --place PLACE         What place to limit the data to (so you don't try to
-                        visualize too big an area). Must be an osmnx
-                        recognised place / format for example "Dublin,
-                        Ireland"
-  --min-edge-usage MIN_EDGE_USAGE
-                        The minimum number of times an edge has to be used for
-                        it to be included in the final data (1 per journey)
-```
-
-### Generate geojson files
-
-```
-usage: generate_geojson.py [-h] [--transport-type TRANSPORT_TYPE]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --transport-type TRANSPORT_TYPE
-                        bike/car/scooter or whatever else is on the app.
-                        Generates all if not specified
-```
-
-### Get some stats of journeys
-
-
-### Condition by Street
-
-Get a list of the worst roads and their values
-
-```
-usage: condition_by_street.py [-h] [--min-edge-usage MIN_EDGE_USAGE]
-                              [--transport-type TRANSPORT_TYPE]
-                              [--place PLACE]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --min-edge-usage MIN_EDGE_USAGE
-                        The minimum number of times an edge has to be used for
-                        it to be included in the final data (1 per journey)
-  --transport-type TRANSPORT_TYPE
-                        bike/car/scoorter or whatever else is on the app
-  --place PLACE         What place to limit the data to (so you don't try to
-                        visualize too big an area). Must be an osmnx
-                        recognised place / format for example "Dublin,
-                        Ireland"
-```
+To get things going:
+ 1. Run `make run_bottle`
+ 2. Open http://localhost:8080
 
 ### Docker
 
