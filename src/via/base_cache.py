@@ -3,7 +3,7 @@ import pickle
 
 from via import logger
 from via.constants import CACHE_DIR
-from via.settings import VERSION
+from via import settings
 
 
 class BaseCache():
@@ -53,7 +53,7 @@ class BaseCache():
 
     @property
     def dir(self) -> str:
-        return os.path.join(CACHE_DIR, self.cache_type, VERSION)
+        return os.path.join(CACHE_DIR, self.cache_type, settings.VERSION)
 
     @property
     def fp(self) -> str:

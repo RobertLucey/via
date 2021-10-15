@@ -1,7 +1,7 @@
 from unittest import TestCase
+from mock import patch
 
 from via.base_cache import BaseCache
-from via import settings
 
 
 class BaseCacheTest(TestCase):
@@ -58,14 +58,18 @@ class BaseCacheTest(TestCase):
         self.assertTrue(cache.loaded)
         self.assertEqual(cache.data, {})
 
+    @patch('via.settings.VERSION', '0.0.1')
     def test_dir(self):
+        from via import settings
         self.assertEqual(
             BaseCache(cache_type='blahblah').dir,
-            f'/tmp/via/cache/blahblah/{settings.version}'
+            f'/tmp/via/cache/blahblah/{settings.VERSION}'
         )
 
+    @patch('via.settings.VERSION', '0.0.1')
     def test_fp(self):
+        from via import settings
         self.assertEqual(
             BaseCache(cache_type='blahblah').fp,
-            f'/tmp/via/cache/blahblah/{settings.version}/cache.pickle'
+            f'/tmp/via/cache/blahblah/{settings.VERSION}/cache.pickle'
         )
