@@ -441,39 +441,6 @@ class Journey(
             'west': self.most_western
         }
 
-
-    @property
-    def bounding_graph(self):
-        """
-        Get a graph of the journey but excluding nodes far away from the route
-
-        :rtype: networkx.classes.multidigraph.MultiDiGraph
-        """
-
-        network_name = 'bbox'
-
-        if network_cache.get(network_name, self, poly=False) is None:
-            logger.debug(f'{network_name} > {self.gps_hash} not found in cache, generating...')
-
-            # Maybe use city if possible and then truncate_graph_polygon.
-            # Doing that might not even be faster but if we want to cache
-            # the individual journey it could be good
-            network = ox.graph_from_bbox(
-                self.most_northern,
-                self.most_southern,
-                self.most_eastern,
-                self.most_western,
-                network_type=self.network_type,
-                simplify=True
-            )
-
-            # TODO: might want to merge our edge_quality_data with
-            # edge data here
-
-            network_cache.set(network_name, self, network)
-
-        return network_cache.get(network_name, self, poly=False)
-
     @property
     def poly_graph(self):
         """
