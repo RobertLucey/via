@@ -14,7 +14,7 @@ from via.constants import REMOTE_DATA_DIR
 from via.models.journey import Journey
 
 
-def pull_journeys(cache_graphs=True):
+def pull_journeys(cache_graphs=False):
     """
 
     :kwargs cache_graphs: cache the graphs of pulled journeys so we don't
@@ -53,6 +53,9 @@ def pull_journeys(cache_graphs=True):
         )
 
         journey = Journey.from_file(tmp_filepath)
+
+        geo = journey.origin.gps.reverse_geo
+        logger.info(f'Pulled journey from: {geo["cc"]}, {geo["place_3"]}, {geo["place_2"]}, {geo["place_1"]}')
 
         if cache_graphs:
             logger.info(f'Caching graphs for {journey_id}')
