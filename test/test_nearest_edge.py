@@ -32,7 +32,9 @@ class NearestEdgeTest(TestCase):
             ]
         )
 
+        print(f'Edges pre: {edges}')
         edges = [list(edges[0][0]) for i in edges]
+        print(f'Edges post: {edges}')
         self.assertTrue(
             [12428414, 4161475238, 0] in edges or [4161475238, 12428414, 0] in edges[0]
         )
@@ -56,4 +58,5 @@ class NearestEdgeTest(TestCase):
         cache = NearestEdgeCache()
         self.assertEqual(cache.data, {})
         cache.load()
+        print(cache.data.keys())
         self.assertTrue('489334746920999497411653940021' in cache.data.keys())
