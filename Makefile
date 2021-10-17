@@ -9,6 +9,8 @@ IN_ENV=. $(ENV_DIR)/bin/activate &&
 env: $(ENV_DIR)
 
 setup:
+	$(PYTHON) -m pip install --upgrade pip
+	$(PYTHON) -m pip install virtualenv
 	$(PYTHON) -m virtualenv -p $(PYTHON) $(ENV_DIR)
 	$(IN_ENV) $(PYTHON) -m pip install --upgrade -r requirements.txt
 	$(IN_ENV) $(PYTHON) -m pip install --editable .
