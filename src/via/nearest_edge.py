@@ -64,8 +64,8 @@ class NearestEdgeCache():
 
         :param graph:
         :param frames: list of frames to get nearest edges of
-        :rtype: list or list of tuples
-        :return: list of of edge ids or tuple of edge_id and distance
+        :return: list of list of edge ids or tuple of edge_id and distance.
+            Each frame having its own list of closest few roads
         """
 
         if not self.loaded:
@@ -109,7 +109,7 @@ class NearestEdgeCache():
             str(f.gps_hash): self.data.get(str(f.gps_hash), None) for f in frames
         }
 
-        return list(requested_frame_edge_map.values())[0]
+        return list(requested_frame_edge_map.values())
 
     def save(self):
         logger.debug(f'Saving cache {self.fp}')

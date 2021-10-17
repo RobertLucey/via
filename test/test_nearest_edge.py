@@ -34,7 +34,7 @@ class NearestEdgeTest(TestCase):
 
         edges = [list(edges[0][0]) for i in edges]
         self.assertTrue(
-            [12428414, 4161475238, 0] in edges or [4161475238, 12428414, 0] in edges
+            [12428414, 4161475238, 0] in edges or [4161475238, 12428414, 0] in edges[0]
         )
 
     def test_save_load(self):

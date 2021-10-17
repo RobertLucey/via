@@ -357,7 +357,7 @@ class Journey(
                 [
                     our_origin
                 ]
-            )
+            )[0]
 
             edge = our_origin.get_best_edge(
                 nearest_edges,
