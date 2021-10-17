@@ -70,7 +70,8 @@ def main():
         host='0.0.0.0',
         port=args.port,
         debug=args.debug,
-        reloader=args.reloader
+        reloader=args.reloader,
+        server='gunicorn'
     )
 
 

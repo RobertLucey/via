@@ -18,7 +18,8 @@ INSTALL_REQUIRES = (
     'geopandas',
     'imagehash',
     'pillow',
-    'bottle'
+    'bottle',
+    'gunicorn'
 )
 
 setup(
