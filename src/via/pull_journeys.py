@@ -4,6 +4,8 @@ import glob
 
 import boto3
 import requests
+from botocore import UNSIGNED
+from botocore.client import Config
 
 from via import logger
 from via.settings import (
@@ -20,7 +22,11 @@ def pull_journeys(cache_graphs=False):
     :kwargs cache_graphs: cache the graphs of pulled journeys so we don't
         need to do it again later when we need them
     """
-    s3 = boto3.client('s3', region_name=S3_REGION)
+    s3 = boto3.client(
+        's3',
+        region_name=S3_REGION,
+        config=Config(signature_version=UNSIGNED)
+    )
 
     if not os.path.exists(REMOTE_DATA_DIR):
         os.makedirs(REMOTE_DATA_DIR, exist_ok=True)
