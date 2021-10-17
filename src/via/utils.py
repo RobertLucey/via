@@ -420,11 +420,10 @@ def filter_nodes_from_geodataframe(
     nodes_dataframe: GeoDataFrame,
     nodes_to_keep: List[int]
 ) -> GeoDataFrame:
-    to_keep = []
     nodes_to_keep = set(nodes_to_keep)
-    for node in nodes_dataframe.index:
-        if node in nodes_to_keep:
-            to_keep.append(node)
+    to_keep = [
+        node for node in nodes_dataframe.index if hash(node) in nodes_to_keep
+    ]
     return nodes_dataframe.loc[to_keep]
 
 
@@ -432,11 +431,10 @@ def filter_edges_from_geodataframe(
     edges_dataframe: GeoDataFrame,
     edges_to_keep: List[Tuple[int, int, int]]
 ) -> GeoDataFrame:
-    to_keep = []
     edges_to_keep = set([hash(e) for e in edges_to_keep])
-    for edge in edges_dataframe.index:
-        if hash(edge) in edges_to_keep:
-            to_keep.append(edge)
+    to_keep = [
+        edge for edge in edges_dataframe.index if hash(edge) in edges_to_keep
+    ]
     return edges_dataframe.loc[to_keep]
 
 
