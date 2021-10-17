@@ -67,7 +67,7 @@
                                <p>
                                   It has a strong emphasis on privacy, with no personally
                                   identifiable information being stored or transmitted, and
-                                  all default options offering the strongest protections.
+                                  all default options offering strong protections.
                                   For example, Via will not share the time of day, the
                                   beginning or end points of a journey or any means of
                                   linking one journey to another by default.
