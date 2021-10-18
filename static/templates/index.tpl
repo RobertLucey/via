@@ -145,15 +145,6 @@
                     </a>
                     <!-- End Twitter link -->
 
-                    <!-- FB link -->
-                    <a href="https://www.facebook.com/sharer/sharer.php?u=https://via.randombits.host&t=Via%20-%20Road%20Quality%20Monitoring%0A" target="_blank" class="bg-dark list-group-item list-group-item-action">
-                        <div class="d-flex w-100 justify-content-start align-items-center">
-                            <span class="fa fa-facebook-official fa-fw mr-3"></span>
-                            <span class="menu-collapsed">Share</span>
-                        </div>
-                    </a>
-                    <!-- End FB link -->
-
                     <!-- Contribute link -->
                     <a href="https://github.com/RobertLucey/via" class="bg-dark list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-start align-items-center">
