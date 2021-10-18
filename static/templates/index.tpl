@@ -13,13 +13,6 @@
         <link rel="stylesheet" href="static/resources/sidebar_menu.css">
         <!-- END SIDEBAR-->
 
-        <!-- FB Share config -->
-        <meta property="og:url"           content="https://via.randombits.host" />
-        <meta property="og:type"          content="website" />
-        <meta property="og:title"         content="Via - Road Quality Visualization" />
-        <meta property="og:description"   content="Visualize the quality of roads for cyclists monitoring blackspots for potholes, dangerous driver movement, and more." />
-        <meta property="og:image" content="https://via.randombits.host/static/resources/logo.jpg" />
-        <!-- End FB Share config -->
     </head>
 
     <body>
@@ -137,7 +130,7 @@
                     <!-- End Examples link -->
 
                     <!-- Twitter link -->
-                    <a href="https://twitter.com/intent/tweet?text=Check%20out%20Via%20-%20It%27s%20visualizing%20road%20quality%20for%20cyclists%3A%20https%3A%2F%2Fvia.randombits.host" target="_blank" class="bg-dark list-group-item list-group-item-action">
+                    <a href="https://twitter.com/intent/tweet?text=Check%20out%20Via%20-%20It%27s%20visualizing%20road%20quality%20for%20cyclists%3A%20https%3A%2F%2Fviaroads.com" target="_blank" class="bg-dark list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-start align-items-center">
                             <span class="fa fa-twitter fa-fw mr-3"></span>
                             <span class="menu-collapsed">Tweet</span>
