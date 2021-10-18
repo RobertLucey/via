@@ -5,6 +5,7 @@ import bottle
 from bottle import response
 
 from via import logger
+from via import settings
 from via.pull_journeys import pull_journeys
 
 from via.geojson.generate import generate_geojson
@@ -66,12 +67,25 @@ def main():
 
     bottle.debug(args.debug)
     bottle.install(EnableCors())
+
+    run_config = {
+        'host': '0.0.0.0',
+        'port': args.port,
+        'debug': args.debug,
+        'reloader': args.reloader,
+        'server': 'gunicorn'
+    }
+
+    if settings.ENABLE_SSL:
+        run_config.update(
+            {
+                'keyfile': settings.KEYFILE,
+                'certfile': settings.CERTFILE
+            }
+        )
+
     bottle.run(
-        host='0.0.0.0',
-        port=args.port,
-        debug=args.debug,
-        reloader=args.reloader,
-        server='gunicorn'
+        **run_config
     )
 
 
