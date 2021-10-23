@@ -21,6 +21,7 @@ from road_collisions.models.collision import Collision as BaseCollision
 from road_collisions.models.collision import Collisions as BaseCollisions
 
 from via import logger
+from via.constants import GEOJSON_DIR
 from via.nearest_edge import nearest_edge
 from via.constants import METRES_PER_DEGREE
 from via.utils import area_from_coords, get_graph_id, filter_nodes_from_geodataframe, filter_edges_from_geodataframe, update_edge_data, get_combined_id
@@ -118,6 +119,19 @@ class Collision(BaseCollision):
 
 
 class Collisions(BaseCollisions):
+
+    def __init__(self, *args, **kwargs):
+        """
+
+        :kwarg filters: Filters to apply, these filters will apply inplace
+            as a relevant action is made
+        """
+        self.filters = kwargs.get('filters', {})
+        self.is_filtered = False
+        super().__init__(*args, **kwargs)
+
+    def set_filters(self, filters):
+        self.filters = filters
 
     @property
     def danger(self):
@@ -255,6 +269,8 @@ class Collisions(BaseCollisions):
             else:
                 logger.debug('No split necessary in loading graph: %s', self.bbox)
                 try:
+                    # TODO: depending on filters, might want to get different network. Only for geojson generation. If filter of vehicle_type being car / goods vehicle, use car, if bike / pedestrian, use all
+                    #       will need to have the network_cache accept network types to split then
                     network = ox.graph_from_bbox(
                         self.most_northern,
                         self.most_southern,
@@ -326,8 +342,17 @@ class Collisions(BaseCollisions):
             data=filtered
         )
 
+    def inplace_filter(self, **kwargs):
+        self.filters = kwargs
+        if self.filters != dict():
+            self._data = self.filter(**kwargs)._data
+        self.is_filtered = True
+
     @property
     def gps_hash(self):
+        if not self.is_filtered:
+            self.inplace_filter(**self.filters)
+
         return hashlib.md5(
             str([
                 point.gps.content_hash for point in self
@@ -345,9 +370,9 @@ class Collisions(BaseCollisions):
             return get_graph_id(network), collision
 
     @property
-    def geojson(self):
-
-        geojson_features = []
+    def network_collision_map(self):
+        if not self.is_filtered:
+            self.inplace_filter(**self.filters)
 
         pool = Pool(processes=6)
         maps = pool.imap_unordered(Collisions.split_collisions, self)
@@ -366,13 +391,28 @@ class Collisions(BaseCollisions):
                 'collisions': collisions
             }
 
-        for k, v in network_collision_map.items():
+        return network_collision_map
+
+    @property
+    def fp(self):
+        return os.path.join(
+            GEOJSON_DIR,
+            self.content_hash + '.geojson'
+        )
+
+    @property
+    def geojson(self):
+        if not self.is_filtered:
+            self.inplace_filter(**self.filters)
+
+        geojson_features = []
+
+        for k, v in self.network_collision_map.items():
 
             network = v['network']
             collisions = v['collisions']
 
             edges = nearest_edge.get(network, collisions)
-
 
             used_edges = []
             used_node_ids = []
@@ -387,12 +427,16 @@ class Collisions(BaseCollisions):
                 )
 
             associated = list(zip(used_edges, collisions))
-            edge_feature_map = dict([
-                (get_combined_id(k[0], k[1]), {'danger': Collisions(data=[x for _, x in g]).danger}) for k, g in groupby(
+            edge_feature_map = {
+                get_combined_id(k[0], k[1]): {
+                    'danger': Collisions(
+                        data=[x for _, x in g]
+                    ).danger
+                } for k, g in groupby(
                     sorted(associated, key=itemgetter(0)),
                     itemgetter(0)
                 )
-            ])
+            }
 
             if bounding_graph_gdfs_cache.get(get_graph_id(network)) is None:
                 bounding_graph_gdfs_cache.set(
@@ -402,6 +446,7 @@ class Collisions(BaseCollisions):
                         fill_edge_geometry=True
                     )
                 )
+
             graph_nodes, graph_edges = bounding_graph_gdfs_cache.get(
                 get_graph_id(network)
             )
@@ -417,7 +462,9 @@ class Collisions(BaseCollisions):
 
             update_edge_data(graph, edge_feature_map)
 
-            geojson_features.append(geojson_from_graph(graph)['features'])
+            features = geojson_from_graph(graph)['features']
+
+            geojson_features.extend(features)
 
         return {
             'type': 'FeatureCollection',
