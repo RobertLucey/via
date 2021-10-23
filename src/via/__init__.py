@@ -1,5 +1,8 @@
 import requests
 
+import warnings
+warnings.filterwarnings('ignore', '.*Geometry is in a geographic CRS.*', )
+
 import osmnx as ox
 
 from via import settings
