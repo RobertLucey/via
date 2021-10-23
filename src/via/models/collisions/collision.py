@@ -1,4 +1,5 @@
 import hashlib
+import urllib
 import os
 import json
 import glob
@@ -363,8 +364,8 @@ class Collisions(BaseCollisions):
     def split_collisions(collision):
         try:
             network = network_cache.get_at_point('bbox', collision)
-        except:
-            logger.warning('Could not get network: %s' % (collision.serialize()))
+        except Exception as ex:
+            logger.warning('Could not get network: %s: %s', collision.serialize(), ex)
         else:
             # this is slowing things down a lot, have a cache
             return get_graph_id(network), collision
@@ -395,13 +396,20 @@ class Collisions(BaseCollisions):
 
     @property
     def fp(self):
+        filters = {k: v for k, v in self.filters if v is not None}
         return os.path.join(
             GEOJSON_DIR,
-            self.content_hash + '.geojson'
+            'collision_' + urllib.parse.urlencode(filters) + '.geojson'
         )
 
     @property
     def geojson(self):
+        if os.path.exists(self.fp):
+            with open(self.fp, 'r') as f:
+                return json.loads(f.read())
+
+        self.preload_graph()
+
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
@@ -466,7 +474,12 @@ class Collisions(BaseCollisions):
 
             geojson_features.extend(features)
 
-        return {
+        geojson = {
             'type': 'FeatureCollection',
             'features': geojson_features
         }
+
+        with open(self.fp, 'w') as f:
+            f.write(json.dumps(geojson))
+
+        return geojson
