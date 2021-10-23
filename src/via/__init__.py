@@ -12,7 +12,7 @@ from via.logging import logger
 # overpass api clone for this so we can disable rate limiting and not feel bad
 
 try:
-    CUSTOM_AVAILABLE = 'www.openstreetmap.org' in requests.get(settings.CUSTOM_OVERPASS_API, timeout=5).text
+    CUSTOM_AVAILABLE = 'www.openstreetmap.org' in requests.get(settings.CUSTOM_OVERPASS_API, timeout=1).text
 except:
     CUSTOM_AVAILABLE = False
 
