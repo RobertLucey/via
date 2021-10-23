@@ -1,4 +1,5 @@
 import math
+import hashlib
 import os
 import glob
 import json
@@ -542,3 +543,18 @@ def area_from_coords(obj):
         #    ),
         #    geom
         #).area
+
+
+@lru_cache(maxsize=5)
+def get_graph_id(graph, unreliable=False):
+    """
+
+    TODO: have a supporting function that just gets the quick unreliable
+          hash so we don't cache the graph itself
+
+    :param graph:
+    :kwarg unreliable: use hash which can be different from run to run
+    """
+    if unreliable:
+        return hash(tuple(graph._node))
+    return hashlib.md5(str(tuple(graph._node)).encode()).hexdigest()
