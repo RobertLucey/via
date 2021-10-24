@@ -6,6 +6,7 @@ from via.models.collisions.utils import get_collisions
 
 COLLISIONS = get_collisions()
 
+
 @bottle.route('/collisions/get_geojson')
 def get_geojson():
     logger.info('Getting collision GeoJSON')

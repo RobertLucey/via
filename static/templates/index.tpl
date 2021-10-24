@@ -197,8 +197,17 @@
                     data,
                     {
                         style: function(feature) {
+console.log(feature.properties.avg);
                             return {
-                                color: getColour(Math.max.apply(Math, [feature.properties.avg], 50) / 50),  // 50 is just a fairly high cap, TODO: get the actual height
+                                color: getColour(
+                                    scaleBetween(
+                                        Math.min(feature.properties.avg, 50),
+                                        0.0,
+                                        1.0,
+                                        0.0,
+                                        50,
+                                    )
+                                ),
                                 weight: 5
                             };
                         },
@@ -220,6 +229,60 @@
                 )
                 geojson_layer.addTo(map);
             }
+
+
+            function scaleBetween(unscaledNum, minAllowed, maxAllowed, min, max) {
+                return (maxAllowed - minAllowed) * (unscaledNum - min) / (max - min) + minAllowed;
+            }
+
+            function collision_load_geojson(data, clear_previous=false) {
+                // Triggered on file upload with the GeoJSON object.
+                if (clear_previous) {
+                    clear_geojson();
+                }
+console.log('WAH');
+
+                geojson_layer = L.geoJSON(
+                    data,
+                    {
+                        style: function(feature) {
+                            return {
+                                color: getColour(
+// TODO: get the actual max
+                                    scaleBetween(
+                                        Math.min(feature.properties.danger, 10),
+                                        0.5,
+                                        1.0,
+                                        0.0,
+                                        10.0,
+
+
+                                    )
+                                ),  // 100 is just a fairly high cap, TODO: get the actual height
+                                weight: 5
+                            };
+                        },
+                        onEachFeature: function(feature, layer) {
+                            // A general method run on each feature. These bind popups for on
+                            // layer click (default) and also on mouseover/out. Just the road
+                            // name for now which isn't always populated.
+                            layer.bindPopup(feature.properties.name + ": " + feature.properties.danger);
+
+                            layer.on('mouseover', function(e) {
+                                this.openPopup();
+                            });
+                            layer.on('mouseout', function(e) {
+                                this.closePopup();
+                            });
+                        }
+                    }
+                )
+                geojson_layer.addTo(map);
+            }
+
+
+
+
         </script>
 
         <!-- Handle form submission etc -->
@@ -234,9 +297,22 @@
                         'limit': $('#limit').val()
                     }
                 ).done(function(resp) {
-                    console.log("get_journeys response:")
+                    console.log("journey get_geojson response:")
                     console.log(resp);
                     load_geojson(resp, clear_previous=true);
+                });
+            }
+
+            function update_map_from_collisions_form() {
+                $.get(
+                    'collisions/get_geojson',
+                    {
+                        'vehicle_type': 'all'
+                    }
+                ).done(function(resp) {
+                    console.log("collision get_geojson response:")
+                    console.log(resp);
+                    collision_load_geojson(resp, clear_previous=true);
                 });
             }
 
