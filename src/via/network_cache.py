@@ -40,6 +40,7 @@ class SingleNetworkCache():
             if is_within(point_bbox, net['bbox']):
                 candidates.append(net)
 
+        # FIXME: return the smallest network
         return candidates[0]['network']
 
     def get(self, journey, poly=True) -> MultiDiGraph:
