@@ -10,6 +10,12 @@
 
         <!-- SIDEBAR: -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link
+            rel="stylesheet"
+            href="https://use.fontawesome.com/releases/v5.13.0/css/all.css"
+            integrity="sha384-Bfad6CLCknfcloXFOyFnlgtENryhrpZCe29RTifKEixXQZ38WheV+i/6YWSzkz3V"
+            crossorigin="anonymous"
+        />
         <link rel="stylesheet" href="static/resources/sidebar_menu.css">
         <!-- END SIDEBAR-->
 
@@ -120,19 +126,86 @@
                     </div>
                     <!-- End Explore link -->
 
-                    <!-- Examples link -->
-                    <a href="#" class="bg-dark list-group-item list-group-item-action">
+                    <a href="#collisions" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100 justify-content-start align-items-center">
-                            <span class="fa fa-lightbulb-o fa-fw mr-3"></span>
-                            <span class="menu-collapsed">Examples</span>
+                            <span class="fa fa-car-crash fa-fw mr-3"></span>
+                            <span class="menu-collapsed">Collisions</span>
+                            <span class="submenu-icon ml-auto"></span>
                         </div>
                     </a>
-                    <!-- End Examples link -->
+                    <div id='collisions' class="collapse sidebar-submenu">
+                        <a href="#" class="list-group-item list-group-item-action bg-dark text-white">
+                           <div id="inputs_container">
+                               <form id="pull_collisions_form">
+                                   <label for="vehicle_type">Vehicle type:</label>
+                                   <select id="vehicle_type" name="vehicle_type">
+                                     <option value="all">All</option>
+                                     <option value="car">Car</option>
+                                     <option value="bicycle">Bike</option>
+                                     <option value="pedestrian">Pedestrian</option>
+                                     <option value="goods_vehicle">Goods Vehicle</option>
+                                     <option value="bus">Bus</option>
+                                   </select>
+
+                                   <label for="year">Year:</label>
+                                   <select id="year" name="year">
+                                     <option value="all">All</option>
+                                     <option value="2016">2016</option>
+                                     <option value="2015">2015</option>
+                                     <option value="2014">2014</option>
+                                     <option value="2013">2013</option>
+                                     <option value="2012">2012</option>
+                                     <option value="2011">2011</option>
+                                     <option value="2010">2010</option>
+                                     <option value="2009">2009</option>
+                                     <option value="2008">2008</option>
+                                     <option value="2007">2007</option>
+                                     <option value="2006">2006</option>
+                                     <option value="2005">2005</option>
+                                   </select>
+
+                                   <label for="county">County:</label>
+                                   <select id="county" name="county">
+                                     <option value="all">All</option>
+                                     <option value="carlow">Carlow</option>
+                                     <option value="cavan">Cavan</option>
+                                     <option value="clare">Clare</option>
+                                     <option value="cork">Cork</option>
+                                     <option value="donegal">Donegal</option>
+                                     <option value="dublin">Dublin</option>
+                                     <option value="galway">Galway</option>
+                                     <option value="kerry">Kerry</option>
+                                     <option value="kildare">Kildare</option>
+                                     <option value="kildare">Kilkenny</option>
+                                     <option value="laois">Laois</option>
+                                     <option value="leitrim">Leitrim</option>
+                                     <option value="limerick">Limerick</option>
+                                     <option value="longford">Longford</option>
+                                     <option value="louth">Louth</option>
+                                     <option value="mayo">Mayo</option>
+                                     <option value="monaghan">Monaghan</option>
+                                     <option value="offering">Offaly</option>
+                                     <option value="roscommon">Roscommon</option>
+                                     <option value="sligo">Sligo</option>
+                                     <option value="tipperary">Tipperary</option>
+                                     <option value="waterford">Waterford</option>
+                                     <option value="westmeath">Westmeath</option>
+                                     <option value="wexford">Wexford</option>
+                                     <option value="wicklow">Wicklow</option>
+                                   </select>
+
+                                   <input type="submit" value="Submit">
+                               </form>
+
+                           </div>
+                        </a>
+                    </div>
+
 
                     <!-- Twitter link -->
                     <a href="https://twitter.com/intent/tweet?text=Check%20out%20Via%20-%20It%27s%20visualizing%20road%20quality%20for%20cyclists%3A%20https%3A%2F%2Fviaroads.com" target="_blank" class="bg-dark list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-start align-items-center">
-                            <span class="fa fa-twitter fa-fw mr-3"></span>
+                            <span class="fab fa-twitter fa-fw mr-3"></span>
                             <span class="menu-collapsed">Tweet</span>
                         </div>
                     </a>
@@ -141,7 +214,7 @@
                     <!-- Contribute link -->
                     <a href="https://github.com/RobertLucey/via" class="bg-dark list-group-item list-group-item-action">
                         <div class="d-flex w-100 justify-content-start align-items-center">
-                            <span class="fa fa-github fa-fw mr-3"></span>
+                            <span class="fab fa-github fa-fw mr-3"></span>
                             <span class="menu-collapsed">Contribute</span>
                         </div>
                     </a>
@@ -307,7 +380,9 @@ console.log('WAH');
                 $.get(
                     'collisions/get_geojson',
                     {
-                        'vehicle_type': 'all'
+                        'vehicle_type': $('#vehicle_type').val(),
+                        'year': $('#year').val(),
+                        'county': $('#county').val(),
                     }
                 ).done(function(resp) {
                     console.log("collision get_geojson response:")
@@ -315,6 +390,15 @@ console.log('WAH');
                     collision_load_geojson(resp, clear_previous=true);
                 });
             }
+
+            document.getElementById('pull_collisions_form').addEventListener('submit',
+                function(e) {
+                    e.preventDefault();
+                    console.log("form submitted...");
+
+                    update_map_from_collisions_form();
+                }
+            );
 
             document.getElementById('pull_journeys_form').addEventListener('submit',
                 function(e) {
