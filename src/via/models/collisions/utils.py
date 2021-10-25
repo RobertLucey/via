@@ -1,11 +1,11 @@
-from road_collisions.models.collision import Collisions
 from road_collisions.constants import COUNTY_MAP
 
+from via.models.collisions.collision import Collisions
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
 
 
 def get_collisions():
-    Collisions.load_all()
+    return Collisions.load_all()
 
 
 def generate_geojson():
