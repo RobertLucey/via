@@ -9,7 +9,7 @@ from via import settings
 from via.pull_journeys import pull_journeys
 
 from via.geojson.generate import generate_geojson
-from via.models.collisions.utils import get_collisions
+from via.models.collisions.utils import generate_geojson as collisions_generate
 
 from via.api import *
 from via.api.info import *
@@ -67,10 +67,7 @@ def main():
         version=None
     )
 
-    # preload collisions
-    collisions = get_collisions()
-    collisions = collisions.filter(county='dublin')
-    collisions.geojson
+    collisions_generate()
 
     bottle.debug(args.debug)
     bottle.install(EnableCors())

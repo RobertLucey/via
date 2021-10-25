@@ -25,7 +25,14 @@ from via import logger
 from via.constants import GEOJSON_DIR
 from via.nearest_edge import nearest_edge
 from via.constants import METRES_PER_DEGREE
-from via.utils import area_from_coords, get_graph_id, filter_nodes_from_geodataframe, filter_edges_from_geodataframe, update_edge_data, get_combined_id
+from via.utils import (
+    area_from_coords,
+    get_graph_id,
+    filter_nodes_from_geodataframe,
+    filter_edges_from_geodataframe,
+    update_edge_data,
+    get_combined_id
+)
 from via.network_cache import network_cache
 from via.models.gps import GPSPoint
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
@@ -128,7 +135,7 @@ class Collisions(BaseCollisions):
             as a relevant action is made
         """
         self.filters = kwargs.get('filters', {})
-        self.is_filtered = False
+        self.is_filtered = kwargs.get('is_filtered', False)
         super().__init__(*args, **kwargs)
 
     def set_filters(self, filters):
@@ -340,7 +347,9 @@ class Collisions(BaseCollisions):
         ]
 
         return Collisions(
-            data=filtered
+            data=filtered,
+            filters=kwargs,
+            is_filtered=True
         )
 
     def inplace_filter(self, **kwargs):
@@ -370,13 +379,17 @@ class Collisions(BaseCollisions):
             # this is slowing things down a lot, have a cache
             return get_graph_id(network), collision
 
+        return None, None
+
     @property
     def network_collision_map(self):
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
         pool = Pool(processes=6)
-        maps = pool.imap_unordered(Collisions.split_collisions, self)
+        maps = [i for i in pool.imap_unordered(Collisions.split_collisions, self) if i[0] is not None]
+        pool.close()
+        pool.join()
 
         network_id_collisions_map = [
             (k, Collisions(data=[x for _, x in g])) for k, g in groupby(
@@ -396,7 +409,7 @@ class Collisions(BaseCollisions):
 
     @property
     def fp(self):
-        filters = {k: v for k, v in self.filters if v is not None}
+        filters = {k: v for k, v in self.filters.items() if v is not None}
         return os.path.join(
             GEOJSON_DIR,
             'collision_' + urllib.parse.urlencode(filters) + '.geojson'
@@ -408,10 +421,20 @@ class Collisions(BaseCollisions):
             with open(self.fp, 'r') as f:
                 return json.loads(f.read())
 
-        self.preload_graph()
-
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
+
+        # Before preloading graph, see if we can get all points
+        try:
+            for collision in self:
+                network_cache.get_at_point('bbox', collision)
+        except:
+            logger.debug('Not all collision networks present, need to preload')
+            try:
+                self.preload_graph()
+            except Exception as ex:
+                logger.error('Could not preload graph, skipping geojson generation: %s', ex)
+                return
 
         geojson_features = []
 
