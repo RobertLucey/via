@@ -70,6 +70,6 @@ class BaseCacheTest(TestCase):
     def test_fp(self):
         from via import settings
         self.assertEqual(
-            BaseCache(cache_type='blahblah').fp,
+            BaseCache(cache_type='blahblah', fn='cache.pickle').fp,
             f'/tmp/via/cache/blahblah/{settings.VERSION}/cache.pickle'
         )
