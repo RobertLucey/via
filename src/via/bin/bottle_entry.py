@@ -68,7 +68,7 @@ def main():
     )
 
     if settings.ENABLE_COLLISIONS:
-        pass#collisions_generate()
+        collisions_generate()
 
     bottle.debug(args.debug)
     bottle.install(EnableCors())
