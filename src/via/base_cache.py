@@ -1,4 +1,5 @@
 import os
+from typing import List, Any
 import pickle
 import json
 
@@ -10,7 +11,7 @@ from via.utils import get_size
 
 class BaseCache():
 
-    def __init__(self, cache_type=None, fn=None):
+    def __init__(self, cache_type: str = None, fn: str = None):
         assert cache_type is not None
         self.loaded = False
         self.data = {}
@@ -18,7 +19,7 @@ class BaseCache():
         self.cache_type = cache_type
         self.fn = fn
 
-    def get(self, k):
+    def get(self, k: Any):
         if not self.loaded:
             self.load()
 
@@ -65,7 +66,7 @@ class BaseCache():
         )
 
     @staticmethod
-    def from_file(cache_type, filepath, load=True, fn=None):
+    def from_file(cache_type: str, filepath: str, load: bool = True, fn: str = None):
         cache = BaseCache(
             cache_type=cache_type,
             fn=os.path.basename(filepath)
@@ -95,28 +96,22 @@ class BaseCaches():
         self.cache_type = kwargs['cache_type']
         self.child_class = kwargs.get('child_class', BaseCache)
 
+        # set up references
         self.refs = {}
-        os.makedirs(
-            self.dir,
-            exist_ok=True
-        )
+        os.makedirs(self.dir, exist_ok=True)
         if not os.path.exists(self.refs_path):
             with open(self.refs_path, 'w') as refs_file:
                 refs_file.write(json.dumps({}))
         with open(self.refs_path, 'r') as refs_file:
             self.refs = json.loads(refs_file.read())
 
-    def get(self, k):
-        # Have a header file or something
-
+    def get(self, k: Any):
         self.load()
-
         if k in self.refs and self.refs[k] in self.data:
             return self.data[self.refs[k]].get(k)
-
         return None
 
-    def set(self, k, v, skip_save=False):
+    def set(self, k: Any, v: Any, skip_save: bool = False):
         fn = '%s_%s.pickle' % (
             round(min(v[0].geometry.x), 1),
             round(min(v[0].geometry.y), 1)
@@ -127,14 +122,19 @@ class BaseCaches():
         len_refs = len(self.refs)
         self.refs[k] = fn
         if len_refs < len(self.refs):
-            self.data[fn].save()
-            self.save_refs()
+            if not skip_save:
+                self.data[fn].save()
+                self.save_refs()
 
     def save_refs(self):
         with open(self.refs_path, 'w') as refs_file:
             refs_file.write(json.dumps(self.refs))
 
     def load(self):
+        """
+        Load all the caches of this type, note that this does not load
+        data, it loads only references so that things can be lazily loaded
+        """
         if self.loaded:
             return
 
@@ -147,11 +147,14 @@ class BaseCaches():
         self.loaded = True
 
     @property
-    def dir(self):
+    def dir(self) -> str:
         return os.path.join(CACHE_DIR, self.cache_type, settings.VERSION)
 
     @property
-    def caches(self):
+    def caches(self) -> List[BaseCache]:
+        """
+        Get all the caches within the directory of this cache type
+        """
         return [
             self.child_class.from_file(
                 self.cache_type,
@@ -161,5 +164,8 @@ class BaseCaches():
         ]
 
     @property
-    def refs_path(self):
+    def refs_path(self) -> str:
+        """
+        Get the reference file path for this type of cache
+        """
         return os.path.join(self.dir, 'refs.json')
