@@ -33,4 +33,6 @@ ENABLE_SSL = True if os.getenv('ENABLE_SSL', 'False').lower()[0] == 't' else Fal
 KEYFILE = os.getenv('VIA_KEYFILE', None)
 CERTFILE = os.getenv('VIA_CERTFILE', None)
 
+ENABLE_COLLISIONS = True if os.getenv('ENABLE_COLLISIONS', 'False').lower()[0] == 't' else False
+
 VERSION = pkg_resources.require('via-api')[0].version

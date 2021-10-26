@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 import fast_json
 
@@ -11,7 +12,10 @@ from osmnx import utils_graph
 from via import logger
 from via.settings import VERSION
 from via.constants import EDGE_CACHE_DIR
-from via.utils import get_combined_id
+from via.utils import get_combined_id, get_graph_id
+
+
+GEOM_RTREE_CACHE = defaultdict(dict)
 
 
 def nearest_edges(G, X, Y, return_dist=False):
@@ -22,12 +26,21 @@ def nearest_edges(G, X, Y, return_dist=False):
     if np.isnan(X).any() or np.isnan(Y).any():  # pragma: no cover
         raise ValueError("`X` and `Y` cannot contain nulls")
 
-    # This is slow, TODO might want to cache the gdfs?
-    geoms = utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
+    graph_id = get_graph_id(G)
+    if graph_id in GEOM_RTREE_CACHE:
+        geoms = GEOM_RTREE_CACHE[graph_id]['geoms']
+        rtree = GEOM_RTREE_CACHE[graph_id]['rtree']
+    else:
+        geoms = utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
 
-    rtree = RTreeIndex()
-    for pos, bounds in enumerate(geoms.bounds.values):
-        rtree.insert(pos, bounds)
+        rtree = RTreeIndex()
+        for pos, bounds in enumerate(geoms.bounds.values):
+            rtree.insert(pos, bounds)
+
+        GEOM_RTREE_CACHE[graph_id] = {
+            'geoms': geoms,
+            'rtree': rtree
+        }
 
     ne_dist = list()
     for xy in zip(X, Y):
@@ -71,6 +84,7 @@ class NearestEdgeCache():
         if not self.loaded:
             self.load()
 
+        # FIXME: should use frame hash rather than gps hash as we want context too
         frame_ids_to_get = [
             str(frame.gps_hash) for frame in frames if self.data.get(str(frame.gps_hash), None) is None
         ]
@@ -108,6 +122,8 @@ class NearestEdgeCache():
         requested_frame_edge_map = {
             str(f.gps_hash): self.data.get(str(f.gps_hash), None) for f in frames
         }
+
+        self.save()
 
         return list(requested_frame_edge_map.values())
 

@@ -1,6 +1,5 @@
 import os
 import pickle
-import hashlib
 
 import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
@@ -10,7 +9,9 @@ from via.constants import NETWORK_CACHE_DIR
 from via import logger
 from via.utils import (
     is_within,
-    area_from_coords
+    area_from_coords,
+    get_graph_id,
+    get_size
 )
 from via.place_cache import place_cache
 
@@ -24,6 +25,24 @@ class SingleNetworkCache():
         self.loaded = False
         self.data = []
         self.last_save_len = -1
+
+    def get_at_point(self, gps_point):
+        if not self.loaded:
+            self.load()
+
+        point_bbox = {
+            'north': gps_point.lat,
+            'south': gps_point.lat,
+            'east': gps_point.lng,
+            'west': gps_point.lng
+        }
+        candidates = []
+        for net in self.data:
+            if is_within(point_bbox, net['bbox']):
+                candidates.append(net)
+
+        # FIXME: return the smallest network
+        return candidates[0]['network']
 
     def get(self, journey, poly=True) -> MultiDiGraph:
         if not self.loaded:
@@ -63,7 +82,8 @@ class SingleNetworkCache():
 
                 self.data.append(
                     {
-                        'hash': hashlib.md5(str(bbox).encode()).hexdigest(),
+                        'gps_hash': journey.gps_hash,
+                        'network_hash': get_graph_id(network),
                         'bbox': {
                             'north': bbox['north'],
                             'south': bbox['south'],
@@ -77,21 +97,24 @@ class SingleNetworkCache():
                 return network
 
         for net in self.data:
-            if journey.gps_hash == net['hash']:
+            if journey.gps_hash == net['gps_hash']:
                 return net['network']
 
         return None
 
-    def set(self, journey, network: MultiDiGraph):
+    def set(self, journey, network: MultiDiGraph, skip_save=False):
         if not self.loaded:
             self.load()
 
         self.data.append({
-            'hash': journey.gps_hash,
+            'gps_hash': journey.gps_hash,
+            'network_hash': get_graph_id(network),
             'bbox': journey.bbox,
             'network': network
         })
-        self.save()
+
+        if not skip_save:
+            self.save()
 
     def save(self):
         if any([
@@ -115,6 +138,7 @@ class SingleNetworkCache():
             self.data = pickle.load(network_file)
         self.loaded = True
         self.last_save_len = len(self.data)
+        logger.debug('Size of network cache: %sMB', get_size(self.data) / (1000 ** 2))
 
     @property
     def dir(self) -> str:
@@ -130,15 +154,26 @@ class NetworkCache():
     def __init__(self):
         self.network_caches = {}
 
+    def get_at_point(self, key, gps_point):
+        if key not in self.network_caches:
+            self.network_caches[key] = SingleNetworkCache(key)
+        return self.network_caches[key].get_at_point(gps_point)
+
+    def get_by_id(self, graph_id):
+        for cache in self.network_caches.values():
+            for obj in cache.data:
+                if obj['network_hash'] == graph_id:
+                    return obj['network']
+
     def get(self, key: str, journey, poly=True) -> MultiDiGraph:
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
         return self.network_caches[key].get(journey, poly=poly)
 
-    def set(self, key: str, journey, network: MultiDiGraph):
+    def set(self, key: str, journey, network: MultiDiGraph, skip_save=False):
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
-        self.network_caches[key].set(journey, network)
+        self.network_caches[key].set(journey, network, skip_save=skip_save)
 
     def load(self, network_type=None):
         if network_type is not None:
@@ -148,6 +183,10 @@ class NetworkCache():
             for net_type in os.listdir(networks_dir):
                 self.network_caches[net_type] = SingleNetworkCache(net_type)
                 self.network_caches[net_type].load()
+
+    def save(self):
+        for k, v in self.network_caches.items():
+            v.save()
 
 
 network_cache = NetworkCache()

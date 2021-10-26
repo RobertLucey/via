@@ -2,8 +2,9 @@ import os
 import pickle
 
 from via import logger
-from via.constants import CACHE_DIR
 from via import settings
+from via.constants import CACHE_DIR
+from via.utils import get_size
 
 
 class BaseCache():
@@ -12,7 +13,7 @@ class BaseCache():
         assert cache_type is not None
         self.loaded = False
         self.data = {}
-        self.last_save_len = 0
+        self.last_save_len = -1
         self.cache_type = cache_type
 
     def get(self, k):
@@ -21,9 +22,10 @@ class BaseCache():
 
         return self.data.get(k, None)
 
-    def set(self, k, v):
+    def set(self, k, v, skip_save=False):
         self.data[k] = v
-        self.save()
+        if not skip_save:
+            self.save()
 
     def create_dirs(self):
         if not os.path.exists(self.fp):
@@ -34,11 +36,13 @@ class BaseCache():
             )
 
     def save(self):
-        # TODO: be smarter
+        if len(self.data) <= self.last_save_len:
+            return
         logger.debug(f'Saving cache {self.cache_type}')
         self.create_dirs()
         with open(self.fp, 'wb') as f:
             pickle.dump(self.data, f)
+        self.last_save_len = len(self.data)
 
     def load(self):
         logger.debug(f'Loading cache {self.cache_type}')
@@ -50,6 +54,11 @@ class BaseCache():
             self.data = pickle.load(f)
         self.loaded = True
         self.last_save_len = len(self.data)
+        logger.debug(
+            'Size of %s cache: %sMB',
+            self.cache_type,
+            get_size(self.data) / (1000 ** 2)
+        )
 
     @property
     def dir(self) -> str:

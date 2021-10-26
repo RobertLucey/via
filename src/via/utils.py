@@ -1,4 +1,6 @@
 import math
+import sys
+import hashlib
 import os
 import glob
 import json
@@ -542,3 +544,39 @@ def area_from_coords(obj):
         #    ),
         #    geom
         #).area
+
+
+@lru_cache(maxsize=5)
+def get_graph_id(graph, unreliable=False):
+    """
+
+    TODO: have a supporting function that just gets the quick unreliable
+          hash so we don't cache the graph itself
+
+    :param graph:
+    :kwarg unreliable: use hash which can be different from run to run
+    """
+    if unreliable:
+        return hash(tuple(graph._node))
+    return hashlib.md5(str(tuple(graph._node)).encode()).hexdigest()
+
+
+def get_size(obj, seen=None):
+    """Recursively finds size of objects"""
+    size = sys.getsizeof(obj)
+    if seen is None:
+        seen = set()
+    obj_id = id(obj)
+    if obj_id in seen:
+        return 0
+    # Important mark as seen *before* entering recursion to gracefully handle
+    # self-referential objects
+    seen.add(obj_id)
+    if isinstance(obj, dict):
+        size += sum([get_size(v, seen) for v in obj.values()])
+        size += sum([get_size(k, seen) for k in obj.keys()])
+    elif hasattr(obj, '__dict__'):
+        size += get_size(obj.__dict__, seen)
+    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+        size += sum([get_size(i, seen) for i in obj])
+    return size

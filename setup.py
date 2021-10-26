@@ -4,6 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'road_collisions',
     'cached_property',
     'backoff',
     'packaging',
