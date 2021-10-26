@@ -3,7 +3,10 @@ import urllib
 import os
 import json
 import glob
-from multiprocessing import Pool
+from multiprocessing import (
+    Pool,
+    cpu_count
+)
 from itertools import groupby
 from operator import itemgetter
 
@@ -13,8 +16,6 @@ from haversine import (
     Unit
 )
 
-import shapely
-from networkx.readwrite import json_graph
 import osmnx as ox
 
 from road_collisions.models.raw_collision import RawCollision as BaseRawCollision
@@ -251,8 +252,8 @@ class Collisions(BaseCollisions):
     @staticmethod
     def from_file(filepath):
         data = None
-        with open(filepath, 'r') as f:
-            data = json.loads(f.read())
+        with open(filepath, 'r') as collisions_filepath:
+            data = json.loads(collisions_filepath.read())
 
         collisions = Collisions()
         for collision_dict in data:
@@ -293,9 +294,7 @@ class Collisions(BaseCollisions):
 
         filtered = [
             d for d in self if all(
-                [
-                    getattr(d, attr) == kwargs[attr] for attr in kwargs.keys()
-                ]
+                getattr(d, attr) == kwargs[attr] for attr in kwargs.keys()
             )
         ]
 
@@ -307,7 +306,7 @@ class Collisions(BaseCollisions):
 
     def inplace_filter(self, **kwargs):
         self.filters = kwargs
-        if self.filters != dict():
+        if self.filters != {}:
             self._data = self.filter(**kwargs)._data
         self.is_filtered = True
 
@@ -324,10 +323,20 @@ class Collisions(BaseCollisions):
 
     @staticmethod
     def split_collisions(collision):
+        """
+        Get the associated graph id and the give collision
+        This can be then used to group collisions by graph
+
+        :rtype: tuple
+        """
         try:
             network = network_cache.get_at_point('bbox', collision)
         except Exception as ex:
-            logger.warning('Could not get network: %s: %s', collision.serialize(), ex)
+            logger.warning(
+                'Could not get network: %s: %s',
+                collision.serialize(),
+                ex
+            )
         else:
             # this is slowing things down a lot, have a cache
             return get_graph_id(network), collision
@@ -339,8 +348,13 @@ class Collisions(BaseCollisions):
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
-        pool = Pool(processes=6)
-        maps = [i for i in pool.imap_unordered(Collisions.split_collisions, self) if i[0] is not None]
+        pool = Pool(processes=max(cpu_count() - 1, 1))
+        maps = [
+            i for i in pool.imap_unordered(
+                Collisions.split_collisions,
+                self
+            ) if i[0] is not None
+        ]
         pool.close()
         pool.join()
 
@@ -369,14 +383,10 @@ class Collisions(BaseCollisions):
         )
 
     @property
-    def geojson(self):
-        if os.path.exists(self.fp):
-            with open(self.fp, 'r') as f:
-                return json.loads(f.read())
-
-        if not self.is_filtered:
-            self.inplace_filter(**self.filters)
-
+    def percent_collisions_outside_networks(self):
+        """
+        Return the % of collisions that are not within already cached networks
+        """
         # Before preloading graph, see if we can get pretty much all points
         bad = 0
         good = 0
@@ -397,20 +407,31 @@ class Collisions(BaseCollisions):
             perc_bad = (bad / good) * 100
             logger.debug('Missing %s%% of collisions', perc_bad)
 
-        if perc_bad > 2:
+        return perc_bad
+
+    @property
+    def geojson(self):
+        if os.path.exists(self.fp):
+            with open(self.fp, 'r') as geojson_file:
+                return json.loads(geojson_file.read())
+
+        if not self.is_filtered:
+            self.inplace_filter(**self.filters)
+
+        if self.percent_collisions_outside_networks > 2:
             logger.debug('Not all collision networks present, need to preload')
             try:
                 self.preload_graph()
             except Exception as ex:
                 logger.error('Could not preload graph, skipping geojson generation: %s', ex)
-                return
+                return None
 
         geojson_features = []
 
-        for k, v in self.network_collision_map.items():
+        for k, network_collision_dict in self.network_collision_map.items():
 
-            network = v['network']
-            collisions = v['collisions']
+            network = network_collision_dict['network']
+            collisions = network_collision_dict['collisions']
 
             edges = nearest_edge.get(network, collisions)
 
@@ -471,7 +492,7 @@ class Collisions(BaseCollisions):
             'features': geojson_features
         }
 
-        with open(self.fp, 'w') as f:
-            f.write(json.dumps(geojson))
+        with open(self.fp, 'w') as geojson_file:
+            geojson_file.write(json.dumps(geojson))
 
         return geojson
