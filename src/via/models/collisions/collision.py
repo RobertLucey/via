@@ -36,54 +36,7 @@ from via.utils import (
 from via.network_cache import network_cache
 from via.models.gps import GPSPoint
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
-
-
-def geojson_from_graph(graph):
-    json_links = json_graph.node_link_data(
-        graph
-    )['links']
-
-    geojson_features = {
-        'type': 'FeatureCollection',
-        'features': []
-    }
-
-    for link in json_links:
-        if 'geometry' not in link:
-            continue
-
-        feature = {
-            'type': 'Feature',
-            'properties': {}
-        }
-
-        for k in link:
-            if k == 'geometry':
-                feature['geometry'] = shapely.geometry.mapping(
-                    link['geometry']
-                )
-            else:
-                feature['properties'][k] = link[k]
-        useless_properties = {
-            'oneway',
-            'length',
-            'osmid',
-            'highway',
-            'source',
-            'target',
-            'key',
-            'maxspeed',
-            'lanes',
-            'ref'
-        }
-        for useless_property in useless_properties:
-            try:
-                del feature['properties'][useless_property]
-            except:
-                pass
-        geojson_features['features'].append(feature)
-
-    return geojson_features
+from via.geojson.utils import geojson_from_graph
 
 
 class Collision(BaseCollision):
