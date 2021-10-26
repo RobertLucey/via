@@ -17,10 +17,12 @@ def get_static_resource(filename):
 
 @bottle.route('/static/templates/:filename#.*#')
 def render_page(filename):
+
     return bottle.template(
         os.path.join('static', 'templates', filename),
         initial_coords=[settings.VIZ_INITIAL_LAT, settings.VIZ_INITIAL_LNG],
-        initial_zoom=settings.VIZ_INITIAL_ZOOM
+        initial_zoom=settings.VIZ_INITIAL_ZOOM,
+        enable_collisions='true' if not settings.ENABLE_COLLISIONS else 'false'
     )
 
 

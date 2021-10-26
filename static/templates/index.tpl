@@ -126,7 +126,7 @@
                     </div>
                     <!-- End Explore link -->
 
-                    <a href="#collisions" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
+                    <a id="collision-link" href="#collisions" data-toggle="collapse" aria-expanded="false" class="bg-dark list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100 justify-content-start align-items-center">
                             <span class="fa fa-car-crash fa-fw mr-3"></span>
                             <span class="menu-collapsed">Collisions</span>
@@ -238,6 +238,10 @@
                 //value from 0 to 1
                 var hue=((1-value)*120).toString(10);
                 return ["hsl(",hue,",100%,50%)"].join("");
+            }
+
+            if ({{enable_collisions}}) {
+                document.getElementById( 'collision-link' ).style.display = 'none';
             }
 
             // This map is global scope.
