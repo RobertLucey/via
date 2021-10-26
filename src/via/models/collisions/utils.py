@@ -1,7 +1,7 @@
 from road_collisions.constants import COUNTY_MAP
 
+from via import logger
 from via.models.collisions.collision import Collisions
-from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
 
 
 def get_collisions():
@@ -21,15 +21,14 @@ def generate_geojson():
                     'county': county.lower(),
                     'year': year,
                     'vehicle_type': vehicle_type
-                        
                 }
+
                 filters = {
                     k: v for k, v in filters.items() if v is not None and v != 'all'
                 }
 
+                logger.debug('Process collisions geojson: %s', filters)
                 collisions = all_collisions.filter(
                     **filters
                 )
                 collisions.geojson
-
-    bounding_graph_gdfs_cache.save()

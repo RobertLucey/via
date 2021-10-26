@@ -424,11 +424,27 @@ class Collisions(BaseCollisions):
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
-        # Before preloading graph, see if we can get all points
-        try:
-            for collision in self:
+        # Before preloading graph, see if we can get pretty much all points
+        bad = 0
+        good = 0
+        for collision in self:
+            try:
                 network_cache.get_at_point('bbox', collision)
-        except:
+            except:
+                bad += 1
+            else:
+                good += 1
+
+        if good == 0:
+            if bad == 0:
+                perc_bad = 0
+            else:
+                perc_bad = 100
+        else:
+            perc_bad = (bad / good) * 100
+            logger.debug('Missing %s%% of collisions', perc_bad)
+
+        if perc_bad > 2:
             logger.debug('Not all collision networks present, need to preload')
             try:
                 self.preload_graph()
