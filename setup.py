@@ -17,14 +17,12 @@ INSTALL_REQUIRES = (
     'requests',
     'geopandas',
     'imagehash',
-    'pillow',
-    'bottle',
-    'gunicorn'
+    'pillow'
 )
 
 setup(
     name='via-api',
-    version='0.0.4',
+    version='0.0.5',
     python_requires='>=3.6,<3.10',
     description='Analysing and serving crowdsourced road quality data',
     author='Robert Lucey',
@@ -38,8 +36,7 @@ setup(
             'plot_journeys = via.bin.plot_journeys:main',
             'road_coverage = via.bin.road_coverage:main',
             'condition_by_street = via.bin.condition_by_street:main',
-            'generate_geojson = via.bin.generate_geojson:main',
-            'via_bottle = via.bin.bottle_entry:main'
+            'generate_geojson = via.bin.generate_geojson:main'
         ]
     }
 )
