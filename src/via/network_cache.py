@@ -10,7 +10,8 @@ from via import logger
 from via.utils import (
     is_within,
     area_from_coords,
-    get_graph_id
+    get_graph_id,
+    get_size
 )
 from via.place_cache import place_cache
 
@@ -101,7 +102,7 @@ class SingleNetworkCache():
 
         return None
 
-    def set(self, journey, network: MultiDiGraph):
+    def set(self, journey, network: MultiDiGraph, skip_save=False):
         if not self.loaded:
             self.load()
 
@@ -111,7 +112,9 @@ class SingleNetworkCache():
             'bbox': journey.bbox,
             'network': network
         })
-        self.save()
+
+        if not skip_save:
+            self.save()
 
     def save(self):
         if any([
@@ -135,6 +138,7 @@ class SingleNetworkCache():
             self.data = pickle.load(network_file)
         self.loaded = True
         self.last_save_len = len(self.data)
+        logger.debug('Size of network cache: %sMB', get_size(self.data) / (1000 ** 2))
 
     @property
     def dir(self) -> str:
@@ -166,10 +170,10 @@ class NetworkCache():
             self.network_caches[key] = SingleNetworkCache(key)
         return self.network_caches[key].get(journey, poly=poly)
 
-    def set(self, key: str, journey, network: MultiDiGraph):
+    def set(self, key: str, journey, network: MultiDiGraph, skip_save=False):
         if key not in self.network_caches:
             self.network_caches[key] = SingleNetworkCache(key)
-        self.network_caches[key].set(journey, network)
+        self.network_caches[key].set(journey, network, skip_save=skip_save)
 
     def load(self, network_type=None):
         if network_type is not None:
@@ -179,6 +183,10 @@ class NetworkCache():
             for net_type in os.listdir(networks_dir):
                 self.network_caches[net_type] = SingleNetworkCache(net_type)
                 self.network_caches[net_type].load()
+
+    def save(self):
+        for k, v in self.network_caches.items():
+            v.save()
 
 
 network_cache = NetworkCache()

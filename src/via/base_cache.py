@@ -2,8 +2,9 @@ import os
 import pickle
 
 from via import logger
-from via.constants import CACHE_DIR
 from via import settings
+from via.constants import CACHE_DIR
+from via.utils import get_size
 
 
 class BaseCache():
@@ -53,6 +54,11 @@ class BaseCache():
             self.data = pickle.load(f)
         self.loaded = True
         self.last_save_len = len(self.data)
+        logger.debug(
+            'Size of %s cache: %sMB',
+            self.cache_type,
+            get_size(self.data) / (1000 ** 2)
+        )
 
     @property
     def dir(self) -> str:
