@@ -36,6 +36,3 @@ quick_test:
 	$(IN_ENV) $(TEST_CONTEXT) nosetests --with-coverage --cover-package=via --cover-erase --with-timer
 	$(IN_ENV) coverage report -m
 	$(IN_ENV) coverage html
-
-run_bottle: build
-	$(IN_ENV) via_bottle

@@ -13,5 +13,3 @@ requests
 geopandas
 imagehash
 pillow
-bottle
-gunicorn
