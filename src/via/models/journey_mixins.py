@@ -1,11 +1,7 @@
 import os
-import hashlib
 from collections import defaultdict
 
 import fast_json
-import shapely
-
-from networkx.readwrite import json_graph
 import osmnx as ox
 
 from via import settings
@@ -13,15 +9,16 @@ from via import logger
 from via.utils import (
     filter_nodes_from_geodataframe,
     filter_edges_from_geodataframe,
-    update_edge_data
+    update_edge_data,
+    get_graph_id
 )
 from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
-from via.base_cache import BaseCache
 from via.constants import GEOJSON_DIR
 
+from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
 
-bounding_graph_gdfs_cache = BaseCache(cache_type='bounding_graph_gdfs_cache')
+from via.geojson.utils import geojson_from_graph
 
 
 class SnappedRouteGraphMixin():
@@ -44,7 +41,6 @@ class SnappedRouteGraphMixin():
         )
 
         for our_origin, nearest_edges in list(zip(self.all_points, all_nearest_edges)):
-
             edge = our_origin.get_best_edge(
                 nearest_edges,
                 mode=settings.NEAREST_EDGE_METHOD,
@@ -54,17 +50,16 @@ class SnappedRouteGraphMixin():
             edges.append(tuple(edge[0]))
             used_node_ids.extend([edge[0][0], edge[0][1]])
 
-        graph_key = hashlib.md5(str(list(bounding_graph.nodes)).encode()).hexdigest()
-        if bounding_graph_gdfs_cache.get(graph_key) is None:
+        if bounding_graph_gdfs_cache.get(get_graph_id(bounding_graph)) is None:
             bounding_graph_gdfs_cache.set(
-                graph_key,
+                get_graph_id(bounding_graph),
                 ox.graph_to_gdfs(
                     bounding_graph,
                     fill_edge_geometry=True
                 )
             )
 
-        graph_nodes, graph_edges = bounding_graph_gdfs_cache.get(graph_key)
+        graph_nodes, graph_edges = bounding_graph_gdfs_cache.get(get_graph_id(bounding_graph))
 
         # Filter only the nodes and edges on the route and ignore the
         # buffer used to get context
@@ -106,53 +101,6 @@ class GeoJsonMixin():
         Write and return a GeoJSON object string of the graph.
         """
 
-        def _geojson_from_snapped():
-            json_links = json_graph.node_link_data(
-                self.snapped_route_graph
-            )['links']
-
-            geojson_features = {
-                'type': 'FeatureCollection',
-                'features': []
-            }
-
-            for link in json_links:
-                if 'geometry' not in link:
-                    continue
-
-                feature = {
-                    'type': 'Feature',
-                    'properties': {}
-                }
-
-                for k in link:
-                    if k == 'geometry':
-                        feature['geometry'] = shapely.geometry.mapping(
-                            link['geometry']
-                        )
-                    else:
-                        feature['properties'][k] = link[k]
-                useless_properties = {
-                    'oneway',
-                    'length',
-                    'osmid',
-                    'highway',
-                    'source',
-                    'target',
-                    'key',
-                    'maxspeed',
-                    'lanes',
-                    'ref'
-                }
-                for useless_property in useless_properties:
-                    try:
-                        del feature['properties'][useless_property]
-                    except:
-                        pass
-                geojson_features['features'].append(feature)
-
-            return geojson_features
-
         geojson_file = os.path.join(
             GEOJSON_DIR,
             self.content_hash + '.geojson'
@@ -186,9 +134,9 @@ class GeoJsonMixin():
                 }
                 return geo_features
             else:
-                return _geojson_from_snapped()
+                return geojson_from_graph(self.snapped_route_graph)
 
-        return _geojson_from_snapped()
+        return geojson_from_graph(self.snapped_route_graph)
 
 
 class BoundingGraphMixin():

@@ -2,6 +2,9 @@ import datetime
 import urllib
 from packaging.version import Version
 
+import shapely
+from networkx.readwrite import json_graph
+
 
 def parse_start_date(earliest_date):
     if earliest_date is None:
@@ -45,3 +48,51 @@ def generate_basename(
     if data['place'] is None:
         del data['place']
     return urllib.parse.urlencode(data)
+
+
+def geojson_from_graph(graph):
+    json_links = json_graph.node_link_data(
+        graph
+    )['links']
+
+    geojson_features = {
+        'type': 'FeatureCollection',
+        'features': []
+    }
+
+    for link in json_links:
+        if 'geometry' not in link:
+            continue
+
+        feature = {
+            'type': 'Feature',
+            'properties': {}
+        }
+
+        for k in link:
+            if k == 'geometry':
+                feature['geometry'] = shapely.geometry.mapping(
+                    link['geometry']
+                )
+            else:
+                feature['properties'][k] = link[k]
+        useless_properties = {
+            'oneway',
+            'length',
+            'osmid',
+            'highway',
+            'source',
+            'target',
+            'key',
+            'maxspeed',
+            'lanes',
+            'ref'
+        }
+        for useless_property in useless_properties:
+            try:
+                del feature['properties'][useless_property]
+            except:
+                pass
+        geojson_features['features'].append(feature)
+
+    return geojson_features
