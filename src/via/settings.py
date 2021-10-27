@@ -6,6 +6,8 @@ from packaging import version
 DOWNLOAD_JOURNEYS_URL = os.getenv('DOWNLOAD_JOURNEYS', 'https://l7vv5djf9h.execute-api.eu-west-1.amazonaws.com/default/getUUIDs')
 S3_REGION = os.getenv('S3_REGION', 'eu-west-1')
 
+PREPARED_GEOJSON_BUCKET = 'via-geojson'
+
 MIN_ACC_SCORE = float(os.getenv('MIN_ACC_SCORE', '0.001'))
 MIN_PER_JOURNEY_USAGE = float(os.getenv('MIN_PER_JOURNEY_USAGE', '1'))
 MIN_METRES_PER_SECOND = float(os.getenv('MIN_METRES_PER_SECOND', '2'))
