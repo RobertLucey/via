@@ -11,11 +11,11 @@ def get_collisions():
 def generate_geojson():
     all_collisions = get_collisions()
 
-    for vehicle_type in {None, 'bicycle', 'car', 'bus'}:
+    for county in COUNTY_MAP.values():
+        for vehicle_type in {None, 'bicycle', 'car', 'bus'}:
 
-        # get more specific as time goes on for fewer networks to cache
-        for year in [None] + sorted(list(range(2005, 2017)), reverse=True):
-            for county in COUNTY_MAP.values():
+            # get more specific as time goes on for fewer networks to cache
+            for year in [None] + sorted(list(range(2005, 2017)), reverse=True):
 
                 filters = {
                     'county': county.lower(),
