@@ -47,7 +47,7 @@ class SingleNetworkCache():
     def get_by_id(self, graph_id):
         if graph_id not in self.data:
             return None
-        self.load_networks()
+        self.load_networks(network_id=graph_id)
         return {
             **self.data[graph_id],
             'network': self.networks[graph_id]
@@ -73,12 +73,15 @@ class SingleNetworkCache():
         if not len(candidates):
             return None
 
-        self.load_networks()
+        self.load_networks(network_id=candidates[0])
         # FIXME: return the smallest network
         return self.networks[candidates[0]]
 
-    def load_networks(self):
+    def load_networks(self, network_id=None):
         if self.networks_loaded:
+            return
+
+        if network_id in self.networks:
             return
 
         os.makedirs(
@@ -90,11 +93,19 @@ class SingleNetworkCache():
         for network_filename in network_files:
             if os.path.splitext(network_filename)[0] in self.data.keys():
                 network_filepath = os.path.join(self.dir, 'networks', network_filename)
+                graph_id = os.path.splitext(os.path.basename(network_filepath))[0]
+                if graph_id in self.networks:
+                    # already loaded from a specific network_id previously
+                    continue
+                if network_id is not None:
+                    if graph_id != network_id:
+                        continue
                 with open(network_filepath, 'rb') as network_file:
-                    graph_id = os.path.splitext(os.path.basename(network_filepath))[0]
                     self.networks[graph_id] = pickle.load(network_file)
 
-        self.networks_loaded = True
+        if network_id is None:
+            # It's only fully loaded when no network specified
+            self.networks_loaded = True
 
     def get(self, journey) -> MultiDiGraph:
         self.last_accessed = datetime.datetime.utcnow()
@@ -118,7 +129,7 @@ class SingleNetworkCache():
                     key=lambda x: area_from_coords(x[1]['bbox'])
                 )[0]
 
-                self.load_networks()
+                self.load_networks(network_id=selection[0])
 
                 return self.networks[selection[0]]
 
@@ -148,10 +159,10 @@ class SingleNetworkCache():
                 self.save()
                 return network
 
-        for net in self.data.values():
+        for net_id, net in self.data.items():
             if journey.gps_hash == net['gps_hash']:
-                self.load_networks()
-                return net['network']
+                self.load_networks(network_id=net_id)
+                return self.networks[net_id]
 
         return None
 
