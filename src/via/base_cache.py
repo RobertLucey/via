@@ -1,11 +1,15 @@
 import os
-from typing import List, Any
+import logging
+import threading
+import datetime
 import pickle
 import json
+from typing import List, Any
 
 from via import logger
 from via import settings
 from via.constants import CACHE_DIR
+from via.settings import CLEAN_MEMORY
 from via.utils import get_size
 
 
@@ -18,19 +22,19 @@ class BaseCache():
         self.last_save_len = -1
         self.cache_type = cache_type
         self.fn = fn
+        self.last_accessed = datetime.datetime.utcnow()
 
     def get(self, k: Any):
-        if not self.loaded:
-            self.load()
-
+        self.load()
+        self.last_accessed = datetime.datetime.utcnow()
         return self.data.get(k, None)
 
     def set(self, k, v, skip_save=False):
-        if not self.loaded:
-            self.load()
+        self.load()
         self.data[k] = v
         if not skip_save:
             self.save()
+        self.last_accessed = datetime.datetime.utcnow()
 
     def create_dirs(self):
         if not os.path.exists(self.fp):
@@ -50,6 +54,9 @@ class BaseCache():
         self.last_save_len = len(self.data)
 
     def load(self):
+        if self.loaded:
+            return
+
         logger.info(f'Loading cache {self.fp}')
         if not os.path.exists(self.fp):
             self.create_dirs()
@@ -59,11 +66,17 @@ class BaseCache():
             self.data = pickle.load(f)
         self.loaded = True
         self.last_save_len = len(self.data)
-        logger.debug(
-            'Size of %s cache: %sMB',
-            self.fp,
-            get_size(self.data) / (1000 ** 2)
-        )
+
+        if logger.level <= logging.DEBUG:
+            logger.debug(
+                'Size of %s cache: %sMB',
+                self.fp,
+                get_size(self.data) / (1000 ** 2)
+            )
+
+    def unload(self):
+        self.data = {}
+        self.loaded = False
 
     @staticmethod
     def from_file(cache_type: str, filepath: str, load: bool = True, fn: str = None):
@@ -85,6 +98,10 @@ class BaseCache():
     def fp(self) -> str:
         return os.path.join(self.dir, f'{self.fn}')
 
+    @property
+    def since_last_accessed(self):
+        return (datetime.datetime.utcnow() - self.last_accessed).total_seconds()
+
 
 class BaseCaches():
 
@@ -104,6 +121,9 @@ class BaseCaches():
                 refs_file.write(json.dumps({}))
         with open(self.refs_path, 'r') as refs_file:
             self.refs = json.loads(refs_file.read())
+
+        if CLEAN_MEMORY:
+            self.memory_cleaner()
 
     def get(self, k: Any):
         self.load()
@@ -145,6 +165,42 @@ class BaseCaches():
             self.data = {}
 
         self.loaded = True
+
+    def memory_cleaner(self):
+        """
+        Clean up memory from caches that haven't been used in a while
+        """
+        logger.debug('Cleaning memory: %s', self.cache_type)
+
+        if logger.level <= logging.DEBUG:
+            # since get_size is a little slow, don't want to waste time if
+            # we're not going to log about it
+            try:
+                initial_memory = get_size(self)
+            except:
+                initial_memory = -1
+
+        for v in self.data.values():
+            if v.since_last_accessed > 60:
+                v.unload()
+
+        if logger.level <= logging.DEBUG:
+            try:
+                post_memory = get_size(self)
+            except:
+                post_memory = -1
+            logger.debug(
+                'Cleaned memory, reduced %s by %s%% (%s -> %s)',
+                self.cache_type,
+                ((float(post_memory) - initial_memory) / initial_memory) * 100,
+                initial_memory,
+                post_memory
+            )
+
+        threading.Timer(
+            60 * 2,
+            self.memory_cleaner
+        ).start()
 
     @property
     def dir(self) -> str:

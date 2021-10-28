@@ -77,8 +77,6 @@ class Journey(
 
         self.last_gps = None
 
-        self.poly_graph_key = 'bbox_journeys_graph'
-
     @staticmethod
     def parse(objs):
         if isinstance(objs, Journey):
@@ -449,10 +447,8 @@ class Journey(
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
 
-        network_name = 'journey_poly'
-
-        if network_cache.get(network_name, self, poly=True) is None:
-            logger.debug(f'{network_name} > {self.gps_hash} not found in cache, generating...')
+        if network_cache.get('poly', self) is None:
+            logger.debug(f'poly > {self.gps_hash} not found in cache, generating...')
 
             # TODO: might want to not use polygon for this since we could
             # get the benefits of using a parent bbox from the cache
@@ -472,9 +468,9 @@ class Journey(
             # TODO: might want to merge our edge_quality_data with
             # edge data here
 
-            network_cache.set(network_name, self, network)
+            network_cache.set('poly', self, network)
 
-        return network_cache.get(network_name, self, poly=True)
+        return network_cache.get('poly', self, poly=True)
 
     @property
     def graph(self):

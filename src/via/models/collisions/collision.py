@@ -42,6 +42,23 @@ from via.geojson.utils import geojson_from_graph
 
 class Collision(BaseCollision):
 
+    def __del__(self):
+        attrs_to_del = [
+            'gps_hash',
+            'lat_span',
+            'lng_span',
+            'upper_left_bbox',
+            'upper_right_bbox',
+            'lower_left_bbox',
+            'lower_right_bbox'
+        ]
+
+        for attr in attrs_to_del:
+            try:
+                delattr(self, attr)
+            except:
+                pass
+
     @staticmethod
     def parse(data):
         if isinstance(data, Collision):
@@ -211,7 +228,7 @@ class Collisions(BaseCollisions):
 
     def preload_graph(self, use_graph_cache=True):
 
-        if use_graph_cache is False or network_cache.get('bbox', self, poly=False) is None:
+        if use_graph_cache is False or network_cache.get('bbox', self) is None:
 
             if area_from_coords(self.bbox) > 1000000000:
                 logger.debug('Graph too large to load, splitting: %s', self.bbox)
@@ -329,15 +346,8 @@ class Collisions(BaseCollisions):
 
         :rtype: tuple
         """
-        try:
-            network = network_cache.get_at_point('bbox', collision)
-        except Exception as ex:
-            logger.warning(
-                'Could not get network: %s: %s',
-                collision.serialize(),
-                ex
-            )
-        else:
+        network = network_cache.get_at_point('bbox', collision)
+        if network is not None:
             # this is slowing things down a lot, have a cache
             return get_graph_id(network), collision
 
@@ -391,9 +401,8 @@ class Collisions(BaseCollisions):
         bad = 0
         good = 0
         for collision in self:
-            try:
-                network_cache.get_at_point('bbox', collision)
-            except:
+            at_point = network_cache.get_at_point('bbox', collision)
+            if at_point is None:
                 bad += 1
             else:
                 good += 1
@@ -404,7 +413,7 @@ class Collisions(BaseCollisions):
             else:
                 perc_bad = 100
         else:
-            perc_bad = (bad / good) * 100
+            perc_bad = (bad / (good + bad)) * 100
             logger.debug('Missing %s%% of collisions', perc_bad)
 
         return perc_bad
@@ -420,11 +429,8 @@ class Collisions(BaseCollisions):
 
         if self.percent_collisions_outside_networks > 2:
             logger.debug('Not all collision networks present, need to preload')
-            try:
-                self.preload_graph()
-            except Exception as ex:
-                logger.error('Could not preload graph, skipping geojson generation: %s', ex)
-                return None
+
+            self.preload_graph()
 
         geojson_features = []
 
