@@ -466,22 +466,19 @@ class Collisions(BaseCollisions):
             }
 
             if bounding_graph_gdfs_cache.get(get_graph_id(network)) is None:
+                gdfs_graph = ox.graph_to_gdfs(
+                    network,
+                    fill_edge_geometry=True
+                )
                 bounding_graph_gdfs_cache.set(
                     get_graph_id(network),
-                    ox.graph_to_gdfs(
-                        network,
-                        fill_edge_geometry=True
-                    )
+                    gdfs_graph
                 )
 
             graph_nodes, graph_edges = bounding_graph_gdfs_cache.get(
                 get_graph_id(network)
             )
 
-            ox.graph_to_gdfs(
-                network,
-                fill_edge_geometry=True
-            )
             graph = ox.graph_from_gdfs(
                 filter_nodes_from_geodataframe(graph_nodes, used_node_ids),
                 filter_edges_from_geodataframe(graph_edges, used_edges)
