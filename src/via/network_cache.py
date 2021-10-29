@@ -371,10 +371,12 @@ class GroupedNetworkCaches():
                 post_memory
             )
 
-        threading.Timer(
+        cleaner = threading.Timer(
             60 * 2,
             self.memory_cleaner
-        ).start()
+        )
+        cleaner.daemon = True
+        cleaner.start()
 
     @property
     def caches(self):
