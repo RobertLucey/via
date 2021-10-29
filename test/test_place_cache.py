@@ -13,7 +13,7 @@ def get_cork(*args, **kwargs):
 
 class PlaceCacheTest(TestCase):
 
-    @patch('ox.graph_from_place', get_cork)
+    @patch('osmnx.graph_from_place', get_cork)
     def test_get(self):
         # might want to mock ox.graph_from_place to get from wherever in test resources
         cache = PlaceCache()
