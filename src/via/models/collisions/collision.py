@@ -7,6 +7,7 @@ from multiprocessing import (
     Pool,
     cpu_count
 )
+from multiprocessing.dummy import Pool as ThreadPool
 from itertools import groupby
 from operator import itemgetter
 
@@ -359,6 +360,16 @@ class Collisions(BaseCollisions):
 
     @property
     def network_collision_map(self):
+
+        def get_mapping(graph_id_collisions):
+            graph_id = graph_id_collisions[0]
+            collisions = graph_id_collisions[1]
+            return {
+                'network': network_cache.get_by_id(graph_id),
+                'collisions': collisions,
+                'graph_id': graph_id
+            }
+
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
@@ -379,11 +390,16 @@ class Collisions(BaseCollisions):
             )
         ]
 
+        mapping_pool = ThreadPool(5)
+        results = mapping_pool.map(get_mapping, network_id_collisions_map)
+        mapping_pool.close()
+        mapping_pool.join()
+
         network_collision_map = {}
-        for graph_id, collisions in network_id_collisions_map:
-            network_collision_map[graph_id] = {
-                'network': network_cache.get_by_id(graph_id),
-                'collisions': collisions
+        for map_data in results:
+            network_collision_map[map_data['graph_id']] = {
+                'network': map_data['network'],
+                'collisions': map_data['collisions']
             }
 
         return network_collision_map
