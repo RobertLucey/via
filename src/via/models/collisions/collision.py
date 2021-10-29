@@ -309,11 +309,15 @@ class Collisions(BaseCollisions):
         '''
         logger.debug('Filtering from %s' % (len(self)))
 
-        filtered = [
-            d for d in self if all(
-                getattr(d, attr) == kwargs[attr] for attr in kwargs.keys()
-            )
-        ]
+        filtered = []
+        for collision in self:
+            valid = True
+            for attr, val in kwargs.items():
+                if getattr(collision, attr) != val:
+                    valid = False
+                    break
+            if valid:
+                filtered.append(collision)
 
         return Collisions(
             data=filtered,
