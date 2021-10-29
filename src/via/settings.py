@@ -7,6 +7,7 @@ DOWNLOAD_JOURNEYS_URL = os.getenv('DOWNLOAD_JOURNEYS', 'https://l7vv5djf9h.execu
 S3_REGION = os.getenv('S3_REGION', 'eu-west-1')
 
 PREPARED_GEOJSON_BUCKET = 'via-geojson'
+PREPARED_CACHE_BUCKET = 'via-cache'
 
 MIN_ACC_SCORE = float(os.getenv('MIN_ACC_SCORE', '0.001'))
 MIN_PER_JOURNEY_USAGE = float(os.getenv('MIN_PER_JOURNEY_USAGE', '1'))
