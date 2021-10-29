@@ -6,7 +6,7 @@ warnings.filterwarnings('ignore', '.*Geometry is in a geographic CRS.*', )
 import osmnx as ox
 
 from via import settings
-from via.logging import logger
+from via.log import logger
 
 
 # overpass api clone for this so we can disable rate limiting and not feel bad
