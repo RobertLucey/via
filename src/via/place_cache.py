@@ -29,6 +29,13 @@ class PlaceCache():
                 }
         return None
 
+    def is_in_place(self, bbox: dict, place_name: str):
+        place_name = place_name.lower().replace(',', '')
+        try:
+            return is_within(bbox, self.data[place_name])
+        except KeyError:
+            return False
+
     def get(self, place_name: str) -> Mapping[str, float]:
         """
         Get the lat long bounds of a place

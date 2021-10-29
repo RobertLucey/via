@@ -373,6 +373,15 @@ class FramePoints(GenericObjects):
         return min([frame.gps.lng for frame in self])
 
     @property
+    def bbox(self):
+        return {
+            'north': self.most_northern,
+            'south': self.most_southern,
+            'east': self.most_eastern,
+            'west': self.most_western,
+        }
+
+    @property
     def data_quality(self):
         """
         Get the percentage of frames that are good. Should
@@ -486,13 +495,4 @@ class FramePoints(GenericObjects):
             To see if the place name is valid try graph_from_place(place).
             Might be good to do that in here and throw an ex if it's not found
         """
-        try:
-            place_bounds = place_cache.get(place_name)
-            return all([
-                self.most_northern < place_bounds['north'],
-                self.most_southern > place_bounds['south'],
-                self.most_eastern < place_bounds['east'],
-                self.most_western > place_bounds['west']
-            ])
-        except ValueError:
-            return False
+        return place_cache.is_in_place(self.bbox, place_name)
