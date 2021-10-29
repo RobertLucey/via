@@ -19,6 +19,18 @@ class GPSPoint():
     sometimes libraries expect (lng, lat)
     """
 
+    def __del__(self):
+        attrs_to_del = [
+            'reverse_geo',
+            'content_hash'
+        ]
+
+        for attr in attrs_to_del:
+            try:
+                delattr(self, attr)
+            except:
+                pass
+
     def __init__(self, lat: float, lng: float, elevation=None):
         """
 
