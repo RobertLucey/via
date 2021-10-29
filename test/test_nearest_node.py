@@ -1,4 +1,5 @@
 import json
+import pickle
 import random
 
 from mock import patch
@@ -14,7 +15,8 @@ from via.models.frame import Frame, Frames
 class NearestNodeTest(TestCase):
 
     def setUp(self):
-        self.graph = ox.graph_from_place('Dublin, Ireland')
+        with open('test/resources/dublin_graph.pickle', 'rb') as f:
+            self.graph = pickle.load(f)
         self.points = [
             (-6.295029, 53.348127),
             (-6.259481, 53.344463),

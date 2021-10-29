@@ -1,21 +1,16 @@
-import json
-import random
-
-from mock import patch
-
-import osmnx as ox
+import pickle
 
 from unittest import TestCase
 
 from via.nearest_edge import NearestEdgeCache
-from via.models.frame import Frame, Frames
 from via.models.point import FramePoint
 
 
 class NearestEdgeTest(TestCase):
 
     def setUp(self):
-        self.graph = ox.graph_from_place('Dublin, Ireland')
+        with open('test/resources/dublin_graph.pickle', 'rb') as f:
+            self.graph = pickle.load(f)
 
     def test_get(self):
         cache = NearestEdgeCache()
