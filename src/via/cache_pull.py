@@ -122,5 +122,5 @@ def is_cache_already_pulled() -> bool:
     if already_pulled:
         logger.info('Assuming the cache is up to date')
     else:
-        logger.info('Cache is not up to date')
+        logger.warning('Cache is not up to date')
     return already_pulled
