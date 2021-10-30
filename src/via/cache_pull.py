@@ -1,4 +1,5 @@
 import os
+import re
 import zipfile
 import shutil
 from packaging import version
@@ -59,8 +60,8 @@ def download_cache():
     pull_version = valid_versions[0]
 
     if pull_version[0] != version.parse(VERSION):
-        logger.warn(
-            'Pulling an older cache which may not be compatible. Current %s Pulling %s',
+        logger.warning(
+            'Pulling the most recent (older) cache which may not be compatible. Current %s Pulling %s',
             VERSION,
             pull_version[0]
         )
@@ -91,6 +92,12 @@ def extract_cache():
     latest_cache_filepath = os.path.join(BASE_PATH, latest_cache_file)
     with zipfile.ZipFile(latest_cache_filepath, 'r') as zip_ref:
         zip_ref.extractall(BASE_PATH)
+
+    for root, dirs, files in os.walk(CACHE_DIR):
+        for d in dirs:
+            original = os.path.join(root, d)
+            new_dir = re.sub(r'/\d+\.\d+\.\d+/?', f'/{VERSION}/', original)
+            shutil.move(original, new_dir)
 
 
 def is_cache_already_pulled():
