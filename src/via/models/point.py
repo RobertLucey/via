@@ -28,6 +28,17 @@ class Context():
         self.context_pre = []
         self.context_post = []
 
+    def __del__(self):
+        attrs_to_del = [
+            'content_hash'
+        ]
+
+        for attr in attrs_to_del:
+            try:
+                delattr(self, attr)
+            except:
+                pass
+
     def set_context(self, pre=None, post=None):
         if not self.is_context_populated:
             self.context_pre = pre
@@ -355,6 +366,18 @@ class FramePoints(GenericObjects):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('child_class', FramePoint)
         super().__init__(*args, **kwargs)
+
+    def __del__(self):
+        super().__del__()
+        attrs_to_del = [
+            'country'
+        ]
+
+        for attr in attrs_to_del:
+            try:
+                delattr(self, attr)
+            except:
+                pass
 
     @property
     def most_northern(self):

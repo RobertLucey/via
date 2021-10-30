@@ -77,6 +77,19 @@ class Journey(
 
         self.last_gps = None
 
+    def __del__(self):
+        super().__del__()
+        attrs_to_del = [
+            'edge_quality_map',
+            'route_graph'
+        ]
+
+        for attr in attrs_to_del:
+            try:
+                delattr(self, attr)
+            except:
+                pass
+
     @staticmethod
     def parse(objs):
         if isinstance(objs, Journey):
