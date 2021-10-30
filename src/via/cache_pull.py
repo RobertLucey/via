@@ -102,8 +102,7 @@ def extract_cache():
 
 def is_cache_already_pulled():
     return all([
-        os.path.exists(os.path.join(CACHE_DIR, 'edge_cache')),
-        os.path.exists(os.path.join(CACHE_DIR, 'network_cache')),
-        os.path.exists(os.path.join(CACHE_DIR, 'bounding_graph_gdfs_cache')),
-        # TODO: check size of dir or something
+        os.path.exists(os.path.join(CACHE_DIR, 'edge_cache', VERSION)),
+        os.path.exists(os.path.join(CACHE_DIR, 'network_cache', VERSION)),
+        os.path.exists(os.path.join(CACHE_DIR, 'bounding_graph_gdfs_cache', VERSION)),
     ])
