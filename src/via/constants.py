@@ -2,11 +2,11 @@ import os
 
 METRES_PER_DEGREE = 110574.38855780
 
-BASE_PATH = '/opt/via/' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/via'
+BASE_DIR = '/opt/via/' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/via'
 
-DATA_DIR = os.path.join(BASE_PATH, 'data')
-GENERATED_DIR = os.path.join(BASE_PATH, 'generated')
-CACHE_DIR = os.path.join(BASE_PATH, 'cache')
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+GENERATED_DIR = os.path.join(BASE_DIR, 'generated')
+CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 
 REMOTE_DATA_DIR = os.path.join(DATA_DIR, 'raw')
 

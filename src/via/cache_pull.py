@@ -15,7 +15,7 @@ from via.settings import (
     VERSION
 )
 from via.constants import (
-    BASE_PATH,
+    BASE_DIR,
     CACHE_DIR
 )
 
@@ -69,13 +69,13 @@ def download_cache():
     s3.download_file(
         PREPARED_CACHE_BUCKET,
         pull_version[1],
-        os.path.join(BASE_PATH, f'cache_{pull_version[1]}')
+        os.path.join(BASE_DIR, f'cache_{pull_version[1]}')
     )
 
 
 def extract_cache():
     cache_files = [
-        f for f in os.listdir(BASE_PATH) if all([
+        f for f in os.listdir(BASE_DIR) if all([
             f.startswith('cache_'),
             f.endswith('.zip')
         ])
@@ -89,9 +89,9 @@ def extract_cache():
 
     shutil.rmtree(CACHE_DIR, ignore_errors=True)
 
-    latest_cache_filepath = os.path.join(BASE_PATH, latest_cache_file)
+    latest_cache_filepath = os.path.join(BASE_DIR, latest_cache_file)
     with zipfile.ZipFile(latest_cache_filepath, 'r') as zip_ref:
-        zip_ref.extractall(BASE_PATH)
+        zip_ref.extractall(BASE_DIR)
 
     for root, dirs, files in os.walk(CACHE_DIR):
         for d in dirs:
