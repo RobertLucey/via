@@ -13,6 +13,7 @@ from via import logger
 from via.settings import VERSION
 from via.constants import EDGE_CACHE_DIR
 from via.utils import get_combined_id, get_graph_id
+from via.bounding_graph_gdfs_cache import utils_bounding_graph_gdfs_cache
 
 
 GEOM_RTREE_CACHE = defaultdict(dict)
@@ -31,7 +32,13 @@ def nearest_edges(G, X, Y, return_dist=False):
         geoms = GEOM_RTREE_CACHE[graph_id]['geoms']
         rtree = GEOM_RTREE_CACHE[graph_id]['rtree']
     else:
-        geoms = utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
+        if utils_bounding_graph_gdfs_cache.get(get_graph_id(G)) is None:
+            utils_bounding_graph_gdfs_cache.set(
+                get_graph_id(G),
+                utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
+            )
+
+        geoms = utils_bounding_graph_gdfs_cache.get(get_graph_id(G))
 
         rtree = RTreeIndex()
         for pos, bounds in enumerate(geoms.bounds.values):

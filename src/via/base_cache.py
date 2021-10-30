@@ -64,6 +64,7 @@ class BaseCache():
 
         with open(self.fp, 'rb') as f:
             self.data = pickle.load(f)
+
         self.loaded = True
         self.last_save_len = len(self.data)
 
@@ -131,11 +132,12 @@ class BaseCaches():
             return self.data[self.refs[k]].get(k)
         return None
 
+    def get_fn(self, obj):
+        raise NotImplementedError()
+
     def set(self, k: Any, v: Any, skip_save: bool = False):
-        fn = '%s_%s.pickle' % (
-            round(min(v[0].geometry.x), 1),
-            round(min(v[0].geometry.y), 1)
-        )
+        fn = self.get_fn(v)
+
         if fn not in self.data:
             self.data[fn] = self.child_class(fn=fn)
         self.data[fn].set(k, v)
