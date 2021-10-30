@@ -373,15 +373,8 @@ class Collisions(BaseCollisions):
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
-        pool = Pool(processes=max(cpu_count() - 1, 1))
-        maps = [
-            i for i in pool.imap_unordered(
-                Collisions.split_collisions,
-                self
-            ) if i[0] is not None
-        ]
-        pool.close()
-        pool.join()
+        maps = [Collisions.split_collisions(c) for c in self]
+        maps = [m for m in maps if m[0] is not None]
 
         network_id_collisions_map = [
             (k, Collisions(data=[x for _, x in g])) for k, g in groupby(
