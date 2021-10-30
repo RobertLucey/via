@@ -368,7 +368,6 @@ class FramePoints(GenericObjects):
         super().__init__(*args, **kwargs)
 
     def __del__(self):
-        super().__del__()
         attrs_to_del = [
             'country'
         ]

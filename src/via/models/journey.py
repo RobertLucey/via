@@ -78,7 +78,6 @@ class Journey(
         self.last_gps = None
 
     def __del__(self):
-        super().__del__()
         attrs_to_del = [
             'edge_quality_map',
             'route_graph'

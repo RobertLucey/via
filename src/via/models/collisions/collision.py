@@ -44,7 +44,6 @@ from via.geojson.utils import geojson_from_graph
 class Collision(BaseCollision):
 
     def __del__(self):
-        super().__del__()
         attrs_to_del = [
             'gps_hash',
             'lat_span',
