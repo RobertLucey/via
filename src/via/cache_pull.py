@@ -21,6 +21,7 @@ from via.constants import (
 
 
 def download_cache():
+    logger.info('Downloading cache')
     os.makedirs(
         CACHE_DIR,
         exist_ok=True
@@ -74,6 +75,7 @@ def download_cache():
 
 
 def extract_cache():
+    logger.info('Extracting cache')
     cache_files = [
         f for f in os.listdir(BASE_DIR) if all([
             f.startswith('cache_'),
@@ -101,8 +103,13 @@ def extract_cache():
 
 
 def is_cache_already_pulled():
-    return all([
+    already_pulled = all([
         os.path.exists(os.path.join(CACHE_DIR, 'edge_cache', VERSION)),
         os.path.exists(os.path.join(CACHE_DIR, 'network_cache', VERSION)),
         os.path.exists(os.path.join(CACHE_DIR, 'bounding_graph_gdfs_cache', VERSION)),
     ])
+    if already_pulled:
+        logger.info('Assuming the cache is up to date')
+    else:
+        logger.info('Cache is not up to date')
+    return already_pulled
