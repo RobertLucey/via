@@ -16,7 +16,10 @@ from via.settings import (
 )
 from via.constants import (
     BASE_DIR,
-    CACHE_DIR
+    CACHE_DIR,
+    EDGE_CACHE_DIR,
+    NETWORK_CACHE_DIR,
+    BOUNDING_GRAPH_GDFS_CACHE
 )
 
 
@@ -95,18 +98,26 @@ def extract_cache():
     with zipfile.ZipFile(latest_cache_filepath, 'r') as zip_ref:
         zip_ref.extractall(BASE_DIR)
 
+    # make sure that the version numbers of whatever cache we downloaded
+    # are changed to the current version so that the caches can be picked up
     for root, dirs, files in os.walk(CACHE_DIR):
-        for d in dirs:
-            original = os.path.join(root, d)
+        for dir_name in dirs:
+            original = os.path.join(root, dir_name)
             new_dir = re.sub(r'/\d+\.\d+\.\d+/?', f'/{VERSION}/', original)
             shutil.move(original, new_dir)
 
 
-def is_cache_already_pulled():
+def is_cache_already_pulled() -> bool:
+    """
+    Determine if there is already a valid cache to use
+
+    Could be smarter about this and see if the cache is somewhat full
+    """
+
     already_pulled = all([
-        os.path.exists(os.path.join(CACHE_DIR, 'edge_cache', VERSION)),
-        os.path.exists(os.path.join(CACHE_DIR, 'network_cache', VERSION)),
-        os.path.exists(os.path.join(CACHE_DIR, 'bounding_graph_gdfs_cache', VERSION)),
+        os.path.exists(os.path.join(EDGE_CACHE_DIR, VERSION)),
+        os.path.exists(os.path.join(NETWORK_CACHE_DIR, VERSION)),
+        os.path.exists(os.path.join(BOUNDING_GRAPH_GDFS_CACHE, VERSION)),
     ])
     if already_pulled:
         logger.info('Assuming the cache is up to date')

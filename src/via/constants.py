@@ -10,9 +10,13 @@ CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 
 REMOTE_DATA_DIR = os.path.join(DATA_DIR, 'raw')
 
-EDGE_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_cache')
-EDGE_DATA_CACHE_DIR = os.path.join(CACHE_DIR, 'edge_data_cache')
-NETWORK_CACHE_DIR = os.path.join(CACHE_DIR, 'network_cache')
+EDGE_CACHE_NAME = 'edge_cache'
+NETWORK_CACHE_NAME = 'network_cache'
+BOUNDING_GRAPH_GDFS_NAME = 'bounding_graph_gdfs_cache'
+
+EDGE_CACHE_DIR = os.path.join(CACHE_DIR, EDGE_CACHE_NAME)
+NETWORK_CACHE_DIR = os.path.join(CACHE_DIR, NETWORK_CACHE_NAME)
+BOUNDING_GRAPH_GDFS_CACHE = os.path.join(CACHE_DIR, BOUNDING_GRAPH_GDFS_NAME)
 
 GEOJSON_DIR = os.path.join(GENERATED_DIR, 'geojson')
 
