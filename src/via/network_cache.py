@@ -294,15 +294,17 @@ class GroupedNetworkCaches():
         return None
 
     def set(self, k, v, skip_save=False):
-        x = int(
+        x = round(
             min(
                 [d['x'] for d in dict(v.nodes(data=True)).values()]
-            )
+            ),
+            2
         )
-        y = int(
+        y = round(
             min(
                 [d['y'] for d in dict(v.nodes(data=True)).values()]
-            )
+            ),
+            2
         )
         fn = '%s_%s' % (x, y)
         if fn not in self.data:
@@ -354,6 +356,7 @@ class GroupedNetworkCaches():
             except:
                 initial_memory = -1
 
+        # TODO: locking
         for v in self.data.values():
             if v.since_last_accessed > 60:
                 v.unload()
