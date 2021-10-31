@@ -233,6 +233,14 @@ class FramePoint(Context, GenericObject):
 
             return best_edge['edge']
 
+        # remove footway (unless there's no other options).
+        # May want to keep included if it's the only thing close
+        if graph is not None:
+            without_footway = [e for e in edges if graph.edges[e[0]]['highway'] != 'footway']
+            if without_footway != []:
+                edges = without_footway
+
+
         if mode is None:
             mode = default_mode
 
