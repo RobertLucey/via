@@ -22,10 +22,6 @@ MAX_JOURNEY_VERSION = version.parse(os.getenv('MAX_JOURNEY_VERSION', '999.999.99
 # Intervals are generally 2 seconds
 GPS_INCLUDE_RATIO = int(os.getenv('GPS_INCLUDE_RATIO', '2'))
 
-VIZ_INITIAL_LAT = float(os.getenv('VIZ_INITIAL_LAT', 53.35))
-VIZ_INITIAL_LNG = float(os.getenv('VIZ_INITIAL_LNG', -6.26))
-VIZ_INITIAL_ZOOM = int(os.getenv('VIZ_INITIAL_ZOOM', 12))
-
 NEAREST_EDGE_METHOD = os.getenv('NEAREST_EDGE_METHOD', 'angle_nearest')
 CLOSE_ANGLE_TO_ROAD = float(os.getenv('CLOSE_ANGLE_TO_ROAD', 15))
 
