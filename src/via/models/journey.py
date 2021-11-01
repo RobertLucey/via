@@ -361,7 +361,7 @@ class Journey(
 
         nearest_edge.get(bounding_graph, self._data)
 
-        edges_list = []
+        raw_edges_list = []
         for (our_origin, our_destination) in window(self, window_size=2):
             nearest_edges = nearest_edge.get(
                 bounding_graph,
@@ -382,7 +382,7 @@ class Journey(
                 graph=route_graph
             )
 
-            edges_list.append(
+            raw_edges_list.append(
                 [
                     get_combined_id(edge[0][0], edge[0][1]),
                     our_edge_data
@@ -390,7 +390,7 @@ class Journey(
             )
 
         edges_list = []
-        for (pre, current, post) in window(edges_list, window_size=3):
+        for (pre, current, post) in window(raw_edges_list, window_size=3):
             if pre[0] == post[0] and current[0] != pre[0]:
                 current[0] = pre[0]
             edges_list.append(current)
