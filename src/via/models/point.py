@@ -236,10 +236,18 @@ class FramePoint(Context, GenericObject):
         # remove footway (unless there's no other options).
         # May want to keep included if it's the only thing close
         if graph is not None:
-            without_footway = [e for e in edges if graph.edges[e[0]]['highway'] != 'footway']
-            if without_footway != []:
-                edges = without_footway
+            without_footway = []
+            for edge in edges:
+                highway = graph.edges[edge[0]]['highway']
+                include = True
 
+                if isinstance(highway, list):
+                    include = 'footway' not in highway
+                elif isinstance(highway, list):
+                    include = 'footway' != highway
+
+                if include:
+                    without_footway.append(edge)
 
         if mode is None:
             mode = default_mode
