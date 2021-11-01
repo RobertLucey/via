@@ -32,10 +32,6 @@ CLOSE_ANGLE_TO_ROAD = float(os.getenv('CLOSE_ANGLE_TO_ROAD', 15))
 DEFAULT_OVERPASS_API = os.getenv('DEFAULT_OVERPASS_API', 'https://overpass-api.de/api')
 CUSTOM_OVERPASS_API = os.getenv('CUSTOM_OVERPASS_API', 'http://54.73.95.15/api')
 
-ENABLE_SSL = True if os.getenv('ENABLE_SSL', 'False').lower()[0] == 't' else False
-KEYFILE = os.getenv('VIA_KEYFILE', None)
-CERTFILE = os.getenv('VIA_CERTFILE', None)
-
 ENABLE_COLLISIONS = True if os.getenv('ENABLE_COLLISIONS', 'False').lower()[0] == 't' else False
 
 CLEAN_MEMORY = os.getenv('TEST_ENV', 'False') == 'False'
