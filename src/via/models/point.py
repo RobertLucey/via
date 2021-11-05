@@ -250,8 +250,10 @@ class FramePoint(Context, GenericObject):
                 highway = graph.edges[edge[0]]['highway']
                 include = True
 
-                if isinstance(highway, list):
+                if not isinstance(highway, list):
                     include = highway not in highways_to_exclude
+
+                # TODO: if highway is a list be more fancy
 
                 if include:
                     without_footway.append(edge)
