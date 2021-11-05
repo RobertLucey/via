@@ -10,6 +10,7 @@ from multiprocessing import (
 from multiprocessing.dummy import Pool as ThreadPool
 from itertools import groupby
 from operator import itemgetter
+from collections import defaultdict
 
 from cached_property import cached_property
 from haversine import (
@@ -117,6 +118,21 @@ class Collisions(BaseCollisions):
     def danger(self):
         # FIXME: generally improve
         return len(self)
+
+    @property
+    def danger_by_vehicle_type(self):
+
+        type_collisions = [
+            (c.vehicle_type, c) for c in self
+        ]
+
+        d = defaultdict(Collisions)
+        for x, y in type_collisions:
+            d[x].append(y)
+
+        return {
+            k: v.danger for k, v in d.items()
+        }
 
     @property
     def most_northern(self):
@@ -431,6 +447,45 @@ class Collisions(BaseCollisions):
 
         return perc_bad
 
+    # want to get {edge_id: [collision, collision]}
+
+    @property
+    def edge_collision_map(self):
+
+        data = defaultdict(Collisions)
+
+        for _, network_collision_dict in self.network_collision_map.items():
+
+            network = network_collision_dict['network']
+            collisions = network_collision_dict['collisions']
+
+            edges = nearest_edge.get(network, collisions)
+
+            used_edges = []
+            used_node_ids = []
+            for edge in edges:
+                # TODO: get closest, we just use the first
+                used_edges.append(tuple(edge[0][0]))
+                used_node_ids.extend(
+                    [
+                        edge[0][0][0],
+                        edge[0][0][1]
+                    ]
+                )
+
+            associated = list(zip(used_edges, collisions))
+
+            for k, g in groupby(
+                sorted(associated, key=itemgetter(0)),
+                itemgetter(0)
+            ):
+                # TODO: are there ever overwrites?
+                data[get_combined_id(k[0], k[1])] = Collisions(
+                    data=[x for _, x in g]
+                )
+
+        return data
+
     @property
     def geojson(self):
         if os.path.exists(self.fp):
@@ -447,7 +502,7 @@ class Collisions(BaseCollisions):
 
         geojson_features = []
 
-        for k, network_collision_dict in self.network_collision_map.items():
+        for _, network_collision_dict in self.network_collision_map.items():
 
             network = network_collision_dict['network']
             collisions = network_collision_dict['collisions']

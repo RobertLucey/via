@@ -32,3 +32,6 @@ def generate_geojson():
                     **filters
                 )
                 collisions.geojson
+
+
+edge_collision_map = get_collisions().edge_collision_map

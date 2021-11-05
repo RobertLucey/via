@@ -32,6 +32,7 @@ from via.models.journey_mixins import (
     GeoJsonMixin,
     BoundingGraphMixin
 )
+from via.collisions import edge_collision_map
 
 
 class Journey(
@@ -191,6 +192,9 @@ class Journey(
                         self.too_slow = False
 
             if self.too_slow:
+                # If we want real speed we cannot return here without
+                # appending the frame
+                # possibly add all and annotate to skip due to speed
                 return
 
             if self._data[-1].gps == frame.gps:
@@ -326,13 +330,19 @@ class Journey(
         :rtype: dict
         """
 
+        # for accidents only get the ones on edges we have
+
+        # TODO: collisions should be filtered
+
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
             qualities = [edge['avg_road_quality'] for edge in single_edge_data]
             if len(qualities) == 0:
                 data[edge_id] = {
                     'avg': 0,
-                    'count': 0
+                    'count': 0,
+                    'speed': 0,
+                    'accidents': edge_collision_map[edge_id].danger_by_vehicle_type
                 }
             else:
                 data[edge_id] = {
@@ -341,7 +351,9 @@ class Journey(
                             qualities
                         )
                     ),
-                    'count': len(qualities)
+                    'count': len(qualities),
+                    'speed': 0,
+                    'accidents': edge_collision_map[edge_id].danger_by_vehicle_type
                 }
 
         return {
@@ -432,18 +444,23 @@ class Journey(
                     'destination': destination,
                     'distance': distance,
                     'road_quality': origin.road_quality,
+                    'speed': 0,
+                    'accidents': edge_collision_map[edge_id].danger_by_vehicle_type
                     # TODO: other bits, speed / elevation maybe?
                 }
             )
 
         merged_edge_data = {}
         for shared_id, values in combined_edge_data.items():
+
             merged_edge_data[shared_id] = {
                 'origin': values[0]['origin'],
                 'destination': values[0]['destination'],
                 'distance': values[0]['distance'],
                 'avg_road_quality': statistics.mean([val['road_quality'] for val in values]),
-                'max_road_quality': max([val['road_quality'] for val in values])
+                'max_road_quality': max([val['road_quality'] for val in values]),
+                'speed': 0,
+                'accidents': values[0]['accidents']
             }
 
         for shared_id, values in merged_edge_data.items():
