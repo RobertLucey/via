@@ -32,7 +32,7 @@ from via.models.journey_mixins import (
     GeoJsonMixin,
     BoundingGraphMixin
 )
-from via.collisions import edge_collision_map
+#from via.collisions import edge_collision_map
 
 
 class Journey(
@@ -342,7 +342,7 @@ class Journey(
                     'avg': 0,
                     'count': 0,
                     'speed': 0,
-                    'accidents': edge_collision_map[edge_id].danger_by_vehicle_type
+                    'accidents': {}  # edge_collision_map[edge_id].danger_by_vehicle_type
                 }
             else:
                 data[edge_id] = {
@@ -353,7 +353,7 @@ class Journey(
                     ),
                     'count': len(qualities),
                     'speed': 0,
-                    'accidents': edge_collision_map[edge_id].danger_by_vehicle_type
+                    'accidents': {}  # edge_collision_map[edge_id].danger_by_vehicle_type
                 }
 
         return {
@@ -445,7 +445,7 @@ class Journey(
                     'distance': distance,
                     'road_quality': origin.road_quality,
                     'speed': 0,
-                    'accidents': edge_collision_map[edge_id].danger_by_vehicle_type
+                    'accidents': {}  # edge_collision_map[edge_id].danger_by_vehicle_type
                     # TODO: other bits, speed / elevation maybe?
                 }
             )
