@@ -60,35 +60,31 @@ def generate_geojson(
             latest_time=latest_time,
         )
 
-        versions = set([journey.version for journey in journeys])
+        basename = generate_basename(
+            name=config_item['name'],
+            version=config_item['version'],
+            version_op=config_item['version_op'],
+            earliest_time=config_item['earliest_time'],
+            latest_time=config_item['latest_time'],
+            place=config_item['place']
+        )
+        geojson_file = os.path.join(
+            GEOJSON_DIR,
+            f'{basename}.geojson'
+        )
 
-        for version in versions:
-
-            basename = generate_basename(
-                name=config_item['name'],
-                version=version,
-                version_op=config_item['version_op'],
-                earliest_time=config_item['earliest_time'],
-                latest_time=config_item['latest_time'],
-                place=config_item['place']
-            )
-            geojson_file = os.path.join(
-                GEOJSON_DIR,
-                f'{basename}.geojson'
-            )
-
-            journeys = Journeys(
-                data=[
-                    journey for journey in journeys if should_include_journey(
-                        journey,
-                        version_op=getattr(operator, version_op) if version_op is not None else None,
-                        version=version
-                    )
-                ]
-            )
-
-            with open(geojson_file, 'w') as json_file:
-                fast_json.dump(
-                    journeys.geojson,
-                    json_file
+        journeys = Journeys(
+            data=[
+                journey for journey in journeys if should_include_journey(
+                    journey,
+                    version_op=getattr(operator, version_op) if version_op is not None else None,
+                    version=version
                 )
+            ]
+        )
+
+        with open(geojson_file, 'w') as json_file:
+            fast_json.dump(
+                journeys.geojson,
+                json_file
+            )
