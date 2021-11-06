@@ -82,6 +82,7 @@ class NearestEdgeCache():
         self.last_save_len = -1
         self.last_saved_time = datetime.datetime.utcnow()
         self.saver()
+        print('len: %s' % (len(self.data)))
 
     def saver(self):
         self.load()
@@ -164,7 +165,6 @@ class NearestEdgeCache():
                 os.path.dirname(self.fp),
                 exist_ok=True
             )
-            self.save()
         with open(self.fp, 'r') as f:
             self.data = fast_json.loads(f.read())
         self.loaded = True
