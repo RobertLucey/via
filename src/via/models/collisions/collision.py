@@ -563,6 +563,7 @@ class Collisions(BaseCollisions):
             'features': geojson_features
         }
 
+        os.makedirs(GEOJSON_DIR, exist_ok=True)
         with open(self.fp, 'w') as geojson_file:
             geojson_file.write(fast_json.dumps(geojson))
 
