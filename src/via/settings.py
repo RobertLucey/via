@@ -32,4 +32,6 @@ ENABLE_COLLISIONS = True if os.getenv('ENABLE_COLLISIONS', 'False').lower()[0] =
 
 CLEAN_MEMORY = os.getenv('TEST_ENV', 'False') == 'False'
 
+MAX_JOURNEY_METRES_SQUARED = 5e+7  # 50km^2
+
 VERSION = pkg_resources.require('via-api')[0].version

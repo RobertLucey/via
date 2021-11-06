@@ -25,3 +25,11 @@ LOG_LOCATION = '/var/log/via/via.log' if os.getenv('TEST_ENV', 'False') == 'Fals
 DEFAULT_EDGE_COLOUR = '#E1E1E1'
 
 POLY_POINT_BUFFER = 0.002
+
+HIGHWAYS_TO_EXCLUDE = {
+    'footway',
+    'steps',
+    'corridor',
+    'sidewalk',
+    'crossing'
+}

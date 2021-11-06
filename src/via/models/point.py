@@ -10,6 +10,7 @@ from shapely.geometry import (
 )
 
 from via import settings
+from via.constants import HIGHWAYS_TO_EXCLUDE
 from via import logger
 from via.place_cache import place_cache
 from via.models.generic import (
@@ -252,23 +253,16 @@ class FramePoint(Context, GenericObject):
         # May want to keep included if it's the only thing close
         if graph is not None:
 
-            highways_to_exclude = {
-                'footway',
-                'steps',
-                'corridor',
-                'sidewalk',
-                'crossing'
-            }
-
             without_footway = []
             for edge in edges:
                 highway = graph.edges[edge[0]]['highway']
                 include = True
 
                 if not isinstance(highway, list):
-                    include = highway not in highways_to_exclude
-
-                # TODO: if highway is a list be more fancy
+                    include = highway not in HIGHWAYS_TO_EXCLUDE
+                else:
+                    # TODO: if highway is a list be more fancy
+                    pass
 
                 if include:
                     without_footway.append(edge)

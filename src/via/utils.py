@@ -26,7 +26,8 @@ import fast_json
 from via import logger
 from via.settings import (
     MIN_JOURNEY_VERSION,
-    MAX_JOURNEY_VERSION
+    MAX_JOURNEY_VERSION,
+    MAX_JOURNEY_METRES_SQUARED
 )
 from via.constants import (
     METRES_PER_DEGREE,
@@ -182,7 +183,7 @@ def should_include_journey(
 
     # is is larger than 50km2
     # in time will split these into smaller journeys internally
-    if journey.area > 5e+7:
+    if journey.area > MAX_JOURNEY_METRES_SQUARED:
         return False
 
     return journey
@@ -255,6 +256,8 @@ def timing(function):
 def sleep_until(max_seconds: Number):
     """
     Decorator which sleeps until a given x seconds from starting if possible.
+
+    :param max_seconds:
     """
     def real_decorator(function):
         def wrapper(*args, **kwargs):
@@ -294,6 +297,10 @@ def window(sequence, window_size=2):
 def get_idx_default(lst: list, idx: int, default: Any) -> Any:
     """
     Get the ith elem of a list or a default value if out of range
+
+    :param lst:
+    :param idx:
+    :param default:
     """
     assert isinstance(lst, list)
     try:
@@ -470,19 +477,28 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
                 graph[start][end][0].update(
                     edge_data_map[graph_edge_id]
                 )
-            except:
+            except KeyError:
                 logger.error(f'Could not update edge: {start} {end}')
 
     return graph
 
 
-def get_slope(origin: GPSPoint, dst: GPSPoint):
+def get_slope(origin: GPSPoint, dst: GPSPoint) -> float:
+    """
+
+    :param origin: A GPSPoint
+    :param dst: A GPSPoint
+    :rtype: float
+    """
     return (origin.lng - dst.lng) / (origin.lat - dst.lat)
 
 
-def get_edge_slope(nodes, edge):
+def get_edge_slope(nodes: list, edge: list) -> float:
     """
     Given an edge, get the slope of it
+
+    :param nodes:
+    :param edge:
     """
     origin = nodes[edge[0][0][0]]
     dst = nodes[edge[0][0][1]]
@@ -493,7 +509,7 @@ def get_edge_slope(nodes, edge):
     return get_slope(origin, dst)
 
 
-def angle_between_slopes(s1, s2, ensure_positive=False, absolute=False):
+def angle_between_slopes(s1: float, s2: float, ensure_positive: bool = False, absolute: bool = False) -> float:
     """
 
     :param s1:
@@ -511,11 +527,13 @@ def angle_between_slopes(s1, s2, ensure_positive=False, absolute=False):
     return degrees
 
 
-def is_within(bbox, potentially_larger_bbox):
+def is_within(bbox: dict, potentially_larger_bbox: dict) -> bool:
     """
 
     :param bbox:
     :param potentially_larger_bbox:
+    :return: Is the first param within the second
+    :rtype: bool
     """
     return all([
         bbox['north'] <= potentially_larger_bbox['north'],
@@ -526,6 +544,9 @@ def is_within(bbox, potentially_larger_bbox):
 
 
 def area_from_coords(obj):
+    """
+    Returns the area of a box in metres per second
+    """
     if 'north' in obj.keys():
         vert = obj['north'] - obj['south']
         hori = obj['east'] - obj['west']
@@ -559,7 +580,7 @@ def area_from_coords(obj):
 
 
 @lru_cache(maxsize=5)
-def get_graph_id(graph, unreliable=False):
+def get_graph_id(graph: MultiDiGraph, unreliable: bool = False) -> str:
     """
 
     TODO: have a supporting function that just gets the quick unreliable
@@ -574,7 +595,9 @@ def get_graph_id(graph, unreliable=False):
 
 
 def get_size(obj, seen=None):
-    """Recursively finds size of objects"""
+    """
+    Recursively finds size of objects
+    """
     size = sys.getsizeof(obj)
     if seen is None:
         seen = set()
