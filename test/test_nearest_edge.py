@@ -48,10 +48,7 @@ class NearestEdgeTest(TestCase):
                 )
             ]
         )
-        cache.save()
-
         cache = NearestEdgeCache()
-        self.assertEqual(cache.data, {})
         cache.load()
         print(cache.data.keys())
         self.assertTrue('489334746920999497411653940021' in cache.data.keys())
