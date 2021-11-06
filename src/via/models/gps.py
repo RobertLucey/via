@@ -47,14 +47,15 @@ class GPSPoint():
 
     @staticmethod
     def parse(obj):
-        if isinstance(obj, GPSPoint):
-            return obj
-
         if isinstance(obj, list):
             return GPSPoint(
                 obj[0],
                 obj[1]
             )
+
+        if isinstance(obj, GPSPoint):
+            return obj
+
         if isinstance(obj, dict):
             return GPSPoint(
                 obj['lat'],
@@ -142,4 +143,4 @@ class GPSPoint():
 
         :rtype: bool
         """
-        return isinstance(self.lat, (int, float)) and isinstance(self.lng, (int, float)) and self.lat != 0 and self.lng != 0
+        return isinstance(self.lat, (int, float)) and isinstance(self.lng, (int, float))
