@@ -82,7 +82,6 @@ class NearestEdgeCache():
         self.last_save_len = -1
         self.last_saved_time = datetime.datetime.utcnow()
         self.saver()
-        print('len: %s' % (len(self.data)))
 
     def saver(self):
         self.load()
@@ -91,10 +90,7 @@ class NearestEdgeCache():
             self.last_save_len < len(self.data),
             (datetime.datetime.utcnow() - self.last_saved_time).total_seconds() > 5
         ]):
-            logger.debug(f'Saving cache {self.fp}')
-            with open(self.fp, 'w') as f:
-                f.write(fast_json.dumps(self.data))
-            self.last_save_len = len(self.data)
+            self.save()
 
         saver = threading.Timer(
             10,
@@ -102,6 +98,13 @@ class NearestEdgeCache():
         )
         saver.daemon = True
         saver.start()
+
+    def save(self):
+        logger.debug(f'Saving cache {self.fp}')
+        with open(self.fp, 'w') as f:
+            f.write(fast_json.dumps(self.data))
+        self.last_save_len = len(self.data)
+        self.last_saved_time = datetime.datetime.utcnow()
 
     def get(self, graph, frames):
         """
@@ -165,6 +168,7 @@ class NearestEdgeCache():
                 os.path.dirname(self.fp),
                 exist_ok=True
             )
+            self.save()
         with open(self.fp, 'r') as f:
             self.data = fast_json.loads(f.read())
         self.loaded = True
