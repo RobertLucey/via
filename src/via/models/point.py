@@ -233,7 +233,22 @@ class FramePoint(Context, GenericObject):
 
             return best_edge['edge']
 
-        # remove footway (unless there's no other options).
+        if mode is None:
+            mode = default_mode
+
+        if mode in modes_require_graph:
+            if not graph:
+                logger.warning('graph not supplied to get_best_edge and mode \'%s\' was selected. Defaulting to mode \'%s\'', mode, default_mode)
+                return self.get_best_edge(edges, mode=default_mode)
+
+        if mode in modes_require_context:
+            if not self.is_context_populated:
+                logger.debug('Cannot use mode \'%s\' as point context is not populated, using mode \'%s\'', mode, default_mode)
+                # can probably warn if there's no post AND no pre, that would
+                # show there was no context ever set on the journey?
+                return self.get_best_edge(edges, mode='nearest')
+
+        # Remove footway (unless there's no other options).
         # May want to keep included if it's the only thing close
         if graph is not None:
 
@@ -260,21 +275,6 @@ class FramePoint(Context, GenericObject):
 
             if without_footway != []:
                 edges = without_footway
-
-        if mode is None:
-            mode = default_mode
-
-        if mode in modes_require_graph:
-            if not graph:
-                logger.warning('graph not supplied to get_best_edge and mode \'%s\' was selected. Defaulting to mode \'%s\'', mode, default_mode)
-                return self.get_best_edge(edges, mode=default_mode)
-
-        if mode in modes_require_context:
-            if not self.is_context_populated:
-                logger.debug('Cannot use mode \'%s\' as point context is not populated, using mode \'%s\'', mode, default_mode)
-                # can probably warn if there's no post AND no pre, that would
-                # show there was no context ever set on the journey?
-                return self.get_best_edge(edges, mode='nearest')
 
         if mode == 'nearest':
             return nearest()
