@@ -258,6 +258,9 @@ class FramePoint(Context, GenericObject):
                 if include:
                     without_footway.append(edge)
 
+            if without_footway != []:
+                edges = without_footway
+
         if mode is None:
             mode = default_mode
 
