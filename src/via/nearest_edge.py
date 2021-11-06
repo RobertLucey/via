@@ -1,4 +1,6 @@
 import os
+import threading
+import datetime
 from collections import defaultdict
 
 import fast_json
@@ -78,6 +80,27 @@ class NearestEdgeCache():
         self.loaded = False
         self.data = {}
         self.last_save_len = -1
+        self.last_saved_time = datetime.datetime.utcnow()
+        self.saver()
+
+    def saver(self):
+        self.load()
+
+        if all([
+            self.last_save_len < len(self.data),
+            (datetime.datetime.utcnow() - self.last_saved_time).total_seconds() > 5
+        ]):
+            logger.debug(f'Saving cache {self.fp}')
+            with open(self.fp, 'w') as f:
+                f.write(fast_json.dumps(self.data))
+            self.last_save_len = len(self.data)
+
+        saver = threading.Timer(
+            10,
+            self.saver
+        )
+        saver.daemon = True
+        saver.start()
 
     def get(self, graph, frames):
         """
@@ -88,8 +111,7 @@ class NearestEdgeCache():
             Each frame having its own list of closest few roads
         """
 
-        if not self.loaded:
-            self.load()
+        self.load()
 
         # FIXME: should use frame hash rather than gps hash as we want context too
         frame_ids_to_get = [
@@ -130,21 +152,12 @@ class NearestEdgeCache():
             str(f.gps_hash): self.data.get(str(f.gps_hash), None) for f in frames
         }
 
-        self.save()
-
         return list(requested_frame_edge_map.values())
 
-    def save(self):
-        logger.debug(f'Saving cache {self.fp}')
-        if any([
-            not os.path.exists(self.fp),
-            len(self.data) > self.last_save_len and self.last_save_len >= 0
-        ]):
-            with open(self.fp, 'w') as f:
-                f.write(fast_json.dumps(self.data))
-        self.last_save_len = len(self.data)
-
     def load(self):
+        if self.loaded:
+            return
+
         logger.debug(f'Loading cache {self.fp}')
         if not os.path.exists(self.fp):
             os.makedirs(

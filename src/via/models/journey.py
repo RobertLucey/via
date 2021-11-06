@@ -407,8 +407,6 @@ class Journey(
                 edge[1]
             )
 
-        nearest_edge.save()
-
         return data
 
     @cached_property
