@@ -3,8 +3,9 @@ import logging
 import threading
 import datetime
 import pickle
-import json
 from typing import List, Any
+
+import fast_json
 
 from via import logger
 from via import settings
@@ -119,9 +120,9 @@ class BaseCaches():
         os.makedirs(self.dir, exist_ok=True)
         if not os.path.exists(self.refs_path):
             with open(self.refs_path, 'w') as refs_file:
-                refs_file.write(json.dumps({}))
+                refs_file.write(fast_json.dumps({}))
         with open(self.refs_path, 'r') as refs_file:
-            self.refs = json.loads(refs_file.read())
+            self.refs = fast_json.loads(refs_file.read())
 
         if CLEAN_MEMORY:
             self.memory_cleaner()
@@ -150,7 +151,7 @@ class BaseCaches():
 
     def save_refs(self):
         with open(self.refs_path, 'w') as refs_file:
-            refs_file.write(json.dumps(self.refs))
+            refs_file.write(fast_json.dumps(self.refs))
 
     def load(self):
         """

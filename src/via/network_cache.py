@@ -1,15 +1,15 @@
-import json
 import datetime
 import logging
 import os
 import pickle
 import threading
 
+import fast_json
 import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
 
 from via import settings
-from via.constants import NETWORK_CACHE_DIR, CACHE_DIR
+from via.constants import NETWORK_CACHE_DIR
 from via import logger
 from via.utils import (
     is_within,
@@ -255,9 +255,9 @@ class GroupedNetworkCaches():
         os.makedirs(self.dir, exist_ok=True)
         if not os.path.exists(self.refs_path):
             with open(self.refs_path, 'w') as refs_file:
-                refs_file.write(json.dumps({}))
+                refs_file.write(fast_json.dumps({}))
         with open(self.refs_path, 'r') as refs_file:
-            self.refs = json.loads(refs_file.read())
+            self.refs = fast_json.loads(refs_file.read())
 
         if settings.CLEAN_MEMORY:
             self.memory_cleaner()
@@ -322,7 +322,7 @@ class GroupedNetworkCaches():
 
     def save_refs(self):
         with open(self.refs_path, 'w') as refs_file:
-            refs_file.write(json.dumps(self.refs))
+            refs_file.write(fast_json.dumps(self.refs))
 
     def load(self):
         """

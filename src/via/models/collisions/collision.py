@@ -1,7 +1,6 @@
 import hashlib
 import urllib
 import os
-import json
 import glob
 from multiprocessing import (
     Pool,
@@ -17,6 +16,7 @@ from haversine import (
     haversine,
     Unit
 )
+import fast_json
 
 import osmnx as ox
 
@@ -287,7 +287,7 @@ class Collisions(BaseCollisions):
     def from_file(filepath):
         data = None
         with open(filepath, 'r') as collisions_filepath:
-            data = json.loads(collisions_filepath.read())
+            data = fast_json.loads(collisions_filepath.read())
 
         collisions = Collisions()
         for collision_dict in data:
