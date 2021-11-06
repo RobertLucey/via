@@ -490,7 +490,7 @@ class Collisions(BaseCollisions):
     def geojson(self):
         if os.path.exists(self.fp):
             with open(self.fp, 'r') as geojson_file:
-                return json.loads(geojson_file.read())
+                return fast_json.loads(geojson_file.read())
 
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
