@@ -564,6 +564,6 @@ class Collisions(BaseCollisions):
         }
 
         with open(self.fp, 'w') as geojson_file:
-            geojson_file.write(json.dumps(geojson))
+            geojson_file.write(fast_json.dumps(geojson))
 
         return geojson
