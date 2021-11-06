@@ -158,18 +158,20 @@ class Journey(
 
             frame = Frame.parse(obj)
 
-            if not frame.gps.is_populated:
-                if not hasattr(self, 'last_gps'):
-                    return
-                if self.last_gps is None:
-                    return
-                frame.gps = self.last_gps
-            else:
+            frame_gps_populated = frame.gps.is_populated
+
+            if frame_gps_populated:
                 if self.gps_inclusion_iter % settings.GPS_INCLUDE_RATIO == 0:
                     self.last_gps = frame.gps
                 else:
                     frame.gps = self.last_gps
                 self.gps_inclusion_iter += 1
+            else:
+                if not hasattr(self, 'last_gps'):
+                    return
+                if self.last_gps is None:
+                    return
+                frame.gps = self.last_gps
 
             if len(self._data) == 0:
                 self._data.append(
@@ -179,7 +181,7 @@ class Journey(
 
             # Remove points that are too slow / fast in relation to
             # the previous point
-            if frame.gps.is_populated:
+            if frame_gps_populated or frame.gps.is_populated:
                 metres_per_second = self._data[-1].speed_between(frame)
                 if metres_per_second is not None:
                     if any([
