@@ -146,6 +146,8 @@ def iter_journeys(
             latest_time=latest_time
         ):
             yield journey
+        else:
+            logger.debug('Not including journey: %s', journey)
 
 
 def should_include_journey(
@@ -177,6 +179,11 @@ def should_include_journey(
     if latest_time is not None:
         if journey.timestamp > latest_time:
             return False
+
+    # is is larger than 50km2
+    # in time will split these into smaller journeys internally
+    if journey.area > 5e+7:
+        return False
 
     return journey
 

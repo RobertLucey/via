@@ -10,7 +10,8 @@ from via.utils import (
     filter_nodes_from_geodataframe,
     filter_edges_from_geodataframe,
     update_edge_data,
-    get_graph_id
+    get_graph_id,
+    area_from_coords
 )
 from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
@@ -174,3 +175,7 @@ class BoundingGraphMixin():
         Get a rectangular graph which contains the journey
         """
         return self.get_bounding_graph(use_graph_cache=True)
+
+    @property
+    def area(self):
+        return area_from_coords(self.bbox)
