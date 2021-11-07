@@ -249,6 +249,7 @@ class GroupedNetworkCaches():
         self.last_save_len = -1
         self.cache_type = kwargs['cache_type']
         self.child_class = SingleNetworkCache
+        self.lock = threading.RLock()
 
         # set up references
         self.refs = {}
@@ -264,33 +265,46 @@ class GroupedNetworkCaches():
 
     def get_by_id(self, graph_id):
         self.load()
+        self.lock.acquire()
         for obj in self.data.values():
             graph = obj.get_by_id(graph_id)
             if graph is not None:
+                self.lock.release()
                 return graph
+
+        self.lock.release()
 
     def get_at_point(self, gps_point):
         self.load()
         network_at_point = None
+        self.lock.acquire()
         for v in self.data.values():
             p = v.get_at_point(gps_point)
             if p:
                 network_at_point = p
+        self.lock.release()
         return network_at_point
 
     def get(self, obj):
         self.load()
+
         # if journey also do gps_hash
         from via.models.journey import Journey
         from via.models.journeys import Journeys
         if isinstance(obj, (Journey, Journeys)):
+            self.lock.acquire()
             for k, v in self.data.items():
                 result = v.get(obj)
                 if result is not None:
+                    self.lock.release()
                     return result
+            self.lock.release()
         else:
-            if obj in self.refs and self.refs[obj] in self.data:
-                return self.data[self.refs[obj]].get(obj)
+            self.lock.acquire()
+            if obj.gps_hash in self.refs and self.refs[obj.gps_hash] in self.data:
+                self.lock.release()
+                return self.data[self.refs[obj.gps_hash]].get(obj)
+            self.lock.release()
         return None
 
     def set(self, k, v, skip_save=False):
@@ -307,6 +321,7 @@ class GroupedNetworkCaches():
             2
         )
         fn = '%s_%s' % (x, y)
+        self.lock.acquire()
         if fn not in self.data:
             self.data[fn] = self.child_class(network_type=self.cache_type, fn=fn)
         self.data[fn].set(k, v)
@@ -319,6 +334,8 @@ class GroupedNetworkCaches():
             if not skip_save:
                 self.data[fn].save()
                 self.save_refs()
+
+        self.lock.release()
 
     def save_refs(self):
         with open(self.refs_path, 'w') as refs_file:
@@ -357,9 +374,11 @@ class GroupedNetworkCaches():
                 initial_memory = -1
 
         # TODO: locking
+        self.lock.acquire()
         for v in self.data.values():
             if v.since_last_accessed > 60:
                 v.unload()
+        self.lock.release()
 
         if logger.level <= logging.DEBUG:
             try:
@@ -411,6 +430,7 @@ class NetworkCache():
 
     def __init__(self):
         self.network_caches = {}
+        self.loaded = False
 
     def get_at_point(self, key, gps_point):
         if key not in self.network_caches:
@@ -424,6 +444,7 @@ class NetworkCache():
                 return network['network']
 
     def get(self, key: str, journey) -> MultiDiGraph:
+        self.load()
         if key not in self.network_caches:
             self.network_caches[key] = GroupedNetworkCaches(cache_type=key)
         return self.network_caches[key].get(journey)
@@ -440,6 +461,9 @@ class NetworkCache():
         self.network_caches[key].set(journey, network, skip_save=skip_save)
 
     def load(self, network_type=None):
+        if self.loaded:
+            return
+
         if network_type is not None:
             self.network_caches[network_type] = GroupedNetworkCaches(
                 cache_type=network_type
@@ -451,6 +475,8 @@ class NetworkCache():
                     cache_type=net_type
                 )
                 self.network_caches[net_type].load()
+
+        self.loaded = True
 
     def save(self):
         for k, v in self.network_caches.items():
