@@ -91,7 +91,6 @@ def geojson_from_graph(graph, must_include_props=None):
             'oneway',
             'length',
             'osmid',
-            'highway',
             'source',
             'target',
             'key',
