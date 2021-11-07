@@ -34,3 +34,16 @@ HIGHWAYS_TO_EXCLUDE = {
     'crossing',
     'driveway'
 }
+
+USELESS_GEOJSON_PROPERTIES = {
+    'oneway',
+    'length',
+    'osmid',
+    'source',
+    'target',
+    'key',
+    'maxspeed',
+    'lanes',
+    'ref',
+    'access'
+}

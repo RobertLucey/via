@@ -14,7 +14,10 @@ from via.settings import (
     S3_REGION,
     PREPARED_GEOJSON_BUCKET
 )
-from via.constants import GEOJSON_DIR
+from via.constants import (
+    GEOJSON_DIR,
+    USELESS_GEOJSON_PROPERTIES
+)
 
 
 def parse_start_date(earliest_date):
@@ -93,19 +96,7 @@ def geojson_from_graph(graph, must_include_props=None):
                 )
             else:
                 feature['properties'][k] = link[k]
-        useless_properties = {
-            'oneway',
-            'length',
-            'osmid',
-            'source',
-            'target',
-            'key',
-            'maxspeed',
-            'lanes',
-            'ref',
-            'access'
-        }
-        for useless_property in useless_properties:
+        for useless_property in USELESS_GEOJSON_PROPERTIES:
             if useless_property in feature.get('properties', {}).keys():
                 del feature['properties'][useless_property]
         geojson_features['features'].append(feature)
