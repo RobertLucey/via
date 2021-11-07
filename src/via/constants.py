@@ -31,5 +31,6 @@ HIGHWAYS_TO_EXCLUDE = {
     'steps',
     'corridor',
     'sidewalk',
-    'crossing'
+    'crossing',
+    'driveway'
 }
