@@ -61,7 +61,7 @@ def generate_basename(
     return urllib.parse.urlencode(data)
 
 
-def geojson_from_graph(graph):
+def geojson_from_graph(graph, must_include_props=None):
     json_links = json_graph.node_link_data(
         graph
     )['links']
@@ -97,14 +97,14 @@ def geojson_from_graph(graph):
             'key',
             'maxspeed',
             'lanes',
-            'ref'
+            'ref',
+            'access'
         }
         for useless_property in useless_properties:
-            try:
+            if useless_property in feature.get('properties', {}).keys():
                 del feature['properties'][useless_property]
-            except:
-                pass
         geojson_features['features'].append(feature)
+
 
     return geojson_features
 

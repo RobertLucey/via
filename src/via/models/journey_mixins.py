@@ -135,9 +135,9 @@ class GeoJsonMixin():
                 }
                 return geo_features
             else:
-                return geojson_from_graph(self.snapped_route_graph)
+                return geojson_from_graph(self.snapped_route_graph, must_include_props=['count', 'avg'])
 
-        return geojson_from_graph(self.snapped_route_graph)
+        return geojson_from_graph(self.snapped_route_graph, must_include_props=['count', 'avg'])
 
 
 class BoundingGraphMixin():
