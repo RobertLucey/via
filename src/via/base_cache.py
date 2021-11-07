@@ -20,6 +20,7 @@ class BaseCache():
         assert cache_type is not None
         self.loaded = False
         self.data = {}
+        self.lock = threading.RLock()
         self.last_save_len = -1
         self.cache_type = cache_type
         self.fn = fn
@@ -28,11 +29,16 @@ class BaseCache():
     def get(self, k: Any):
         self.load()
         self.last_accessed = datetime.datetime.utcnow()
-        return self.data.get(k, None)
+        self.lock.acquire()
+        data = self.data.get(k, None)
+        self.lock.release()
+        return data
 
     def set(self, k, v, skip_save=False):
         self.load()
+        self.lock.acquire()
         self.data[k] = v
+        self.lock.release()
         if not skip_save:
             self.save()
         self.last_accessed = datetime.datetime.utcnow()
@@ -46,13 +52,16 @@ class BaseCache():
             )
 
     def save(self):
+        self.lock.acquire()
         if len(self.data) <= self.last_save_len:
+            self.lock.release()
             return
         logger.info(f'Saving cache {self.fp}')
         self.create_dirs()
         with open(self.fp, 'wb') as f:
             pickle.dump(self.data, f)
         self.last_save_len = len(self.data)
+        self.lock.release()
 
     def load(self):
         if self.loaded:
@@ -63,6 +72,7 @@ class BaseCache():
             self.create_dirs()
             self.save()
 
+        self.lock.acquire()
         with open(self.fp, 'rb') as f:
             self.data = pickle.load(f)
 
@@ -75,9 +85,12 @@ class BaseCache():
                 self.fp,
                 get_size(self.data) / (1000 ** 2)
             )
+        self.lock.acquire()
 
     def unload(self):
+        self.lock.acquire()
         self.data = {}
+        self.lock.release()
         self.loaded = False
 
     @staticmethod
@@ -111,6 +124,7 @@ class BaseCaches():
         assert kwargs.get('cache_type', None) is not None
         self.loaded = False
         self.data = {}
+        self.lock = threading.RLock()
         self.last_save_len = -1
         self.cache_type = kwargs['cache_type']
         self.child_class = kwargs.get('child_class', BaseCache)
@@ -129,9 +143,13 @@ class BaseCaches():
 
     def get(self, k: Any):
         self.load()
+
+        self.lock.acquire()
+        data = None
         if k in self.refs and self.refs[k] in self.data:
-            return self.data[self.refs[k]].get(k)
-        return None
+            data = self.data[self.refs[k]].get(k)
+        self.lock.release()
+        return data
 
     def get_fn(self, obj):
         raise NotImplementedError()
@@ -139,6 +157,7 @@ class BaseCaches():
     def set(self, k: Any, v: Any, skip_save: bool = False):
         fn = self.get_fn(v)
 
+        self.lock.acquire()
         if fn not in self.data:
             self.data[fn] = self.child_class(fn=fn)
         self.data[fn].set(k, v)
@@ -148,6 +167,7 @@ class BaseCaches():
             if not skip_save:
                 self.data[fn].save()
                 self.save_refs()
+        self.lock.release()
 
     def save_refs(self):
         with open(self.refs_path, 'w') as refs_file:
@@ -183,9 +203,11 @@ class BaseCaches():
             except:
                 initial_memory = -1
 
+        self.lock.acquire()
         for v in self.data.values():
             if v.since_last_accessed > 60:
                 v.unload()
+        self.lock.release()
 
         if logger.level <= logging.DEBUG:
             try:
