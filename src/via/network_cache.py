@@ -469,8 +469,8 @@ class NetworkCache():
                 cache_type=network_type
             )
         else:
-            os.makedirs(NETWORK_CACHE_DIR, exist_ok=True)
             networks_dir = os.path.join(NETWORK_CACHE_DIR, settings.VERSION)
+            os.makedirs(networks_dir, exist_ok=True)
             for net_type in os.listdir(networks_dir):
                 self.network_caches[net_type] = GroupedNetworkCaches(
                     cache_type=net_type
