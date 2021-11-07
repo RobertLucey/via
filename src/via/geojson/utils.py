@@ -105,6 +105,10 @@ def geojson_from_graph(graph, must_include_props=None):
                 del feature['properties'][useless_property]
         geojson_features['features'].append(feature)
 
+    if must_include_props is not None:
+        geojson_features['features'] = [
+            f for f in geojson_features['features'] if len(set(f['properties'].keys()).intersection(set(must_include_props))) == len(must_include_props)
+        ]
 
     return geojson_features
 
