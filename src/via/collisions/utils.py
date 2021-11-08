@@ -44,7 +44,7 @@ def retrieve_geojson(transport_type=None, years=False, county=None):
     # TODO: age of the thing
 
     transport_types, counties, years_list = get_filters(
-        tranport_type=transport_type,
+        transport_type=transport_type,
         years=years,
         county=county
     )
@@ -86,7 +86,7 @@ def generate_geojson(transport_type=None, years=False, county=None):
     all_collisions = get_collisions()
 
     transport_types, counties, years_list = get_filters(
-        tranport_type=transport_type,
+        transport_type=transport_type,
         years=years,
         county=county
     )
