@@ -144,7 +144,7 @@ class BaseCaches():
     def get(self, k: Any):
         self.load()
 
-        self.lock.acquire()
+        self.lock.acquire(timeout=1)
         data = None
         if k in self.refs and self.refs[k] in self.data:
             data = self.data[self.refs[k]].get(k)
@@ -157,7 +157,7 @@ class BaseCaches():
     def set(self, k: Any, v: Any, skip_save: bool = False):
         fn = self.get_fn(v)
 
-        self.lock.acquire()
+        self.lock.acquire(timeout=1)
         if fn not in self.data:
             self.data[fn] = self.child_class(fn=fn)
         self.data[fn].set(k, v)
@@ -181,11 +181,13 @@ class BaseCaches():
         if self.loaded:
             return
 
+        self.lock.acquire(timeout=1)
         try:
             for c in self.caches:
                 self.data[c.fn] = c
         except:
             self.data = {}
+        self.lock.release()
 
         self.loaded = True
 
@@ -203,7 +205,7 @@ class BaseCaches():
             except:
                 initial_memory = -1
 
-        self.lock.acquire()
+        self.lock.acquire(timeout=1)
         for v in self.data.values():
             if v.since_last_accessed > 60:
                 v.unload()
