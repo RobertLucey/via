@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 from shutil import (
     copyfile,
@@ -7,6 +8,9 @@ from shutil import (
 
 from unittest import TestCase, skip
 
+from road_collisions.constants import COUNTY_MAP
+
+from via.constants import GEOJSON_DIR
 from via.collisions.utils import (
     get_collisions,
     clean_filters,
@@ -18,6 +22,12 @@ from via.collisions.utils import (
 
 class UtilTest(TestCase):
 
+    def setUp(self):
+        try:
+            shutil.rmtree(GEOJSON_DIR)
+        except FileNotFoundError:
+            pass
+
     @skip('todo')
     def test_get_collisions(self):
         pass
@@ -26,17 +36,42 @@ class UtilTest(TestCase):
     def test_clean_filters(self):
         pass
 
-    @skip('todo')
     def test_get_filters(self):
-        pass
+        transport_types, counties, years_list = get_filters()
 
-    @skip('todo')
-    def test_retrieve_geojson_points(self):
-        pass
+        self.assertEqual(transport_types, {None, 'bicycle', 'bus', 'car'})
+        self.assertEqual(counties, list(COUNTY_MAP.values()))
+        self.assertEqual(years_list, [None])
 
-    @skip('todo')
-    def test_retrieve_geojson_lines(self):
-        pass
+        transport_types, counties, years_list = get_filters(transport_type='bicycle', years=True, county='dublin')
+
+        self.assertEqual(transport_types, {'bicycle'})
+        self.assertEqual(counties, ['dublin'])
+        self.assertEqual(years_list, [None, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005])
+
+    def test_retrieve_geojson(self):
+
+        modes = ['edge', 'point']
+
+        for mode in modes:
+
+            with self.assertRaises(FileNotFoundError):
+                retrieve_geojson(
+                    mode=mode,
+                    county='leitrim',
+                    transport_type='bicycle'
+                )
+
+            generate_geojson(
+                mode=mode,
+                county='leitrim',  # for quick loading
+                transport_type='bicycle'
+            )
+            retrieve_geojson(
+                mode=mode,
+                county='leitrim',
+                transport_type='bicycle'
+            )
 
     def test_generate_geojson_points(self):
         points_geojson = generate_geojson(

@@ -29,7 +29,7 @@ def get_filters(transport_type=None, years=False, county=None):
     else:
         transport_types = {transport_type}
 
-    counties = COUNTY_MAP.values()
+    counties = list(COUNTY_MAP.values())
     if county is not None:
         counties = [county]
 
