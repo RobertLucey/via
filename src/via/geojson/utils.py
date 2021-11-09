@@ -139,3 +139,14 @@ def download_prepared_geojson():
                     key['LastModified'].timestamp()
                 )
             )
+
+
+def get_point(properties=None, gps=None):
+    return {
+        'type': 'Feature',
+        'properties': properties if isinstance(properties, dict) else {},
+        'geometry': {
+            'type': 'Point',
+            'coordinates': [gps.lng, gps.lat]
+        }
+    }
