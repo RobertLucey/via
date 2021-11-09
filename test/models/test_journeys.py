@@ -92,23 +92,6 @@ class JourneysTest(TestCase):
         with self.assertRaises(Exception):
             Journeys().plot_routes()
 
-    def test_plot_routes_nothing_fancy(self):
-        img_uuid = str(uuid.uuid4())
-        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
-        self.test_journeys.plot_routes(
-            use_graph_cache=False,
-            plot_kwargs={
-                'show': False,
-                'save': True,
-                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
-            }
-        )
-
-        hash_generated = imagehash.average_hash(Image.open(fp))
-        hash_resource = imagehash.average_hash(Image.open('test/resources/images/route_1.jpg'))
-
-        self.assertEqual(hash_generated, hash_resource)
-
     @skip('not implemented')
     def test_plot_routes_use_closest(self):
         img_uuid = str(uuid.uuid4())
