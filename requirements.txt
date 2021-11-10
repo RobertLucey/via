@@ -1,4 +1,4 @@
-road_collisions
+road_collisions==0.0.6
 cached_property
 backoff
 packaging

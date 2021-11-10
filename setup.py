@@ -4,7 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
-    'road_collisions',
+    'road_collisions==0.0.6',
     'cached_property',
     'backoff',
     'packaging',
@@ -23,7 +23,7 @@ INSTALL_REQUIRES = (
 
 setup(
     name='via-api',
-    version='0.0.39',
+    version='0.0.40',
     python_requires='>=3.6,<3.10',
     description='Analysing and serving crowdsourced road quality data',
     author='Robert Lucey',
