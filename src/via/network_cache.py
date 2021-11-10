@@ -4,7 +4,6 @@ import os
 import pickle
 import threading
 
-import fast_json
 import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
 
@@ -15,7 +14,9 @@ from via.utils import (
     is_within,
     area_from_coords,
     get_graph_id,
-    get_size
+    get_size,
+    read_json,
+    write_json
 )
 from via.place_cache import place_cache
 
@@ -255,10 +256,9 @@ class GroupedNetworkCaches():
         self.refs = {}
         os.makedirs(self.dir, exist_ok=True)
         if not os.path.exists(self.refs_path):
-            with open(self.refs_path, 'w') as refs_file:
-                refs_file.write(fast_json.dumps({}))
-        with open(self.refs_path, 'r') as refs_file:
-            self.refs = fast_json.loads(refs_file.read())
+            write_json(self.refs_path, {})
+
+        self.refs = read_json(self.refs_path)
 
         if settings.CLEAN_MEMORY:
             self.memory_cleaner()
@@ -338,8 +338,7 @@ class GroupedNetworkCaches():
         self.lock.release()
 
     def save_refs(self):
-        with open(self.refs_path, 'w') as refs_file:
-            refs_file.write(fast_json.dumps(self.refs))
+        write_json(self.refs_path, self.refs)
 
     def load(self):
         """

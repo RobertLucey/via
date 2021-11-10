@@ -621,3 +621,33 @@ def setup_cache():
     if not is_cache_already_pulled():
         download_cache()
         extract_cache()
+
+
+def read_json(fp: str):
+    """
+    Because I hate writing this all the time
+
+    :rtype: something json-ey
+    """
+    data = None
+    with open(fp) as fh:
+        data = fast_json.load(fh)
+    return data
+
+
+def write_json(fp: str, data):
+    """
+    Because I hate writing this all the time
+
+    :param fp:
+    :param data: something json-ey
+    """
+    os.makedirs(
+        os.path.dirname(fp),
+        exist_ok=True
+    )
+    with open(fp, 'w') as json_file:
+        fast_json.dump(
+            data,
+            json_file
+        )

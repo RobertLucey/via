@@ -1,28 +1,37 @@
 import os
 import urllib
 
-import fast_json
-
 from road_collisions.constants import COUNTY_MAP
 
 from via import logger
+from via.utils import (
+    read_json,
+    write_json
+)
 from via.models.collisions.collision import Collisions
 from via.geojson.utils import get_point
 from via.constants import GEOJSON_DIR
 
 
-def get_collisions():
+def get_collisions() -> Collisions:
     return Collisions.load_all()
 
 
-def clean_filters(filters):
+def clean_filters(filters: dict) -> dict:
     return {
         k: v for k, v in filters.items() if v is not None and v != 'all'
     }
 
 
 def get_filters(transport_type=None, years=False, county=None):
+    """
 
+    :kwargs transport_type:
+    :kwargs years:
+    :kwargs county:
+    :return: Tuple of (transport_types, counties, years)
+    :rtype: tuple
+    """
     transport_types = set()
     if transport_type is None:
         transport_types = {None, 'bicycle', 'car', 'bus'}
@@ -48,12 +57,13 @@ def retrieve_geojson(
     mode='edge'
 ):
     """
+    :kwarg transport_type:
+    :kwarg years:
+    :kwarg county:
     :kwarg mode:
         - edge: get geojson data as road data
         - point: get geojson data as points on map
     """
-    # TODO: age of the thing
-
     transport_types, counties, years_list = get_filters(
         transport_type=transport_type,
         years=years,
@@ -82,14 +92,12 @@ def retrieve_geojson(
                 else:
                     raise NotImplementedError()
 
-                data = None
                 filename = 'collision_' + urllib.parse.urlencode(filters) + '.geojson'
-                with open(os.path.join(GEOJSON_DIR, filename), 'r') as geojson_file:
-                    data = fast_json.loads(geojson_file.read())
-
+                data = read_json(os.path.join(GEOJSON_DIR, filename))
                 geojson['features'].extend(data['features'])
 
     if geojson['features'] == []:
+        # FIXME: bit yucky
         raise FileNotFoundError()
 
     return geojson
@@ -138,11 +146,11 @@ def generate_geojson(
                 )
 
                 if mode == 'point':
-                    for c in collisions:
+                    for collision in collisions:
                         geojson['features'].append(
                             get_point(
                                 properties=None,
-                                gps=c.gps
+                                gps=collision.gps
                             )
                         )
                 elif mode == 'edge':
@@ -153,8 +161,6 @@ def generate_geojson(
 
                 filters['mode'] = mode
                 filename = 'collision_' + urllib.parse.urlencode(filters) + '.geojson'
-                os.makedirs(GEOJSON_DIR, exist_ok=True)
-                with open(os.path.join(GEOJSON_DIR, filename), 'w') as geojson_file:
-                    geojson_file.write(fast_json.dumps(geojson))
+                write_json(os.path.join(GEOJSON_DIR, filename), geojson)
 
     return geojson

@@ -1,6 +1,6 @@
-from cached_property import cached_property
-
 from typing import Tuple
+
+from cached_property import cached_property
 
 import reverse_geocoder as rg
 from haversine import (
@@ -28,7 +28,7 @@ class GPSPoint():
         for attr in attrs_to_del:
             try:
                 delattr(self, attr)
-            except:
+            except AttributeError:
                 pass
 
     def __init__(self, lat: float, lng: float, elevation=None):
@@ -87,7 +87,7 @@ class GPSPoint():
 
         return HAVERSINE_CACHE[key]
 
-    def slope_between(self, dst):
+    def slope_between(self, dst) -> float:
         from via.models.point import FramePoint
         if isinstance(dst, FramePoint):
             dst = dst.gps
@@ -96,7 +96,7 @@ class GPSPoint():
         except ZeroDivisionError:
             return 0
 
-    def serialize(self):
+    def serialize(self) -> dict:
         return {
             'lat': self.lat,
             'lng': self.lng,
@@ -118,14 +118,14 @@ class GPSPoint():
         return data
 
     @cached_property
-    def content_hash(self) -> str:
+    def content_hash(self) -> int:
         """
         A content hash that will act as an id for the data, handy for caching
         """
         return int.from_bytes(f'{self.lat} {self.lng} {self.elevation}'.encode(), 'little') % 2**100
 
     @property
-    def point(self) -> Tuple[float]:
+    def point(self) -> Tuple[float, float]:
         """
 
         :rtype: tuple

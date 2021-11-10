@@ -2,10 +2,6 @@ import hashlib
 import urllib
 import os
 import glob
-from multiprocessing import (
-    Pool,
-    cpu_count
-)
 from multiprocessing.dummy import Pool as ThreadPool
 from itertools import groupby
 from operator import itemgetter
@@ -16,7 +12,6 @@ from haversine import (
     haversine,
     Unit
 )
-import fast_json
 
 import osmnx as ox
 
@@ -34,7 +29,9 @@ from via.utils import (
     filter_nodes_from_geodataframe,
     filter_edges_from_geodataframe,
     update_edge_data,
-    get_combined_id
+    get_combined_id,
+    write_json,
+    read_json
 )
 from via.network_cache import network_cache
 from via.models.gps import GPSPoint
@@ -58,7 +55,7 @@ class Collision(BaseCollision):
         for attr in attrs_to_del:
             try:
                 delattr(self, attr)
-            except:
+            except AttributeError:
                 pass
 
     @staticmethod
@@ -80,17 +77,17 @@ class Collision(BaseCollision):
                 )
 
     @property
-    def gps(self):
+    def gps(self) -> GPSPoint:
         return GPSPoint(
             self.lat,
             self.lng
         )
 
     @cached_property
-    def gps_hash(self):
+    def gps_hash(self) -> int:
         return self.gps.content_hash
 
-    def is_in_place(self, place_bounds):
+    def is_in_place(self, place_bounds: dict) -> bool:
         return all([
             self.lat < place_bounds['north'],
             self.lat > place_bounds['south'],
@@ -115,43 +112,43 @@ class Collisions(BaseCollisions):
         self.filters = filters
 
     @property
-    def danger(self):
+    def danger(self) -> int:
         # FIXME: generally improve
+        # weight by severity
         return len(self)
 
     @property
     def danger_by_vehicle_type(self):
-
         type_collisions = [
-            (c.vehicle_type, c) for c in self
+            (collision.vehicle_type, collision) for collision in self
         ]
 
-        d = defaultdict(Collisions)
-        for x, y in type_collisions:
-            d[x].append(y)
+        danger_dict = defaultdict(Collisions)
+        for vehicle_type, collision in type_collisions:
+            danger_dict[vehicle_type].append(collision)
 
         return {
-            k: v.danger for k, v in d.items()
+            vehicle_type: collisions.danger for vehicle_type, collisions in danger_dict.items()
         }
 
     @property
-    def most_northern(self):
+    def most_northern(self) -> float:
         return max([collision.gps.lat for collision in self])
 
     @property
-    def most_southern(self):
+    def most_southern(self) -> float:
         return min([collision.gps.lat for collision in self])
 
     @property
-    def most_eastern(self):
+    def most_eastern(self) -> float:
         return max([collision.gps.lng for collision in self])
 
     @property
-    def most_western(self):
+    def most_western(self) -> float:
         return min([collision.gps.lng for collision in self])
 
     @property
-    def bbox(self):
+    def bbox(self) -> dict:
         return {
             'north': self.most_northern,
             'south': self.most_southern,
@@ -160,7 +157,10 @@ class Collisions(BaseCollisions):
         }
 
     @cached_property
-    def lat_span(self):
+    def lat_span(self) -> float:
+        """
+        How long is the distance in latitude in metres
+        """
         return haversine(
             (self.most_northern, 0),
             (self.most_southern, 0),
@@ -168,7 +168,10 @@ class Collisions(BaseCollisions):
         )
 
     @cached_property
-    def lng_span(self):
+    def lng_span(self) -> float:
+        """
+        How long is the distance in longitude in metres
+        """
         return haversine(
             (0, self.most_western),
             (0, self.most_eastern),
@@ -176,7 +179,7 @@ class Collisions(BaseCollisions):
         )
 
     @cached_property
-    def upper_left_bbox(self):
+    def upper_left_bbox(self) -> dict:
         return {
             'north': self.most_northern,
             'south': self.most_southern + ((self.lat_span / METRES_PER_DEGREE) / 2),
@@ -193,7 +196,7 @@ class Collisions(BaseCollisions):
         )
 
     @cached_property
-    def upper_right_bbox(self):
+    def upper_right_bbox(self) -> dict:
         return {
             'north': self.most_northern,
             'south': self.most_southern + ((self.lat_span / METRES_PER_DEGREE) / 2),
@@ -210,7 +213,7 @@ class Collisions(BaseCollisions):
         )
 
     @cached_property
-    def lower_left_bbox(self):
+    def lower_left_bbox(self) -> dict:
         return {
             'north': self.most_southern + ((self.lat_span / METRES_PER_DEGREE) / 2),
             'south': self.most_southern,
@@ -227,7 +230,7 @@ class Collisions(BaseCollisions):
         )
 
     @cached_property
-    def lower_right_bbox(self):
+    def lower_right_bbox(self) -> dict:
         return {
             'north': self.most_southern + ((self.lat_span / METRES_PER_DEGREE) / 2),
             'south': self.most_southern,
@@ -285,12 +288,8 @@ class Collisions(BaseCollisions):
 
     @staticmethod
     def from_file(filepath):
-        data = None
-        with open(filepath, 'r') as collisions_filepath:
-            data = fast_json.loads(collisions_filepath.read())
-
         collisions = Collisions()
-        for collision_dict in data:
+        for collision_dict in read_json(filepath):
             collisions.append(
                 Collision.parse(
                     collision_dict
@@ -349,7 +348,7 @@ class Collisions(BaseCollisions):
         self.is_filtered = True
 
     @property
-    def gps_hash(self):
+    def gps_hash(self) -> str:
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
 
@@ -414,8 +413,10 @@ class Collisions(BaseCollisions):
         return network_collision_map
 
     @property
-    def fp(self):
-        filters = {k: v for k, v in self.filters.items() if v is not None}
+    def geojson_filepath(self):
+        filters = {
+            filter_key: filter_value for filter_key, filter_value in self.filters.items() if filter_value is not None
+        }
         return os.path.join(
             GEOJSON_DIR,
             'collision_' + urllib.parse.urlencode(filters) + '.geojson'
@@ -465,6 +466,7 @@ class Collisions(BaseCollisions):
             used_node_ids = []
             for edge in edges:
                 # TODO: get closest, we just use the first
+                # Also maybe only use roads, not footpaths etc
                 used_edges.append(tuple(edge[0][0]))
                 used_node_ids.extend(
                     [
@@ -488,9 +490,8 @@ class Collisions(BaseCollisions):
 
     @property
     def geojson(self):
-        if os.path.exists(self.fp):
-            with open(self.fp, 'r') as geojson_file:
-                return fast_json.loads(geojson_file.read())
+        if os.path.exists(self.geojson_filepath):
+            return read_json(self.geojson_filepath)
 
         if not self.is_filtered:
             self.inplace_filter(**self.filters)
@@ -563,8 +564,6 @@ class Collisions(BaseCollisions):
             'features': geojson_features
         }
 
-        os.makedirs(GEOJSON_DIR, exist_ok=True)
-        with open(self.fp, 'w') as geojson_file:
-            geojson_file.write(fast_json.dumps(geojson))
+        write_json(self.geojson_filepath, geojson)
 
         return geojson

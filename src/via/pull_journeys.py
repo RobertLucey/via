@@ -16,6 +16,27 @@ from via.constants import REMOTE_DATA_DIR
 from via.models.journey import Journey
 
 
+
+def get_journey_files():
+    return requests.get(DOWNLOAD_JOURNEYS_URL).json()
+
+
+def get_journey_files_to_download():
+
+    journey_ids = []
+    for filename in glob.iglob(REMOTE_DATA_DIR + '/**/*', recursive=True):
+        journey_ids.append(os.path.splitext(os.path.basename(filename))[0])
+
+    journey_files_to_download = []
+    for filename in get_journey_files():
+        journey_id = os.path.splitext(os.path.basename(filename))[0]
+        if journey_id in journey_ids:
+            continue
+        journey_files_to_download.append(filename)
+
+    return journey_files_to_download
+
+
 def pull_journeys(cache_graphs=False):
     """
 
@@ -31,18 +52,7 @@ def pull_journeys(cache_graphs=False):
     if not os.path.exists(REMOTE_DATA_DIR):
         os.makedirs(REMOTE_DATA_DIR, exist_ok=True)
 
-    journey_ids = []
-    for filename in glob.iglob(REMOTE_DATA_DIR + '/**/*', recursive=True):
-        journey_ids.append(os.path.splitext(os.path.basename(filename))[0])
-
-    journey_filenames = requests.get(DOWNLOAD_JOURNEYS_URL).json()
-    journey_files_to_download = []
-
-    for filename in journey_filenames:
-        journey_id = os.path.splitext(os.path.basename(filename))[0]
-        if journey_id in journey_ids:
-            continue
-        journey_files_to_download.append(filename)
+    journey_files_to_download = get_journey_files_to_download()
 
     logger.info(f'Downloading {len(journey_files_to_download)} files')
 
@@ -60,6 +70,7 @@ def pull_journeys(cache_graphs=False):
 
         journey = Journey.from_file(tmp_filepath)
 
+        # FIXME: This just slows things down, maybe only do on debug or something?
         geo = journey.origin.gps.reverse_geo
         logger.info(f'Pulled journey from: {geo["cc"]}, {geo["place_3"]}, {geo["place_2"]}, {geo["place_1"]}')
 

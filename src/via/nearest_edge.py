@@ -3,8 +3,6 @@ import threading
 import datetime
 from collections import defaultdict
 
-import fast_json
-
 import numpy as np
 from rtree.index import Index as RTreeIndex
 from shapely.geometry import Point
@@ -14,13 +12,19 @@ from osmnx import utils_graph
 from via import logger
 from via.settings import VERSION
 from via.constants import EDGE_CACHE_DIR
-from via.utils import get_combined_id, get_graph_id
+from via.utils import (
+    get_combined_id,
+    get_graph_id,
+    read_json,
+    write_json
+)
 from via.bounding_graph_gdfs_cache import utils_bounding_graph_gdfs_cache
 
 
 GEOM_RTREE_CACHE = defaultdict(dict)
 
 
+# NOTE: This was pulled from osmnx and modified
 def nearest_edges(G, X, Y, return_dist=False):
     if not (hasattr(X, "__iter__") and hasattr(Y, "__iter__")):
         X = np.array([X])
@@ -84,6 +88,10 @@ class NearestEdgeCache():
         self.saver()
 
     def saver(self):
+        """
+        Saves every now and then if necessary, there were too many happening
+        each time an edge was set and was annoying
+        """
         self.load()
 
         if all([
@@ -100,9 +108,8 @@ class NearestEdgeCache():
         saver.start()
 
     def save(self):
-        logger.debug(f'Saving cache {self.fp}')
-        with open(self.fp, 'w') as f:
-            f.write(fast_json.dumps(self.data))
+        logger.debug('Saving cache %s', self.filepath)
+        write_json(self.filepath, self.data)
         self.last_save_len = len(self.data)
         self.last_saved_time = datetime.datetime.utcnow()
 
@@ -162,20 +169,19 @@ class NearestEdgeCache():
         if self.loaded:
             return
 
-        logger.debug(f'Loading cache {self.fp}')
-        if not os.path.exists(self.fp):
+        logger.debug('Loading cache %s', self.filepath)
+        if not os.path.exists(self.filepath):
             os.makedirs(
-                os.path.dirname(self.fp),
+                os.path.dirname(self.filepath),
                 exist_ok=True
             )
             self.save()
-        with open(self.fp, 'r') as f:
-            self.data = fast_json.loads(f.read())
+        self.data = read_json(self.filepath)
         self.loaded = True
         self.last_save_len = len(self.data)
 
     @property
-    def fp(self):
+    def filepath(self):
         # TODO: split by lat lng regions
         return os.path.join(EDGE_CACHE_DIR, VERSION, 'cache.json')
 

@@ -1,13 +1,12 @@
 import os
 import operator
 
-import fast_json
-
 from via import logger
 from via.constants import GEOJSON_DIR
 from via.utils import (
     get_journeys,
-    should_include_journey
+    should_include_journey,
+    write_json
 )
 from via.models.journeys import Journeys
 from via.geojson.utils import generate_basename
@@ -38,11 +37,6 @@ def generate_geojson(
     latest_time=None,
     place=None
 ):
-
-    os.makedirs(
-        os.path.join(GEOJSON_DIR),
-        exist_ok=True
-    )
 
     for config_item in get_generation_config(
         transport_type=transport_type,
@@ -83,8 +77,4 @@ def generate_geojson(
             ]
         )
 
-        with open(geojson_file, 'w') as json_file:
-            fast_json.dump(
-                journeys.geojson,
-                json_file
-            )
+        write_json(geojson_file, journeys.geojson)

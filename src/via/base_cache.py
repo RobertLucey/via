@@ -5,13 +5,15 @@ import datetime
 import pickle
 from typing import List, Any
 
-import fast_json
-
 from via import logger
 from via import settings
 from via.constants import CACHE_DIR
 from via.settings import CLEAN_MEMORY
-from via.utils import get_size
+from via.utils import (
+    get_size,
+    read_json,
+    write_json
+)
 
 
 class BaseCache():
@@ -133,10 +135,9 @@ class BaseCaches():
         self.refs = {}
         os.makedirs(self.dir, exist_ok=True)
         if not os.path.exists(self.refs_path):
-            with open(self.refs_path, 'w') as refs_file:
-                refs_file.write(fast_json.dumps({}))
-        with open(self.refs_path, 'r') as refs_file:
-            self.refs = fast_json.loads(refs_file.read())
+            write_json(self.refs_path, {})
+
+        self.refs = read_json(self.refs_path)
 
         if CLEAN_MEMORY:
             self.memory_cleaner()
@@ -170,8 +171,7 @@ class BaseCaches():
         self.lock.release()
 
     def save_refs(self):
-        with open(self.refs_path, 'w') as refs_file:
-            refs_file.write(fast_json.dumps(self.refs))
+        write_json(self.refs_path, self.refs)
 
     def load(self):
         """

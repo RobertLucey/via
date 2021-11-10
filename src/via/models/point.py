@@ -103,7 +103,11 @@ class Context():
         )
 
     @property
-    def is_context_populated(self):
+    def is_context_populated(self) -> bool:
+        """
+        Do we have context forward and back?
+        Not all context but at least some on either side
+        """
         return self.context_pre != [] and self.context_post != []
 
     @property
@@ -310,7 +314,7 @@ class FramePoint(Context, GenericObject):
             f'Can\'t parse Point from type {type(obj)}'
         )
 
-    def speed_between(self, point):
+    def speed_between(self, point: GPSPoint) -> float:
         """
         Get the speed between this and another point (as the crow flies) in
         metres per second
@@ -326,7 +330,7 @@ class FramePoint(Context, GenericObject):
             metres_per_second = distance / time_diff
         return metres_per_second
 
-    def distance_from(self, point):
+    def distance_from(self, point: GPSPoint) -> float:
         """
 
         :param point: GPSPoint or tuple of (lat, lng) or Frame object
@@ -338,14 +342,14 @@ class FramePoint(Context, GenericObject):
         return self.gps.distance_from(point)
 
     @property
-    def is_complete(self):
+    def is_complete(self) -> bool:
         """
         Does the point contain all expected data
         """
         return isinstance(self.time, float) and self.gps.is_populated and self.acceleration != []
 
     @property
-    def road_quality(self):
+    def road_quality(self) -> int:
         """
         Get the average quality at this point (and a little before)
 
@@ -357,10 +361,17 @@ class FramePoint(Context, GenericObject):
         try:
             return int(numpy.mean(self.acceleration) * 100)
         except:
-            logger.warning(f'Could not calculate road quality from: {self.acceleration}. Defauling to 0')
+            logger.warning(
+                'Could not calculate road quality from: %s. Defauling to 0',
+                self.acceleration
+            )
             return 0
 
-    def serialize(self, include_time=True, include_context=True):
+    def serialize(
+        self,
+        include_time: bool = True,
+        include_context: bool = True
+    ) -> dict:
         data = {
             'gps': self.gps.serialize(),
             'acc': list(self.acceleration),
@@ -375,11 +386,11 @@ class FramePoint(Context, GenericObject):
         return data
 
     @property
-    def gps_hash(self):
+    def gps_hash(self) -> int:
         return self.gps.content_hash
 
     @cached_property
-    def content_hash(self):
+    def content_hash(self) -> int:
         return int.from_bytes(f'{self.acceleration} {self.gps.point} {self.time}'.encode(), 'little') % 2**100
 
 
@@ -397,27 +408,27 @@ class FramePoints(GenericObjects):
         for attr in attrs_to_del:
             try:
                 delattr(self, attr)
-            except:
+            except AttributeError:
                 pass
 
     @property
-    def most_northern(self):
+    def most_northern(self) -> float:
         return max([frame.gps.lat for frame in self])
 
     @property
-    def most_southern(self):
+    def most_southern(self) -> float:
         return min([frame.gps.lat for frame in self])
 
     @property
-    def most_eastern(self):
+    def most_eastern(self) -> float:
         return max([frame.gps.lng for frame in self])
 
     @property
-    def most_western(self):
+    def most_western(self) -> float:
         return min([frame.gps.lng for frame in self])
 
     @property
-    def bbox(self):
+    def bbox(self) -> dict:
         return {
             'north': self.most_northern,
             'south': self.most_southern,
@@ -426,7 +437,7 @@ class FramePoints(GenericObjects):
         }
 
     @property
-    def data_quality(self):
+    def data_quality(self) -> float:
         """
         Get the percentage of frames that are good. Should
         automatically disregard journeys with low data quality
@@ -434,7 +445,7 @@ class FramePoints(GenericObjects):
         :rtype: float
         :return: The percent between 0 and 1
         """
-        return 1  # TODO
+        return 1.0  # TODO
 
     @property
     def origin(self):
@@ -455,7 +466,7 @@ class FramePoints(GenericObjects):
         return self[-1]
 
     @property
-    def duration(self):
+    def duration(self) -> float:
         """
 
         :rtype: float
@@ -464,7 +475,7 @@ class FramePoints(GenericObjects):
         return self.destination.time - self.origin.time
 
     @property
-    def direct_distance(self):
+    def direct_distance(self) -> float:
         """
 
         :rtype: float
@@ -472,7 +483,7 @@ class FramePoints(GenericObjects):
         """
         return self[0].distance_from(self[-1])
 
-    def serialize(self, include_time=False, include_context=True):
+    def serialize(self, include_time: bool = False, include_context: bool = True) -> list:
         return [
             frame.serialize(
                 include_time=include_time,
@@ -480,7 +491,7 @@ class FramePoints(GenericObjects):
             ) for frame in self
         ]
 
-    def get_multi_points(self):
+    def get_multi_points(self) -> MultiPoint:
         """
         Get a shapely.geometry.MultiPoint of all the points
         """
@@ -504,7 +515,7 @@ class FramePoints(GenericObjects):
         )
 
     @property
-    def gps_hash(self):
+    def gps_hash(self) -> str:
         return hashlib.md5(
             str([
                 point.gps.content_hash for point in self
@@ -512,7 +523,7 @@ class FramePoints(GenericObjects):
         ).hexdigest()
 
     @property
-    def content_hash(self):
+    def content_hash(self) -> str:
         return hashlib.md5(
             str([
                 point.content_hash for point in self
@@ -520,7 +531,7 @@ class FramePoints(GenericObjects):
         ).hexdigest()
 
     @cached_property
-    def country(self):
+    def country(self) -> str:
         """
         Get what country this journey started in
 
@@ -529,7 +540,7 @@ class FramePoints(GenericObjects):
         """
         return self.origin.gps.reverse_geo['cc']
 
-    def is_in_place(self, place_name: str):
+    def is_in_place(self, place_name: str) -> bool:
         """
         Get if a journey is entirely within the bounds of some place.
         Does this by rect rather than polygon so it isn't exact but mainly

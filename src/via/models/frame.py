@@ -11,7 +11,7 @@ class Frame(GenericObject):
     and time info
     """
 
-    def __init__(self, time, gps, acceleration):
+    def __init__(self, time: float, gps: GPSPoint, acceleration: list):
         """
 
         :param time:
@@ -37,7 +37,7 @@ class Frame(GenericObject):
             'Can\'t parse Frame from type %s' % (type(obj))
         )
 
-    def distance_from(self, point):
+    def distance_from(self, point: GPSPoint) -> float:
         """
 
         :param point: GPSPoint or tuple of (lat, lng) or Frame object
@@ -49,17 +49,17 @@ class Frame(GenericObject):
         return self.gps.distance_from(point)
 
     @property
-    def is_complete(self):
+    def is_complete(self) -> bool:
         """
         Does the frame contain all expected data
         """
         return isinstance(self.time, float) and self.gps.is_populated and self.acceleration != []
 
     @property
-    def road_quality(self):
+    def road_quality(self) -> int:
         return int(self.acceleration.quality * 100)
 
-    def serialize(self, **kwargs):
+    def serialize(self, **kwargs) -> dict:
         data = {
             'gps': self.gps.serialize(),
             'acc': self.acceleration
@@ -76,23 +76,23 @@ class Frames(GenericObjects):
         super().__init__(*args, **kwargs)
 
     @property
-    def most_northern(self):
+    def most_northern(self) -> float:
         return max([frame.gps.lat for frame in self])
 
     @property
-    def most_southern(self):
+    def most_southern(self) -> float:
         return min([frame.gps.lat for frame in self])
 
     @property
-    def most_eastern(self):
+    def most_eastern(self) -> float:
         return max([frame.gps.lng for frame in self])
 
     @property
-    def most_western(self):
+    def most_western(self) -> float:
         return min([frame.gps.lng for frame in self])
 
     @property
-    def data_quality(self):
+    def data_quality(self) -> float:
         """
         Get the percentage of frames that are good. Should
         automatically disregard journeys with low data quality
@@ -104,8 +104,9 @@ class Frames(GenericObjects):
         return len([f for f in self if f.is_complete]) / float(len(self))
 
     @property
-    def origin(self):
+    def origin(self) -> Frame:
         """
+        The first frame of the journey
 
         :rtype: via.models.Frame
         :return: The first frame of the journey
@@ -113,8 +114,9 @@ class Frames(GenericObjects):
         return self[0]
 
     @property
-    def destination(self):
+    def destination(self) -> Frame:
         """
+        The last frame of the journey
 
         :rtype: via.models.Frame
         :return: The last frame of the journey
@@ -122,8 +124,11 @@ class Frames(GenericObjects):
         return self[-1]
 
     @property
-    def duration(self):
+    def duration(self) -> float:
         """
+        Get the time in seconds
+
+        Note that much of the start and end may have been removed.
 
         :rtype: float
         :return: The number of seconds the journey took
@@ -131,13 +136,18 @@ class Frames(GenericObjects):
         return self.destination.time - self.origin.time
 
     @property
-    def direct_distance(self):
+    def direct_distance(self) -> float:
         """
+        Get the distance in metres as the crow flies
+
+        Note that much of the start and end may have been removed.
 
         :rtype: float
         :return: distance from origin to destination in metres
         """
         return self[0].distance_from(self[-1])
 
-    def serialize(self, include_time=True):
-        return [frame.serialize(include_time=include_time) for frame in self]
+    def serialize(self, include_time: bool = True) -> list:
+        return [
+            frame.serialize(include_time=include_time) for frame in self
+        ]

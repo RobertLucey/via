@@ -1,7 +1,6 @@
 import os
 from collections import defaultdict
 
-import fast_json
 import osmnx as ox
 
 from via import settings
@@ -11,7 +10,8 @@ from via.utils import (
     filter_edges_from_geodataframe,
     update_edge_data,
     get_graph_id,
-    area_from_coords
+    area_from_coords,
+    write_json
 )
 from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
@@ -81,20 +81,9 @@ class GeoJsonMixin():
         )
 
         if not os.path.exists(geojson_file):
-            logger.debug(f'{geojson_file} not found, generating...')
+            logger.debug('%s not found, generating...', geojson_file)
 
-            if not os.path.exists(geojson_file):
-                os.makedirs(
-                    os.path.join(GEOJSON_DIR),
-                    exist_ok=True
-                )
-
-            with open(geojson_file, 'w') as json_file:
-                fast_json.dump(
-                    self.geojson,
-                    json_file,
-                    indent=4
-                )
+            write_json(geojson_file, self.geojson)
 
     @property
     def geojson(self):
@@ -107,7 +96,7 @@ class GeoJsonMixin():
             self.content_hash + '.geojson'
         )
 
-        logger.debug(f'{geojson_file} generating...')
+        logger.debug('%s generating...', geojson_file)
 
         from via.models.journeys import Journeys
 
@@ -125,24 +114,33 @@ class GeoJsonMixin():
 
             if len(region_map) > 1:
                 geo_features = []
-                for k, v in region_map.items():
-                    logger.debug(f'Getting geojson features of journeys group in region: {k}')
-                    geo_features.extend(v.geojson['features'])
+                for region_name, journeys in region_map.items():
+                    logger.debug(
+                        'Getting geojson features of journeys group in region: %s',
+                        region_name
+                    )
+                    geo_features.extend(journeys.geojson['features'])
 
                 geo_features = {
                     'type': 'FeatureCollection',
                     'features': geo_features
                 }
                 return geo_features
-            else:
-                return geojson_from_graph(self.snapped_route_graph, must_include_props=['count', 'avg'])
 
-        return geojson_from_graph(self.snapped_route_graph, must_include_props=['count', 'avg'])
+            return geojson_from_graph(
+                self.snapped_route_graph,
+                must_include_props=['count', 'avg']
+            )
+
+        return geojson_from_graph(
+            self.snapped_route_graph,
+            must_include_props=['count', 'avg']
+        )
 
 
 class BoundingGraphMixin():
 
-    def get_bounding_graph(self, use_graph_cache=True):
+    def get_bounding_graph(self, use_graph_cache: bool = True):
         logger.debug(
             'Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)',
             self.most_northern,
@@ -152,7 +150,10 @@ class BoundingGraphMixin():
         )
 
         if use_graph_cache is False or network_cache.get('bbox', self) is None:
-            logger.debug(f'bbox > {self.gps_hash} not found in cache, generating...')
+            logger.debug(
+                'bbox > %s not found in cache, generating...',
+                self.gps_hash
+            )
             network = ox.graph_from_bbox(
                 self.most_northern,
                 self.most_southern,
@@ -177,5 +178,8 @@ class BoundingGraphMixin():
         return self.get_bounding_graph(use_graph_cache=True)
 
     @property
-    def area(self):
+    def area(self) -> float:
+        """
+        Get the area of the bounding box in m^2
+        """
         return area_from_coords(self.bbox)

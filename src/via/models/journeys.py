@@ -103,8 +103,8 @@ class Journeys(
         megas = defaultdict(Journey)
 
         for journey in self:
-            key = '%s_%s' % (journey.transport_type, journey.suspension)
-            megas[key].extend([frame for frame in journey])
+            key = f'{journey.transport_type}_{journey.suspension}'
+            megas[key].extend(list(journey))
             megas[key].transport_type = journey.transport_type
             megas[key].suspension = journey.suspension
             megas[key].included_journeys.append(journey)

@@ -1,9 +1,11 @@
 import datetime
-from dateutil.parser import parse
-from functools import lru_cache
 import statistics
+
 from collections import defaultdict
+from functools import lru_cache
 from packaging import version
+
+from dateutil.parser import parse
 
 from cached_property import cached_property
 import geopandas as gpd
@@ -67,7 +69,9 @@ class Journey(
         self.is_culled = kwargs.get('is_culled', False)
         self.is_sent = kwargs.get('is_sent', False)
 
-        self.transport_type = str(kwargs.get('transport_type', 'unknown')).lower()
+        self.transport_type = str(
+            kwargs.get('transport_type', 'unknown')
+        ).lower()
         self.suspension = kwargs.get('suspension', None)
 
         self.network_type = kwargs.get('network_type', 'all')
@@ -112,7 +116,7 @@ class Journey(
         :param filepath: Path to a saved journey file
         :rtype: via.models.journey.Journey
         """
-        logger.debug(f'Loading journey from {filepath}')
+        logger.debug('Loading journey from %s', filepath)
 
         # TODO: should cache stages of processed files from raw (currently,
         # which uses frames instead of frame points) to processed (which
@@ -208,7 +212,7 @@ class Journey(
         if set_contexts:
             self.set_contexts()
 
-    def get_indirect_distance(self, n_seconds=10):
+    def get_indirect_distance(self, n_seconds: int = 10) -> float:
         """
         NB: Data must be chronological
 
@@ -234,7 +238,7 @@ class Journey(
 
         return sum(distances)
 
-    def get_avg_speed(self, n_seconds=30):
+    def get_avg_speed(self, n_seconds: int = 30) -> float:
         """
         NB: Data must be chronological
 
@@ -246,7 +250,12 @@ class Journey(
         """
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
-    def serialize(self, minimal=False, include_time=True, include_context=True):
+    def serialize(
+        self,
+        minimal: bool = False,
+        include_time: bool = True,
+        include_context: bool = True
+    ):
         data = {
             'uuid': str(self.uuid),
             'version': str(self.version),
@@ -279,7 +288,7 @@ class Journey(
         self,
         use_closest_edge_from_base=False,
         colour_map_name='bwr',
-        plot_kwargs={}
+        plot_kwargs=None
     ):
         """
 
@@ -290,6 +299,8 @@ class Journey(
         :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
             being done
         """
+        plot_kwargs = {} if plot_kwargs is None else plot_kwargs
+
         base = self.graph
         if use_closest_edge_from_base:
             edge_colours = get_edge_colours(
@@ -466,7 +477,7 @@ class Journey(
         return graph
 
     @property
-    def bbox(self):
+    def bbox(self) -> dict:
         return {
             'north': self.most_northern,
             'south': self.most_southern,
@@ -483,7 +494,7 @@ class Journey(
         """
 
         if network_cache.get('poly', self) is None:
-            logger.debug(f'poly > {self.gps_hash} not found in cache, generating...')
+            logger.debug('poly > %s not found in cache, generating...', self.gps_hash)
 
             # TODO: might want to not use polygon for this since we could
             # get the benefits of using a parent bbox from the cache
@@ -505,7 +516,7 @@ class Journey(
 
             network_cache.set('poly', self, network)
 
-        return network_cache.get('poly', self, poly=True)
+        return network_cache.get('poly', self)
 
     @property
     def graph(self):
