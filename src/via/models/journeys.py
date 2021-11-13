@@ -137,7 +137,8 @@ class Journeys(
         return {
             edge_id: {
                 'avg': int(statistics.mean([d['avg'] for d in data])),
-                'count': len(data)
+                'count': len(data),
+                'edge_id': edge_id
             } for edge_id, data in edge_quality_map.items()
         }
 

@@ -129,12 +129,12 @@ class GeoJsonMixin():
 
             return geojson_from_graph(
                 self.snapped_route_graph,
-                must_include_props=['count', 'avg']
+                must_include_props=['count', 'avg', 'edge_id']
             )
 
         return geojson_from_graph(
             self.snapped_route_graph,
-            must_include_props=['count', 'avg']
+            must_include_props=['count', 'avg', 'edge_id']
         )
 
 
