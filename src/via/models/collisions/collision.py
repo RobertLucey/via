@@ -527,7 +527,8 @@ class Collisions(BaseCollisions):
                 get_combined_id(k[0], k[1]): {
                     'danger': Collisions(
                         data=[x for _, x in g]
-                    ).danger
+                    ).danger,
+                    'edge_id': get_combined_id(k[0], k[1])
                 } for k, g in groupby(
                     sorted(associated, key=itemgetter(0)),
                     itemgetter(0)
