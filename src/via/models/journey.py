@@ -345,11 +345,12 @@ class Journey(
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
             qualities = [edge['avg_road_quality'] for edge in single_edge_data]
+            speed = statistics.mean([val['speed'] for val in single_edge_data]) if None not in [val['speed'] for val in single_edge_data] else None
             if len(qualities) == 0:
                 data[edge_id] = {
                     'avg': 0,
                     'count': 0,
-                    'speed': 0
+                    'speed': speed
                 }
             else:
                 data[edge_id] = {
@@ -359,7 +360,7 @@ class Journey(
                         )
                     ),
                     'count': len(qualities),
-                    'speed': 0
+                    'speed': speed
                 }
 
         return {
@@ -448,7 +449,7 @@ class Journey(
                     'destination': destination,
                     'distance': distance,
                     'road_quality': origin.road_quality,
-                    'speed': 0
+                    'speed': (origin.speed + destination.speed) / 2 if (origin.speed is not None and destination.speed is not None) else None
                     # TODO: other bits, speed / elevation maybe?
                 }
             )
@@ -462,7 +463,7 @@ class Journey(
                 'distance': values[0]['distance'],
                 'avg_road_quality': statistics.mean([val['road_quality'] for val in values]),
                 'max_road_quality': max([val['road_quality'] for val in values]),
-                'speed': 0
+                'speed': statistics.mean([val['speed'] for val in values]) if None not in [val['speed'] for val in values] else None
             }
 
         for shared_id, values in merged_edge_data.items():
@@ -471,7 +472,8 @@ class Journey(
                 values['destination'].uuid,
                 length=values['distance'],
                 avg_road_quality=values['avg_road_quality'],
-                max_road_quality=values['max_road_quality']
+                max_road_quality=values['max_road_quality'],
+                speed=values['speed']
             )
 
         return graph

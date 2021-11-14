@@ -156,6 +156,21 @@ class FramePoint(Context, GenericObject):
             assert isinstance(acceleration, Number)
             self.acceleration = [acc for acc in [acceleration] if acc >= settings.MIN_ACC_SCORE]
 
+    @property
+    def speed(self):
+        if self.is_context_populated:
+            origin = self.context_pre[0]
+            dst = self.context_post[-1]
+
+            metres_per_second = None
+            distance = origin.distance_from(dst.gps)
+            if distance != 0:
+                time_diff = dst.time - origin.time
+                metres_per_second = distance / time_diff
+            return metres_per_second
+
+        return None
+
     def get_edges_with_context(self, graph, edges):
         """
         Get a list of dicts, giving context to how it relates to the
