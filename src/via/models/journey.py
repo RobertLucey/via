@@ -197,9 +197,13 @@ class Journey(
                         self.too_slow = False
 
             if self.too_slow:
-                # If we want real speed we cannot return here without
-                # appending the frame
-                # possibly add all and annotate to skip due to speed
+                # Append a framepoint but don't put any accelerometer
+                # data in it so we can use it for speed but not for quality
+
+                self._data.append(
+                    FramePoint(frame.time, frame.gps, frame.acceleration)
+                )
+
                 return
 
             if self._data[-1].gps == frame.gps:
