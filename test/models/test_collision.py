@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from via.models.collisions.collision import (
     Collision,
@@ -87,6 +87,19 @@ class CollisionTest(TestCase):
             )
         )
 
+    def test_parse(self):
+        collision = Collision(
+            **self.TEST_COLLISION_DATA
+        )
+        self.assertEqual(
+            Collision.parse(collision),
+            collision
+        )
+        self.assertEqual(
+            Collision.parse(self.TEST_COLLISION_DATA).serialize(),
+            collision.serialize()
+        )
+
 
 class CollisionsTest(TestCase):
 
@@ -128,7 +141,7 @@ class CollisionsTest(TestCase):
         'unknri': 0
     }
 
-    def test_something(self):
+    def test_danger(self):
         collisions = Collisions()
         collisions.append(
             Collision(
@@ -142,3 +155,41 @@ class CollisionsTest(TestCase):
         )
 
         self.assertEqual(collisions.danger, 2)
+
+    def test_set_filters(self):
+        collisions = Collisions()
+        self.assertEqual(collisions.filters, {})
+        collisions.set_filters({'country': 'ireland'})
+        self.assertEqual(collisions.filters, {'country': 'ireland'})
+
+    @skip('todo')
+    def test_danger_by_vehicle_type(self):
+        pass
+
+    @skip('todo')
+    def test_most_northern(self):
+        pass
+
+    @skip('todo')
+    def test_most_southern(self):
+        pass
+
+    @skip('todo')
+    def test_most_eastern(self):
+        pass
+
+    @skip('todo')
+    def test_most_western(self):
+        pass
+
+    @skip('todo')
+    def test_bbox(self):
+        pass
+
+    @skip('todo')
+    def test_lat_span(self):
+        pass
+
+    @skip('todo')
+    def test_lng_span(self):
+        pass
