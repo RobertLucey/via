@@ -200,9 +200,9 @@ class Journey(
                 # Append a framepoint but don't put any accelerometer
                 # data in it so we can use it for speed but not for quality
 
-                self._data.append(
-                    FramePoint(frame.time, frame.gps, frame.acceleration)
-                )
+                #self._data.append(
+                #    FramePoint(frame.time, frame.gps, frame.acceleration)
+                #)
 
                 return
 
