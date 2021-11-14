@@ -2,6 +2,7 @@ import datetime
 import os
 import urllib
 from packaging.version import Version
+import dateutil.parser
 
 import boto3
 from botocore import UNSIGNED
@@ -24,26 +25,53 @@ def parse_start_date(earliest_date):
     if earliest_date is None:
         return '2021-01-01'
 
-    if earliest_date < datetime.datetime(2021, 1, 1):
-        earliest_date = '2021-01-01'
+    if isinstance(earliest_date, str):
+        earliest_date = dateutil.parser.parse(earliest_date)
+        print('now: %s' % (earliest_date))
+
+    if isinstance(earliest_date, datetime.date):
+        earliest_date = datetime.datetime.combine(
+            earliest_date,
+            datetime.datetime.min.time()
+        )
 
     if isinstance(earliest_date, datetime.datetime):
-        earliest_date = earliest_date.date()
+        earliest_date = datetime.datetime.combine(
+            earliest_date.date(),
+            datetime.datetime.min.time()
+        )
 
-    return earliest_date
+        if earliest_date < datetime.datetime(2021, 1, 1):
+            earliest_date = datetime.datetime(2021, 1, 1)
+
+        print('aaa: %s' % (earliest_date))
+
+    return str(earliest_date.date())
 
 
 def parse_end_date(latest_date):
     if latest_date is None:
-        return '2023-12-01'
+        return '2023-12-31'
 
-    if latest_date > datetime.datetime(2023, 12, 31):
-        latest_date = '2023-12-01'
+    if isinstance(latest_date, str):
+        latest_date = dateutil.parser.parse(latest_date)
+
+    if isinstance(latest_date, datetime.date):
+        latest_date = datetime.datetime.combine(
+            latest_date,
+            datetime.datetime.min.time()
+        )
 
     if isinstance(latest_date, datetime.datetime):
-        latest_date = latest_date.date()
+        latest_date = datetime.datetime.combine(
+            latest_date.date(),
+            datetime.datetime.min.time()
+        )
 
-    return latest_date
+        if latest_date > datetime.datetime(2023, 12, 31):
+            latest_date = datetime.datetime(2023, 12, 31)
+
+    return str(latest_date.date())
 
 
 def generate_basename(
