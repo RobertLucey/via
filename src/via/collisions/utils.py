@@ -141,7 +141,11 @@ def generate_geojson(
         regions=regions
     )
 
-    geojson = {
+    all_geojson = {
+        'type': 'FeatureCollection',
+        'features': []
+    }
+    single_geojson = {
         'type': 'FeatureCollection',
         'features': []
     }
@@ -163,7 +167,13 @@ def generate_geojson(
 
                 if mode == 'point':
                     for collision in collisions:
-                        geojson['features'].append(
+                        all_geojson['features'].append(
+                            get_point(
+                                properties=None,
+                                gps=collision.gps
+                            )
+                        )
+                        single_geojson['features'].append(
                             get_point(
                                 properties=None,
                                 gps=collision.gps
@@ -171,16 +181,17 @@ def generate_geojson(
                         )
                 elif mode == 'edge':
                     individual_geojson = collisions.geojson
-                    geojson['features'].extend(individual_geojson['features'])
+                    single_geojson['features'].extend(individual_geojson['features'])
+                    all_geojson['features'].extend(individual_geojson['features'])
                 else:
                     raise NotImplementedError()
 
                 filters['mode'] = mode
                 filename = 'collision_' + urllib.parse.urlencode(filters) + '.geojson'
-                write_json(os.path.join(GEOJSON_DIR, filename), geojson)
-                geojson = {
+                write_json(os.path.join(GEOJSON_DIR, filename), single_geojson)
+                single_geojson = {
                     'type': 'FeatureCollection',
                     'features': []
                 }
 
-    return geojson
+    return all_geojson
