@@ -65,7 +65,8 @@ class UtilTest(TestCase):
             generate_geojson(
                 mode=mode,
                 county='leitrim',  # for quick loading
-                transport_type='bicycle'
+                transport_type='bicycle',
+                only_used_regions=False
             )
             retrieve_geojson(
                 mode=mode,
@@ -77,7 +78,8 @@ class UtilTest(TestCase):
         points_geojson = generate_geojson(
             mode='point',
             county='dublin',
-            transport_type='bicycle'
+            transport_type='bicycle',
+            only_used_regions=False
         )
         self.assertGreater(len(points_geojson['features']), 1000)
 
@@ -85,6 +87,7 @@ class UtilTest(TestCase):
         points_geojson = generate_geojson(
             mode='edge',
             county='leitrim',  # for quick loading
-            transport_type='bicycle'
+            transport_type='bicycle',
+            only_used_regions=False
         )
         self.assertGreater(len(points_geojson['features']), 0)
