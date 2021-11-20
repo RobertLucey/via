@@ -178,5 +178,9 @@ def generate_geojson(
                 filters['mode'] = mode
                 filename = 'collision_' + urllib.parse.urlencode(filters) + '.geojson'
                 write_json(os.path.join(GEOJSON_DIR, filename), geojson)
+                geojson = {
+                    'type': 'FeatureCollection',
+                    'features': []
+                }
 
     return geojson
