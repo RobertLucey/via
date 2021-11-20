@@ -556,3 +556,7 @@ class Journey(
         if isinstance(self._version, type(None)):
             return version.parse('0.0.0')
         return version.parse(self._version)
+
+    @property
+    def region(self):
+        return self.origin.gps.reverse_geo['place_2']

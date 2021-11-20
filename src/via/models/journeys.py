@@ -217,3 +217,7 @@ class Journeys(
             'east': self.most_eastern,
             'west': self.most_western
         }
+
+    @property
+    def regions(self):
+        return [journey.region for journey in self]

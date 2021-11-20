@@ -6,11 +6,15 @@ from road_collisions.constants import COUNTY_MAP
 from via import logger
 from via.utils import (
     read_json,
-    write_json
+    write_json,
+    get_journeys
 )
 from via.models.collisions.collision import Collisions
 from via.geojson.utils import get_point
-from via.constants import GEOJSON_DIR
+from via.constants import (
+    GEOJSON_DIR,
+    COUNTY_REGION_MAP
+)
 
 
 def get_collisions() -> Collisions:
@@ -23,7 +27,7 @@ def clean_filters(filters: dict) -> dict:
     }
 
 
-def get_filters(transport_type=None, years=False, county=None):
+def get_filters(transport_type=None, years=False, county=None, regions=None):
     """
 
     :kwargs transport_type:
@@ -41,6 +45,10 @@ def get_filters(transport_type=None, years=False, county=None):
     counties = list(COUNTY_MAP.values())
     if county is not None:
         counties = [county]
+    if regions is not None:
+        counties = [
+            c for c in counties if COUNTY_REGION_MAP.get(c.lower(), None) in [r.lower() for r in regions]
+        ]
 
     if years:
         years_list = [None] + sorted(list(range(2005, 2017)), reverse=True)
@@ -107,7 +115,8 @@ def generate_geojson(
     transport_type=None,
     years=False,
     county=None,
-    mode='edge'
+    mode='edge',
+    only_used_regions=True
 ):
     """
 
@@ -116,13 +125,20 @@ def generate_geojson(
     :kwarg mode:
         - edge: get geojson data as road data
         - point: get geojson data as points on map
+    :kwarg only_used_regions: Only generate collision
+        data from regions we have road quality data from
     """
     all_collisions = get_collisions()
+
+    regions = None
+    if only_used_regions:
+        regions = set(get_journeys().regions)
 
     transport_types, counties, years_list = get_filters(
         transport_type=transport_type,
         years=years,
-        county=county
+        county=county,
+        regions=regions
     )
 
     geojson = {

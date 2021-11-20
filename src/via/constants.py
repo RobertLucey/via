@@ -47,3 +47,19 @@ USELESS_GEOJSON_PROPERTIES = {
     'ref',
     'access'
 }
+
+
+COUNTY_REGION_MAP = {
+    'carlow': 'leinster',
+    'dublin': 'leinster',
+    'kildare': 'leinster',
+    'kilkenny': 'leinster',
+    'laois': 'leinster',
+    'longford': 'leinster',
+    'louth': 'leinster',
+    'meath': 'leinster',
+    'offaly': 'leinster',
+    'westmeath': 'leinster',
+    'wexford': 'leinster',
+    'wicklow': 'leinster',
+}
