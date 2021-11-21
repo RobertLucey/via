@@ -523,17 +523,26 @@ class Collisions(BaseCollisions):
                 )
 
             associated = list(zip(used_edges, collisions))
-            edge_feature_map = {
-                get_combined_id(k[0], k[1]): {
-                    'danger': Collisions(
-                        data=[x for _, x in g]
-                    ).danger,
-                    'edge_id': get_combined_id(k[0], k[1])
-                } for k, g in groupby(
-                    sorted(associated, key=itemgetter(0)),
-                    itemgetter(0)
+
+            edge_feature_map = {}
+            for k, g in groupby(
+                sorted(associated, key=itemgetter(0)),
+                itemgetter(0)
+            ):
+                collisions = Collisions(
+                    data=[x for _, x in g]
                 )
-            }
+                edge_id = get_combined_id(k[0], k[1])
+
+                # TODO cache of edge_id: {gps_hash: serialization/pickle, ...}
+                # so we can pick it up when giving back road quality geojson
+                # if requested
+                # edge_collision_cache.set(edge_id, collisions)
+
+                edge_feature_map[edge_id] = {
+                    'danger': collisions,
+                    'edge_id': edge_id
+                }
 
             if bounding_graph_gdfs_cache.get(get_graph_id(network)) is None:
                 gdfs_graph = ox.graph_to_gdfs(
