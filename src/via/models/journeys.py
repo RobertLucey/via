@@ -5,16 +5,11 @@ from contextlib import closing
 from collections import defaultdict
 from typing import List
 
-import osmnx as ox
 from networkx.classes.multidigraph import MultiDiGraph
 
 from via.models.generic import GenericObjects
-from via import logger
 from via.models.journey import Journey
-from via.utils import (
-    get_edge_colours,
-    flatten
-)
+from via.utils import flatten
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
@@ -46,58 +41,6 @@ class Journeys(
             self.network_type = 'all'
         elif len(set(network_types)) == 1:
             self.network_type = network_types[0]
-
-    def plot_routes(
-        self,
-        use_graph_cache=False,
-        use_closest_edge_from_base=False,
-        min_edge_usage=1,
-        colour_map_name='bwr',
-        plot_kwargs=None
-    ):
-        """
-
-        :kwarg use_closest_from_base: For each point on the actual route, for
-            each node use the closest node from the original base graph
-            the route is being drawn on
-        :kwargs min_edge_usage: The minimum number of times an edge has to be
-            used for it to be included in the final data (1 per journey)
-        :kwarg colour_map_name:
-        :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
-            being done
-        """
-        if plot_kwargs is None:
-            plot_kwargs = {}
-        if len(self) == 0:
-            raise Exception('Current Journeys object has no content')
-        if len(self) == 1:
-            logger.warning('To use Journeys effectively multiple journeys must be used, only one found')
-
-        base = self.get_graph(use_graph_cache=use_graph_cache)
-        if use_closest_edge_from_base:
-            edge_colours = get_edge_colours(
-                base,
-                colour_map_name,
-                edge_map={
-                    edge_id: data for edge_id, data in self.edge_quality_map.items() if data['count'] >= min_edge_usage
-                }
-            )
-        else:
-            for journey in self:
-                base.add_nodes_from(journey.route_graph.nodes(data=True))
-                base.add_edges_from(journey.route_graph.edges(data=True))
-
-            edge_colours = get_edge_colours(
-                base,
-                colour_map_name,
-                key_name='avg_road_quality'
-            )
-
-        ox.plot_graph(
-            base,
-            edge_color=edge_colours,
-            **plot_kwargs
-        )
 
     def get_mega_journeys(self):
         megas = defaultdict(Journey)

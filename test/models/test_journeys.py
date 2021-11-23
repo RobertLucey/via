@@ -1,12 +1,7 @@
 import json
-import hashlib
-import uuid
-import os
 
 from mock import patch
-from unittest import TestCase, skip
-from PIL import Image
-import imagehash
+from unittest import TestCase
 
 from via.models.journey import Journey
 from via.models.journeys import Journeys
@@ -86,26 +81,4 @@ class JourneysTest(TestCase):
         self.assertEqual(
             len(self.test_journeys_single.edge_quality_map),
             63
-        )
-
-    def test_plot_routes_too_few(self):
-        with self.assertRaises(Exception):
-            Journeys().plot_routes()
-
-    @skip('not implemented')
-    def test_plot_routes_use_closest(self):
-        img_uuid = str(uuid.uuid4())
-        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
-        self.test_journeys.plot_routes(
-            use_closest_edge_from_base=True,
-            plot_kwargs={
-                'show': False,
-                'save': True,
-                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
-            }
-        )
-
-        self.assertEqual(
-            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            'd79a8a56de0c050d9f57bebee8589274'
         )

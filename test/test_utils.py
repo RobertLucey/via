@@ -12,7 +12,6 @@ import geopandas
 from via.utils import (
     get_slope,
     get_edge_slope,
-    get_ox_colours,
     is_journey_data_file,
     get_data_files,
     window,
@@ -141,16 +140,6 @@ class UtilTest(TestCase):
             flatten([[1, 2, 3], [1, 2]]),
             [1, 2, 3, 1, 2]
         )
-
-    @skip('todo')
-    def test_get_ox_colours(self):
-        # TODO: once not doing random quality
-        pass
-
-    @skip('todo')
-    def test_get_edge_colours(self):
-        # TODO: once not doing random quality
-        pass
 
     @skip('todo')
     def test_update_edge_data(self):

@@ -20,7 +20,6 @@ from typing import (
 
 from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
-import osmnx as ox
 import fast_json
 
 from via import logger
@@ -32,8 +31,7 @@ from via.settings import (
 from via.constants import (
     METRES_PER_DEGREE,
     DATA_DIR,
-    REMOTE_DATA_DIR,
-    DEFAULT_EDGE_COLOUR
+    REMOTE_DATA_DIR
 )
 from via.models.gps import GPSPoint
 from via.cache_pull import (
@@ -318,98 +316,6 @@ def get_combined_id(obj: Any, other_obj: Any) -> int:
     :return: A unque id that will be the same regardless of param order
     """
     return hash(obj) + hash(other_obj)
-
-
-def get_ox_colours(
-    graph: MultiDiGraph,
-    colour_map_name: str,
-    edge_map=None,
-    key_name=None
-) -> List:  # TODO: better list hint, not sure what this returns
-    """
-    NB: only used in local osmnx graphing
-
-    :param graph: MultiDiGraph
-    :param colour_map_name: osmnx recognised colour gradient
-    :kwarg key_name: The key on the edge data to use as colour intensity data
-    :kwarg edge_map: edge_id to data containing colour intensity data
-    :rtype: list
-    :return: a list of colours indexed by edge order
-    """
-    if edge_map is not None:
-        max_num_colours = max(
-            [
-                edge_map.get(get_combined_id(u, v), {}).get('avg', -1) for (u, v, _, _) in graph.edges(keys=True, data=True)
-            ]
-        ) + 1
-    elif key_name is not None:
-        max_num_colours = max(
-            [
-                d.get(key_name, -1) for (_, _, _, d) in graph.edges(keys=True, data=True)
-            ]
-        ) + 1
-    else:
-        raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
-
-    return ox.plot.get_colors(
-        n=max_num_colours,
-        cmap=colour_map_name
-    )
-
-
-def get_edge_colours(
-    graph: MultiDiGraph,
-    colour_map_name: str,
-    key_name=None,
-    edge_map=None
-) -> List:  # TODO: better list hint, not sure what this returns
-    """
-    NB: only used in local osmnx graphing
-
-    :param graph: MultiDiGraph
-    :param colour_map_name: osmnx recognised colour gradient
-    :kwarg key_name: The key on the edge data to use as colour intensity data
-    :kwarg edge_map: edge_id to data containing colour intensity data
-    :rtype: list
-    :return: a list of colours indexed by edge order
-    """
-    if key_name is not None:
-        colours = get_ox_colours(
-            graph,
-            colour_map_name,
-            key_name=key_name
-        )
-
-        return [
-            get_idx_default(
-                colours,
-                d.get(key_name, None),
-                DEFAULT_EDGE_COLOUR
-            ) for u, v, k, d in graph.edges(
-                keys=True,
-                data=True
-            )
-        ]
-
-    if edge_map is not None:
-        colours = get_ox_colours(
-            graph,
-            colour_map_name,
-            edge_map=edge_map
-        )
-
-        return [
-            get_idx_default(
-                colours,
-                edge_map.get(get_combined_id(u, v), {}).get('avg', None),
-                DEFAULT_EDGE_COLOUR
-            ) for (u, v, k, d) in graph.edges(
-                keys=True,
-                data=True
-            )
-        ]
-
-    raise Exception('Can not determine what colours to generate. Must give an edge_map or key_name')
 
 
 def force_list(val: Any) -> List[Any]:

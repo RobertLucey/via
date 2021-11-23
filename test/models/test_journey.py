@@ -1,6 +1,3 @@
-import os
-import hashlib
-import uuid
 import json
 
 from mock import patch
@@ -122,46 +119,6 @@ class JourneyTest(TestCase):
 
         with self.assertRaises(NotImplementedError):
             Journey.parse(None)
-
-    @skip('not implemented')
-    def test_plot_route_nothing_fancy(self):
-        img_uuid = str(uuid.uuid4())
-        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
-        self.test_journey.plot_route(
-            plot_kwargs={
-                'show': False,
-                'save': True,
-                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
-            }
-        )
-
-        self.assertEqual(
-            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            'c0a275cb044243f3e1db915dcabc7557'
-        )
-
-    @skip('not implemented')
-    def test_plot_route_use_closest(self):
-        img_uuid = str(uuid.uuid4())
-        fp = os.path.join('/tmp/', img_uuid) + '.jpg'
-        self.test_journey.plot_route(
-            use_closest_edge_from_base=True,
-            plot_kwargs={
-                'show': False,
-                'save': True,
-                'filepath': os.path.join('/tmp/', img_uuid) + '.jpg'
-            }
-        )
-
-        self.assertEqual(
-            hashlib.md5(open(fp, 'rb').read()).hexdigest(),
-            '5a0155e8bea8eb4994917744546fb9aa'
-        )
-
-    @skip('todo')
-    def test_plot_route_use_condition(self):
-        # TODO: need to have real data / not random data for the road quality
-        pass
 
     @skip('todo')
     def test_edge_quality_map(self):

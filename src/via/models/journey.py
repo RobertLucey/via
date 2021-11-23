@@ -20,8 +20,7 @@ from via import settings
 from via import logger
 from via.utils import (
     window,
-    get_combined_id,
-    get_edge_colours
+    get_combined_id
 )
 from via.nearest_edge import nearest_edge
 from via.constants import POLY_POINT_BUFFER
@@ -287,47 +286,6 @@ class Journey(
             )
 
         return data
-
-    def plot_route(
-        self,
-        use_closest_edge_from_base=False,
-        colour_map_name='bwr',
-        plot_kwargs=None
-    ):
-        """
-
-        :kwarg use_closest_from_base: For each point on the actual route,
-            for each node use the closest node from the original base graph
-            the route is being drawn on
-        :kwarg colour_map_name:
-        :kwarg plot_kwargs: A dict of kwargs to pass to whatever plot is
-            being done
-        """
-        plot_kwargs = {} if plot_kwargs is None else plot_kwargs
-
-        base = self.graph
-        if use_closest_edge_from_base:
-            edge_colours = get_edge_colours(
-                base,
-                colour_map_name,
-                edge_map=self.edge_quality_map
-            )
-
-        else:
-            base.add_nodes_from(self.route_graph.nodes(data=True))
-            base.add_edges_from(self.route_graph.edges(data=True))
-
-            edge_colours = get_edge_colours(
-                base,
-                colour_map_name,
-                key_name='avg_road_quality'
-            )
-
-        ox.plot_graph(
-            base,
-            edge_color=edge_colours,
-            **plot_kwargs
-        )
 
     @property
     def timestamp(self):

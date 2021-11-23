@@ -22,8 +22,6 @@ GEOJSON_DIR = os.path.join(GENERATED_DIR, 'geojson')
 
 LOG_LOCATION = '/var/log/via/via.log' if os.getenv('TEST_ENV', 'False') == 'False' else '/tmp/log/via/via.log'
 
-DEFAULT_EDGE_COLOUR = '#E1E1E1'
-
 POLY_POINT_BUFFER = 0.002
 
 HIGHWAYS_TO_EXCLUDE = {
