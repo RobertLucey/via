@@ -58,7 +58,7 @@ class BaseCache():
         if len(self.data) <= self.last_save_len:
             self.lock.release()
             return
-        logger.info(f'Saving cache {self.fp}')
+        logger.debug(f'Saving cache {self.fp}')
         self.create_dirs()
         with open(self.fp, 'wb') as f:
             pickle.dump(self.data, f)
@@ -69,7 +69,7 @@ class BaseCache():
         if self.loaded:
             return
 
-        logger.info(f'Loading cache {self.fp}')
+        logger.debug(f'Loading cache {self.fp}')
         if not os.path.exists(self.fp):
             self.create_dirs()
             self.save()
