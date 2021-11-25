@@ -1,7 +1,10 @@
 import requests
 
+from shapely.errors import ShapelyDeprecationWarning
+
 import warnings
 warnings.filterwarnings('ignore', '.*Geometry is in a geographic CRS.*', )
+warnings.filterwarnings('ignore', category=ShapelyDeprecationWarning)
 
 import osmnx as ox
 
