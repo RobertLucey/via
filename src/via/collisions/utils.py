@@ -72,6 +72,8 @@ def retrieve_geojson(
         - edge: get geojson data as road data
         - point: get geojson data as points on map
     """
+    logger.info('Getting collision geojson: transport_type=%s years=%s county=%s mode=%s only_used_regions=%s', transport_type, years, county, mode)
+
     transport_types, counties, years_list = get_filters(
         transport_type=transport_type,
         years=years,
@@ -128,6 +130,8 @@ def generate_geojson(
     :kwarg only_used_regions: Only generate collision
         data from regions we have road quality data from
     """
+    logger.info('Generating collision geojson: transport_type=%s years=%s county=%s mode=%s only_used_regions=%s', transport_type, years, county, mode, only_used_regions)
+
     all_collisions = get_collisions()
 
     regions = None

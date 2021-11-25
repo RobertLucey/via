@@ -38,6 +38,8 @@ def generate_geojson(
     place=None
 ):
 
+    logger.info('Generating geojson: transport_type=%s version=%s version_op=%s earliest_time=%s latest_time=%s place=%s', transport_type, version, version_op, earliest_time, latest_time, place)
+
     for config_item in get_generation_config(
         transport_type=transport_type,
         version=version,
