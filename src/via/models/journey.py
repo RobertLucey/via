@@ -33,6 +33,8 @@ from via.models.journey_mixins import (
     GeoJsonMixin,
     BoundingGraphMixin
 )
+from via.collision_edge_cache import collision_edge_cache
+from via.models.collisions.collision import COLLISIONS
 
 
 class Journey(
@@ -304,6 +306,18 @@ class Journey(
         :rtype: dict
         """
 
+        # FIXME: this is very lazy making sure at least some collisions have been generated
+        from via.constants import COLLISION_EDGE_CACHE_DIR
+        if len(collision_edge_cache.data) == 0:
+            from via.collisions.utils import generate_geojson
+            generate_geojson(
+                transport_type='bicycle',
+                years=False,
+                county=None,
+                mode='edge',
+                only_used_regions=True
+            )
+
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
             qualities = [edge['avg_road_quality'] for edge in single_edge_data]
@@ -312,7 +326,8 @@ class Journey(
                 data[edge_id] = {
                     'avg': 0,
                     'count': 0,
-                    'speed': speed
+                    'speed': speed,
+                    'collisions': []
                 }
             else:
                 data[edge_id] = {
@@ -322,7 +337,10 @@ class Journey(
                         )
                     ),
                     'count': len(qualities),
-                    'speed': speed
+                    'speed': speed,
+                    'collisions': COLLISIONS.get_by_gps_hash(
+                        tuple(collision_edge_cache.get(edge_id))
+                    )
                 }
 
         return {

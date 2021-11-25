@@ -2,6 +2,7 @@ import hashlib
 import urllib
 import os
 import glob
+from functools import lru_cache
 from multiprocessing.dummy import Pool as ThreadPool
 from itertools import groupby
 from operator import itemgetter
@@ -34,6 +35,7 @@ from via.utils import (
     read_json
 )
 from via.network_cache import network_cache
+from via.collision_edge_cache import collision_edge_cache
 from via.models.gps import GPSPoint
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
 from via.geojson.utils import geojson_from_graph
@@ -488,6 +490,25 @@ class Collisions(BaseCollisions):
 
         return data
 
+    @lru_cache(maxsize=500)
+    def get_by_gps_hash(self, gps_hash):
+        if isinstance(gps_hash, tuple):
+            if not gps_hash:
+                return []
+
+            collisions = []
+            for collision in self:
+                if str(collision.gps_hash) in gps_hash:
+                    collisions.append(collision)
+                    if len(collisions) == len(gps_hash):
+                        break
+
+            return collisions
+        else:
+            for collision in self:
+                if str(collision.gps_hash) == str(gps_hash):
+                    return collision
+
     @property
     def geojson(self):
         if os.path.exists(self.geojson_filepath):
@@ -543,6 +564,8 @@ class Collisions(BaseCollisions):
                     'danger': collisions,
                     'edge_id': edge_id
                 }
+                for collision in collisions:
+                    collision_edge_cache.set(edge_id, collision.gps_hash)
 
             if bounding_graph_gdfs_cache.get(get_graph_id(network)) is None:
                 gdfs_graph = ox.graph_to_gdfs(
@@ -577,3 +600,6 @@ class Collisions(BaseCollisions):
         write_json(self.geojson_filepath, geojson)
 
         return geojson
+
+
+COLLISIONS = Collisions.load_all()

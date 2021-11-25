@@ -82,7 +82,8 @@ class Journeys(
                 'avg': int(statistics.mean([d['avg'] for d in data])),
                 'count': len(data),
                 'edge_id': edge_id,
-                'speed': statistics.mean([val['speed'] for val in data]) if None not in [val['speed'] for val in data] else None
+                'speed': statistics.mean([val['speed'] for val in data]) if None not in [val['speed'] for val in data] else None,
+                'collisions': flatten([[i.serialize() for i in v['collisions']] for v in data])
             } for edge_id, data in edge_quality_map.items()
         }
 
