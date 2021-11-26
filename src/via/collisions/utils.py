@@ -72,7 +72,7 @@ def retrieve_geojson(
         - edge: get geojson data as road data
         - point: get geojson data as points on map
     """
-    logger.info('Getting collision geojson: transport_type=%s years=%s county=%s mode=%s only_used_regions=%s', transport_type, years, county, mode)
+    logger.info('Getting collision geojson: transport_type=%s years=%s county=%s mode=%s', transport_type, years, county, mode)
 
     transport_types, counties, years_list = get_filters(
         transport_type=transport_type,
