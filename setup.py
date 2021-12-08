@@ -6,19 +6,15 @@ from setuptools import (
 INSTALL_REQUIRES = (
     'road_collisions==0.0.6',
     'cached_property',
-    'backoff',
     'packaging',
     'reverse_geocoder',
     'fast_json',
     'boto3',
-    'backoff',
     'haversine',
     'osmnx',
     'scikit-learn',
     'requests',
-    'geopandas',
-    'imagehash',
-    'pillow'
+    'geopandas'
 )
 
 setup(
@@ -34,9 +30,6 @@ setup(
     entry_points={
         'console_scripts': [
             'pull_journeys = via.bin.pull_journeys:main',
-            'plot_journeys = via.bin.plot_journeys:main',
-            'road_coverage = via.bin.road_coverage:main',
-            'condition_by_street = via.bin.condition_by_street:main',
             'generate_geojson = via.bin.generate_geojson:main',
             'generate_collision_geojson = via.bin.generate_collision_geojson:main'
         ]
