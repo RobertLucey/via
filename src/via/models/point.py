@@ -274,6 +274,10 @@ class FramePoint(Context, GenericObject):
 
             without_footway = []
             for edge in edges:
+                if edge[0] not in graph.edges:
+                    logger.warning('Could not find edge %s', edge[0])
+                    continue
+
                 highway = graph.edges[edge[0]]['highway']
                 include = True
 
