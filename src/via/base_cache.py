@@ -65,6 +65,11 @@ class BaseCache():
         self.last_save_len = len(self.data)
         self.lock.release()
 
+    def delete(self):
+        if os.path.exists(self.fp):
+            os.remove(self.fp)
+        self.unload()
+
     def load(self):
         if self.loaded:
             return
@@ -92,6 +97,7 @@ class BaseCache():
     def unload(self):
         self.lock.acquire()
         self.data = {}
+        self.last_save_len = -1
         self.lock.release()
         self.loaded = False
 
