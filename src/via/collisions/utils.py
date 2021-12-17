@@ -154,6 +154,7 @@ def generate_geojson(
         'features': []
     }
 
+    # TODO: multiprocess
     for county in counties:
         for vehicle_type in transport_types:
             for year in years_list:
