@@ -1,5 +1,6 @@
 from unittest import TestCase, skip
 
+from via.collisions.utils import get_collisions
 from via.models.collisions.collision import (
     Collision,
     Collisions
@@ -162,9 +163,18 @@ class CollisionsTest(TestCase):
         collisions.set_filters({'country': 'ireland'})
         self.assertEqual(collisions.filters, {'country': 'ireland'})
 
-    @skip('todo')
     def test_danger_by_vehicle_type(self):
-        pass
+        collisions = get_collisions()
+
+        # All types are below but some are not classified, even in their source
+        # ['car', 'bus', 'goods_vehicle', 'motorcycle', '14', '10', '7', '13', '12', 'other', 'bicycle', '8', '11', '88', '9']
+
+        expected_vehicle_types = ['car', 'bus', 'goods_vehicle', 'motorcycle', 'other', 'bicycle']
+
+        for vehicle_type in expected_vehicle_types:
+            self.assertTrue(
+                vehicle_type in collisions.danger_by_vehicle_type.keys(),
+            )
 
     @skip('todo')
     def test_most_northern(self):
