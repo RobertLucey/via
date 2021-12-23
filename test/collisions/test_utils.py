@@ -1,16 +1,11 @@
-import os
 import shutil
-import time
-from shutil import (
-    copyfile,
-    rmtree
-)
 
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from road_collisions.constants import COUNTY_MAP
 
 from via.constants import GEOJSON_DIR
+from via.models.collisions.collision import Collisions
 from via.collisions.utils import (
     get_collisions,
     clean_filters,
@@ -28,13 +23,29 @@ class UtilTest(TestCase):
         except FileNotFoundError:
             pass
 
-    @skip('todo')
     def test_get_collisions(self):
-        pass
+        self.assertGreater(
+            len(get_collisions()),
+            50000
+        )
+        self.assertIsInstance(
+            get_collisions(),
+            Collisions
+        )
 
-    @skip('todo')
     def test_clean_filters(self):
-        pass
+        self.assertEqual(
+            clean_filters(
+                {
+                    'something': None,
+                    'something_else': 'all',
+                    'something_other': 'blah'
+                }
+            ),
+            {
+                'something_other': 'blah'
+            }
+        )
 
     def test_get_filters(self):
         transport_types, counties, years_list = get_filters()

@@ -8,9 +8,33 @@ from via.geojson.generate import (
 
 class GeoJsonGenerateTest(TestCase):
 
-    @skip('todo')
     def test_get_generation_config(self):
-        pass
+        self.assertEqual(
+            get_generation_config(),
+            [
+                {
+                    'transport_type': 'all', 'name': 'all', 'version': None, 'version_op': None, 'earliest_time': None, 'latest_time': None, 'place': None
+                },
+                {
+                    'transport_type': 'bike', 'name': 'bike', 'version': None, 'version_op': None, 'earliest_time': None, 'latest_time': None, 'place': None
+                },
+                {
+                    'transport_type': 'car', 'name': 'car', 'version': None, 'version_op': None, 'earliest_time': None, 'latest_time': None, 'place': None
+                },
+                {
+                    'transport_type': 'bus', 'name': 'bus', 'version': None, 'version_op': None, 'earliest_time': None, 'latest_time': None, 'place': None
+                }
+            ]
+        )
+
+        self.assertEqual(
+            get_generation_config(transport_type='bike'),
+            [
+                {
+                    'transport_type': 'bike', 'name': 'bike', 'version': None, 'version_op': None, 'earliest_time': None, 'latest_time': None, 'place': None
+                }
+            ]
+        )
 
     @skip('todo')
     def test_generate_geojson(self):
