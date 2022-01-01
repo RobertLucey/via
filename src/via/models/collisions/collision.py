@@ -289,37 +289,17 @@ class Collisions(BaseCollisions):
                     logger.warning('Could not create graph %s: %s', self.bbox, ex)
 
     @staticmethod
-    def from_file(filepath):
-        collisions = Collisions()
-        for collision_dict in read_json(filepath):
-            collisions.append(
-                Collision.parse(
-                    collision_dict
-                )
-            )
-
-        return collisions
-
-    @staticmethod
-    def from_dir(dirpath):
-        collisions = Collisions()
-        for filename in glob.iglob(f'{dirpath}/**', recursive=True):
-            if os.path.splitext(filename)[-1] != '.json':
-                continue
-            collisions.extend(
-                Collisions.from_file(
-                    filename
-                )._data
-            )
-
-        return collisions
-
-    @staticmethod
     def load_all():
-        import road_collisions
-        return Collisions.from_dir(
-            os.path.join(road_collisions.__path__[0], 'resources')
-        )
+        from road_collisions_ireland.models.collision import Collisions as BaseCollisions
+        base_collisions = BaseCollisions.load_all()
+
+        collisions = Collisions()
+        for collision in base_collisions:
+            collisions.append(Collision(
+                **collision.data
+            ))
+
+        return collisions
 
     def filter(self, **kwargs):
         '''
