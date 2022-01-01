@@ -1,7 +1,7 @@
 import os
 import urllib
 
-from road_collisions.constants import COUNTY_MAP
+from road_collisions_ireland.constants import COUNTY_MAP
 
 from via import logger
 from via.utils import (

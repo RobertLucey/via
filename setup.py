@@ -4,7 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
-    'road_collisions==0.0.6',
+    'road-collisions-ireland',
     'cached_property',
     'packaging',
     'reverse_geocoder',
@@ -19,7 +19,7 @@ INSTALL_REQUIRES = (
 
 setup(
     name='via-api',
-    version='0.0.45',
+    version='0.0.46',
     python_requires='>=3.6,<3.10',
     description='Analysing and serving crowdsourced road quality data',
     author='Robert Lucey',

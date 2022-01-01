@@ -1,4 +1,4 @@
-road_collisions==0.0.6
+road-collisions-ireland
 cached_property
 packaging
 reverse_geocoder

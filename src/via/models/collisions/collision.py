@@ -16,9 +16,9 @@ from haversine import (
 
 import osmnx as ox
 
-from road_collisions.models.raw_collision import RawCollision as BaseRawCollision
-from road_collisions.models.collision import Collision as BaseCollision
-from road_collisions.models.collision import Collisions as BaseCollisions
+from road_collisions_base.models.raw_collision import RawCollision as BaseRawCollision
+from road_collisions_ireland.models.collision import Collision as BaseCollision
+from road_collisions_ireland.models.collision import Collisions as BaseCollisions
 
 from via import logger
 from via.constants import GEOJSON_DIR
