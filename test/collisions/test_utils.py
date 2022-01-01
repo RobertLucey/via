@@ -2,7 +2,7 @@ import shutil
 
 from unittest import TestCase
 
-from road_collisions.constants import COUNTY_MAP
+from road_collisions_ireland.constants import COUNTY_MAP
 
 from via.constants import GEOJSON_DIR
 from via.models.collisions.collision import Collisions
