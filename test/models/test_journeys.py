@@ -78,7 +78,11 @@ class JourneysTest(TestCase):
     @patch('via.settings.MIN_METRES_PER_SECOND', 0)
     @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def test_edge_quality_map(self):
-        self.assertEqual(
+        self.assertGreater(
             len(self.test_journeys_single.edge_quality_map),
-            63
+            60
+        )
+        self.assertLess(
+            len(self.test_journeys_single.edge_quality_map),
+            65
         )
