@@ -63,7 +63,7 @@ class BaseCacheTest(TestCase):
         cache = BaseCache(cache_type='test_load_content')
         cache.load()
         self.assertEqual(
-            cache.data['one'][1],
+            cache.data['one'],
             1
         )
 
