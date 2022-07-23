@@ -27,8 +27,12 @@ class EdgeCacheTest(TestCase):
 
     def test_get(self):
         self.assertEqual(
-            get_edge_data(389281, 135109553, graph=self.test_journey.graph),
-            {0: {'osmid': 14039949, 'reversed': False, 'oneway': True, 'name': 'York Street', 'highway': 'unclassified', 'maxspeed': '30', 'length': 34.217}}
+            get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]['osmid'],
+            14039949
+        )
+        self.assertEqual(
+            get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]['name'],
+            'York Street'
         )
 
     def test_get_no_graph(self):
@@ -39,10 +43,19 @@ class EdgeCacheTest(TestCase):
 
     def test_caching(self):
         self.assertEqual(
-            get_edge_data(389281, 135109553, graph=self.test_journey.graph),
-            {0: {'osmid': 14039949, 'reversed': False, 'oneway': True, 'name': 'York Street', 'highway': 'unclassified', 'maxspeed': '30', 'length': 34.217}}
+            get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]['osmid'],
+            14039949
         )
         self.assertEqual(
-            get_edge_data(389281, 135109553, graph=None),
-            {0: {'osmid': 14039949, 'reversed': False, 'oneway': True, 'name': 'York Street', 'highway': 'unclassified', 'maxspeed': '30', 'length': 34.217}}
+            get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]['name'],
+            'York Street'
+        )
+
+        self.assertEqual(
+            get_edge_data(389281, 135109553, graph=None)[0]['osmid'],
+            14039949
+        )
+        self.assertEqual(
+            get_edge_data(389281, 135109553, graph=None)[0]['name'],
+            'York Street'
         )
