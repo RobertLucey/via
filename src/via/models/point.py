@@ -162,6 +162,9 @@ class FramePoint(Context, GenericObject):
             origin = self.context_pre[0]
             dst = self.context_post[-1]
 
+            if origin.time is None and dst.time is None:
+                return None
+
             metres_per_second = None
             distance = origin.distance_from(dst.gps)
             if distance != 0:

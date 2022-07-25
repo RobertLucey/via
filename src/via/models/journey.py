@@ -186,7 +186,7 @@ class Journey(
 
             # Remove points that are too slow / fast in relation to
             # the previous point
-            if frame_gps_populated or frame.gps.is_populated:
+            if (frame_gps_populated or frame.gps.is_populated) and frame.time is not None:
                 metres_per_second = self._data[-1].speed_between(frame)
                 if metres_per_second is not None:
                     if any([
