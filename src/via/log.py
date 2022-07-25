@@ -3,6 +3,8 @@ import sys
 import logging
 from logging.handlers import RotatingFileHandler
 
+import logging_loki
+
 from via.constants import LOG_LOCATION
 
 
@@ -40,6 +42,16 @@ os.makedirs(
     os.path.dirname(LOG_LOCATION),
     exist_ok=True
 )
+
+if os.getenv('LOKI_ENDPOINT') == 'True':
+    handler = logging_loki.LokiHandler(
+        url=os.getenv('LOKI_ENDPOINT'),
+        tags={"application": "via"},
+        auth=(os.getenv('LOKI_USERNAME'), os.getenv('LOKI_PASSWORD')),
+        version="1",
+    )
+    logger.addHandler(handler)
+
 
 handler = RotatingFileHandler(
     LOG_LOCATION,

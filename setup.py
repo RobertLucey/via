@@ -14,7 +14,8 @@ INSTALL_REQUIRES = (
     'osmnx',
     'scikit-learn',
     'requests',
-    'geopandas'
+    'geopandas',
+    'python-logging-loki'
 )
 
 setup(

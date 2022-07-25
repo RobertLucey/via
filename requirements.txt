@@ -9,3 +9,4 @@ osmnx
 scikit-learn
 requests
 geopandas
+python-logging-loki
