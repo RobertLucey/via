@@ -37,11 +37,13 @@ def get_journey_files_to_download():
     return journey_files_to_download
 
 
-def pull_journeys(cache_graphs=False):
+def pull_journeys(cache_graphs=False, log_geo=False):
     """
 
     :kwargs cache_graphs: cache the graphs of pulled journeys so we don't
         need to do it again later when we need them
+    :log_geo: to log geographical data or not. Logging this slows down
+        the pulling
     """
     s3 = boto3.client(
         's3',
@@ -70,9 +72,13 @@ def pull_journeys(cache_graphs=False):
 
         journey = Journey.from_file(tmp_filepath)
 
-        # FIXME: This just slows things down, maybe only do on debug or something?
-        geo = journey.origin.gps.reverse_geo
-        logger.info(f'Pulled journey from: {geo["cc"]}, {geo["place_3"]}, {geo["place_2"]}, {geo["place_1"]}')
+        if not journey.has_data:
+            logger.warning(f'Journey {journey_id} has no data')
+            continue
+
+        if log_geo:
+            geo = journey.origin.gps.reverse_geo
+            logger.info(f'Pulled journey from: {geo["cc"]}, {geo["place_3"]}, {geo["place_2"]}, {geo["place_1"]}')
 
         if cache_graphs:
             logger.info(f'Caching graphs for {journey_id}')

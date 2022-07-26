@@ -201,6 +201,9 @@ class Journey(
                 # Append a framepoint but don't put any accelerometer
                 # data in it so we can use it for speed but not for quality
 
+                # FIXME: this causes roads to be gone down when they shouldn't.
+                # Annotate as slow so we don't get road data from it
+
                 #self._data.append(
                 #    FramePoint(frame.time, frame.gps, frame.acceleration)
                 #)
@@ -536,3 +539,7 @@ class Journey(
     @property
     def region(self):
         return self.origin.gps.reverse_geo['place_2']
+
+    @property
+    def has_data(self):
+        return self._data != []
