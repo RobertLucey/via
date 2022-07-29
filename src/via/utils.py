@@ -146,7 +146,7 @@ def iter_journeys(
         ):
             yield journey
         else:
-            logger.debug('Not including journey: %s', journey)
+            logger.debug('Not including journey: %s', journey.uuid)
 
 
 def should_include_journey(
