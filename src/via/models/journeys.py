@@ -42,18 +42,6 @@ class Journeys(
         elif len(set(network_types)) == 1:
             self.network_type = network_types[0]
 
-    def get_mega_journeys(self):
-        megas = defaultdict(Journey)
-
-        for journey in self:
-            key = f'{journey.transport_type}_{journey.suspension}'
-            megas[key].extend(list(journey))
-            megas[key].transport_type = journey.transport_type
-            megas[key].suspension = journey.suspension
-            megas[key].included_journeys.append(journey)
-
-        return megas
-
     @property
     def edge_quality_map(self):
         """
