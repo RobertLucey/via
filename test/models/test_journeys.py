@@ -73,5 +73,5 @@ class JourneysTest(TestCase):
         )
         self.assertLess(
             len(self.test_journeys_single.edge_quality_map),
-            70
+            75
         )
