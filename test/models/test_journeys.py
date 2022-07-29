@@ -64,17 +64,6 @@ class JourneysTest(TestCase):
             -6.2661022
         )
 
-    def test_get_mega_journeys(self):
-        journeys = self.test_journeys.get_mega_journeys()
-        self.assertEqual(
-            list(journeys.keys()),
-            ['unknown_None']  # FIXME
-        )
-        self.assertEqual(
-            len(journeys['unknown_None']._data),  # FIXME
-            (len(self.test_journey._data) * 2)
-        )
-
     @patch('via.settings.MIN_METRES_PER_SECOND', 0)
     @patch('via.settings.GPS_INCLUDE_RATIO', 1)
     def test_edge_quality_map(self):
@@ -84,5 +73,5 @@ class JourneysTest(TestCase):
         )
         self.assertLess(
             len(self.test_journeys_single.edge_quality_map),
-            65
+            70
         )

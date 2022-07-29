@@ -78,8 +78,6 @@ class Journey(
         self.network_type = kwargs.get('network_type', 'all')
         self._timestamp = kwargs.get('timestamp', None)
 
-        self.included_journeys = []
-
         self.last_gps = None
 
     def __del__(self):
@@ -130,6 +128,19 @@ class Journey(
             )
 
     def set_contexts(self):
+
+        if len(self._data) < 7:
+            return
+
+        # set context for idx 1 and -2 as 3 (as 0 and -1 will be skipped for context setting)
+        self._data[1].set_context(pre=[self._data[0]], post=[self._data[2]])
+        self._data[-2].set_context(pre=[self._data[-3]], post=[self._data[-1]])
+
+        # set context for 2 and -3 as 5 (as 1 and -2 will be skipped for context setting)
+        self._data[2].set_context(pre=[self._data[0], self._data[1]], post=[self._data[3], self._data[4]])
+        self._data[-3].set_context(pre=[self._data[-5], self._data[-4]], post=[self._data[-2], self._data[-1]])
+
+        # then do normal loop which will skip the ones already set because they'll be on the edge
         for (one, two, three, four, five, six, seven) in window(self, window_size=7):
             if not four.is_context_populated:
                 four.set_context(
@@ -138,11 +149,12 @@ class Journey(
                 )
 
     def extend(self, objs):
+        # Possibly shouldn't set contexts here and should be done explicitly
         for obj in objs:
-            self.append(obj, set_contexts=False)
+            self.append(obj)
         self.set_contexts()
 
-    def append(self, obj, set_contexts=True):
+    def append(self, obj):
         """
         NB: appending needs to be chronological (can be reversed, just so
         long as it's consistent) as if no accelerometer data it assigns
@@ -184,7 +196,7 @@ class Journey(
                 )
                 return
 
-            # Remove points that are too slow / fast in relation to
+            # Annotate points that are too slow / fast in relation to
             # the previous point
             if (frame_gps_populated or frame.gps.is_populated) and frame.time is not None:
                 metres_per_second = self._data[-1].speed_between(frame)
@@ -198,27 +210,20 @@ class Journey(
                         self.too_slow = False
 
             if self.too_slow:
-                # Append a framepoint but don't put any accelerometer
-                # data in it so we can use it for speed but not for quality
-
-                # FIXME: this causes roads to be gone down when they shouldn't.
-                # Annotate as slow so we don't get road data from it
-
+                # Annotate as slow so we don't use it to get paths or use
+                # it for accelerometer data
+                # A bit more testing to do before putting in
+                pass
                 #self._data.append(
-                #    FramePoint(frame.time, frame.gps, frame.acceleration)
+                #    FramePoint(frame.time, frame.gps, frame.acceleration, slow=True)
                 #)
-
-                return
-
-            if self._data[-1].gps == frame.gps:
-                self._data[-1].append_acceleration(frame.acceleration)
             else:
-                self._data.append(
-                    FramePoint(frame.time, frame.gps, frame.acceleration)
-                )
-
-        if set_contexts:
-            self.set_contexts()
+                if self._data[-1].gps == frame.gps:
+                    self._data[-1].append_acceleration(frame.acceleration)
+                else:
+                    self._data.append(
+                        FramePoint(frame.time, frame.gps, frame.acceleration)
+                    )
 
     def get_indirect_distance(self, n_seconds: int = 10) -> float:
         """
@@ -538,6 +543,9 @@ class Journey(
 
     @property
     def region(self):
+        """
+        Get the region name in which this journey started
+        """
         return self.origin.gps.reverse_geo['place_2']
 
     @property
