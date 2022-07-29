@@ -136,17 +136,20 @@ class FramePoint(Context, GenericObject):
     {gps: (1, 2), acc: 3, time: 3}
     """
 
-    def __init__(self, time, gps, acceleration):
+    def __init__(self, time, gps, acceleration, slow=False):
         """
 
         :param time:
         :param gps: GPSPoint or dict serialization of GPSPoint
         :param acceneration:
+        :kwarg slow: If at this point the person is going slow
         """
         super().__init__()
 
         self.time = time
         self.gps = GPSPoint.parse(gps)
+
+        self.slow = slow
 
         if isinstance(acceleration, list):
             self.acceleration = [acc for acc in acceleration if acc >= settings.MIN_ACC_SCORE]
@@ -190,6 +193,10 @@ class FramePoint(Context, GenericObject):
                 and the slope of actual travel
         :rtype: list
         """
+        if self.slow:
+            # FIXME: should not return, should get the context of the previous edge not slow and the next edge not slow
+            return
+
         edge_node_data = []
         slope_around = self.get_slope_around_point()
 
@@ -223,6 +230,10 @@ class FramePoint(Context, GenericObject):
 
         :kwarg mode: strategy to use to get the best edge
         """
+        if self.slow:
+            # FIXME: should not return, should get the context of the previous edge not slow and the next edge not slow
+            return
+
         default_mode = 'nearest'
         modes_require_graph = {'matching_angle', 'angle_nearest'}
         modes_require_context = {'matching_angle', 'angle_nearest'}
@@ -312,6 +323,8 @@ class FramePoint(Context, GenericObject):
         return self.get_best_edge(edges, mode=default_mode, graph=graph)
 
     def append_acceleration(self, acc):
+        if self.slow:
+            return
         if isinstance(acc, list):
             for item in acc:
                 self.append_acceleration(item)
@@ -349,6 +362,8 @@ class FramePoint(Context, GenericObject):
         distance = self.distance_from(point.gps)
         if distance != 0:
             time_diff = point.time - self.time
+            if time_diff == 0:
+                return 0
             metres_per_second = distance / time_diff
         return metres_per_second
 
@@ -378,6 +393,8 @@ class FramePoint(Context, GenericObject):
         :return: mean of acceleration points
         :rtype: float
         """
+        if self.slow:
+            return 0
         if self.acceleration == []:
             return 0
         try:
@@ -397,6 +414,7 @@ class FramePoint(Context, GenericObject):
         data = {
             'gps': self.gps.serialize(),
             'acc': list(self.acceleration),
+            'slow': self.slow
         }
         if include_time:
             data['time'] = round(self.time, 2)

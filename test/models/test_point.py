@@ -21,7 +21,8 @@ class FramePointTest(TestCase):
                 'acc': [1, 2, 3, 4],
                 'context': {'post': [], 'pre': []},
                 'gps': {'elevation': None, 'lat': 1, 'lng': 2},
-                'time': 10
+                'time': 10,
+                'slow': False
             }
         )
 
@@ -39,7 +40,8 @@ class FramePointTest(TestCase):
                 'acc': [1, 2, 3, 4],
                 'context': {'post': [], 'pre': []},
                 'gps': {'elevation': None, 'lat': 1, 'lng': 2},
-                'time': 10
+                'time': 10,
+                'slow': False
             }
         )
 
