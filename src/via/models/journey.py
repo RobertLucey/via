@@ -23,7 +23,13 @@ from via.utils import (
     get_combined_id
 )
 from via.nearest_edge import nearest_edge
-from via.constants import POLY_POINT_BUFFER
+from via.constants import (
+    POLY_POINT_BUFFER,
+    VALID_JOURNEY_MIN_DISTANCE,
+    VALID_JOURNEY_MIN_POINTS,
+    VALID_JOURNEY_MIN_DURATION
+)
+
 from via.models.point import FramePoint, FramePoints
 from via.models.frame import Frame
 from via.edge_cache import get_edge_data
@@ -239,9 +245,11 @@ class Journey(
         distances = []
 
         for frame in self:
+            if frame.time is None and n_seconds != 0:
+                continue
             if previous_used_frame is None:
                 previous_used_frame = frame
-            elif frame.time >= previous_used_frame.time + n_seconds:
+            elif n_seconds == 0 or frame.time >= previous_used_frame.time + n_seconds:
                 distances.append(
                     previous_used_frame.distance_from(
                         frame
@@ -261,6 +269,8 @@ class Journey(
         :rtype: float
         :return: avg speed in metres per second
         """
+        if self.duration is None or self.duration == 0:
+            return None
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
 
     def serialize(
@@ -549,5 +559,11 @@ class Journey(
         return self.origin.gps.reverse_geo['place_2']
 
     @property
-    def has_data(self):
-        return self._data != []
+    def has_enough_data(self):
+        return all(
+            [
+                self.get_indirect_distance(n_seconds=0) >= VALID_JOURNEY_MIN_DISTANCE,
+                len(self._data) >= VALID_JOURNEY_MIN_POINTS,
+                self.duration >= VALID_JOURNEY_MIN_DURATION or (self.destination.time is None and self.origin.time is None) if self.duration is not None else True
+            ]
+        )

@@ -16,7 +16,6 @@ from via.constants import REMOTE_DATA_DIR
 from via.models.journey import Journey
 
 
-
 def get_journey_files():
     return requests.get(DOWNLOAD_JOURNEYS_URL).json()
 
@@ -72,8 +71,8 @@ def pull_journeys(cache_graphs=False, log_geo=False):
 
         journey = Journey.from_file(tmp_filepath)
 
-        if not journey.has_data:
-            logger.warning(f'Journey {journey_id} has no data')
+        if not journey.has_enough_data:
+            logger.warning(f'Journey {journey_id} has not enough data')
             continue
 
         if log_geo:

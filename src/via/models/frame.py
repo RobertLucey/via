@@ -133,6 +133,8 @@ class Frames(GenericObjects):
         :rtype: float
         :return: The number of seconds the journey took
         """
+        if self.destination.time is None or self.origin.time is None:
+            return None
         return self.destination.time - self.origin.time
 
     @property

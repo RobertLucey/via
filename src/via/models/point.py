@@ -417,7 +417,10 @@ class FramePoint(Context, GenericObject):
             'slow': self.slow
         }
         if include_time:
-            data['time'] = round(self.time, 2)
+            if self.time is not None:
+                data['time'] = round(self.time, 2)
+            else:
+                data['time'] = None
         if include_context:
             data['context'] = {
                 'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.context_pre],
@@ -512,6 +515,8 @@ class FramePoints(GenericObjects):
         :rtype: float
         :return: The number of seconds the journey took
         """
+        if self.destination.time is None or self.origin.time is None:
+            return None
         return self.destination.time - self.origin.time
 
     @property
