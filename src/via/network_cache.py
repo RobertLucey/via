@@ -102,6 +102,7 @@ class SingleNetworkCache():
                     if graph_id != network_id:
                         continue
                 with open(network_filepath, 'rb') as network_file:
+                    #  TODO: also use the last mod time of the file to know if we should use the network later
                     self.networks[graph_id] = pickle.load(network_file)
 
         if network_id is None:
@@ -120,6 +121,7 @@ class SingleNetworkCache():
         if self.network_type != 'poly':
             candidates = []
             for k, net in self.data.items():
+                # if too old, do not append. Remove from fs and mem
                 if is_within(journey.bbox, net['bbox']):
                     candidates.append((k, net))
 
@@ -161,6 +163,7 @@ class SingleNetworkCache():
                 return network
 
         for net_id, net in self.data.items():
+            # if too old, do not append
             if journey.gps_hash == net['gps_hash']:
                 self.load_networks(network_id=net_id)
                 return self.networks[net_id]
@@ -217,7 +220,7 @@ class SingleNetworkCache():
             )
             self.save()
 
-        with open(self.fp, 'rb') as network_file:
+        with open(self.fp, 'rb') as network_file:  # TODO: also use the last mod time of the file to know if we should use the network later
             self.data = pickle.load(network_file)
 
         self.loaded = True
