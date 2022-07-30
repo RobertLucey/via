@@ -34,11 +34,6 @@ from via.constants import (
     REMOTE_DATA_DIR
 )
 from via.models.gps import GPSPoint
-from via.cache_pull import (
-    download_cache,
-    extract_cache,
-    is_cache_already_pulled
-)
 
 
 @lru_cache(maxsize=10000)
@@ -521,12 +516,6 @@ def get_size(obj, seen=None):
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
         size += sum([get_size(i, seen) for i in obj])
     return size
-
-
-def setup_cache():
-    if not is_cache_already_pulled():
-        download_cache()
-        extract_cache()
 
 
 def read_json(fp: str):
