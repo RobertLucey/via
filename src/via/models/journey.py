@@ -231,7 +231,7 @@ class Journey(
                         FramePoint(frame.time, frame.gps, frame.acceleration)
                     )
 
-    def get_indirect_distance(self, n_seconds: int = 10) -> float:
+    def get_indirect_distance(self, n_seconds: int = 0) -> float:
         """
         NB: Data must be chronological
 
