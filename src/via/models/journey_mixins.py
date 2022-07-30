@@ -47,6 +47,8 @@ class SnappedRouteGraphMixin():
                 mode=settings.NEAREST_EDGE_METHOD,
                 graph=bounding_graph
             )
+            if not edge:
+                continue
 
             edges.append(tuple(edge[0]))
             used_node_ids.extend([edge[0][0], edge[0][1]])

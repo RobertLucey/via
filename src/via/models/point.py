@@ -255,6 +255,9 @@ class FramePoint(Context, GenericObject):
                 key=lambda x: x['angle_between']
             )
 
+            if not edges_by_angle:
+                return None
+
             best_edge = edges_by_angle[0]
             for edge in edges_by_angle:
                 # if best angle match is x degrees within the next and the
