@@ -173,7 +173,7 @@ class FramePoint(Context, GenericObject):
             if distance != 0:
                 time_diff = dst.time - origin.time
                 metres_per_second = distance / time_diff
-            return metres_per_second
+            return round(metres_per_second, 2)
 
         return None
 
