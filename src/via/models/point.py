@@ -54,7 +54,7 @@ class Context():
             return self.context_pre[0].gps.slope_between(self.gps)
         if mode == 'near':
             return self.context_pre[-1].gps.slope_between(self.gps)
-        raise ValueError('Mode %s not recognised' % (mode))
+        raise ValueError(f'Mode {mode} not recognised')
 
     def get_slope_outgoing(self, mode='near'):
         """
@@ -221,7 +221,7 @@ class FramePoint(Context, GenericObject):
                     data
                 )
             except Exception as ex:
-                logger.warning('Could not get edge data: %s: %s', edge, ex)
+                logger.warning(f'Could not get edge data: {edge}: {ex}')
 
         return edge_node_data
 
@@ -238,18 +238,21 @@ class FramePoint(Context, GenericObject):
         modes_require_graph = {'matching_angle', 'angle_nearest'}
         modes_require_context = {'matching_angle', 'angle_nearest'}
 
-        def nearest():
+        def nearest(edges):
             return sorted(edges, key=itemgetter(1))[0]
 
-        def matching_angle():
+        def matching_angle(edges, graph):
             return sorted(
                 self.get_edges_with_context(graph, edges),
                 key=lambda x: x['angle_between']
             )[0]['edge']
 
-        def angle_nearest():
+        def angle_nearest(edges, graph):
             # Find a middleground between the best angle match and the
             # nearest by distance
+
+            # If previous and next the same, this should be the same.
+            # Can do for the previous few
 
             edges_by_angle = sorted(
                 self.get_edges_with_context(graph, edges),
@@ -277,12 +280,12 @@ class FramePoint(Context, GenericObject):
 
         if mode in modes_require_graph:
             if not graph:
-                logger.warning('graph not supplied to get_best_edge and mode \'%s\' was selected. Defaulting to mode \'%s\'', mode, default_mode)
+                logger.warning(f'graph not supplied to get_best_edge and mode \'{mode}\' was selected. Defaulting to mode \'{default_mode}\'')
                 return self.get_best_edge(edges, mode=default_mode, graph=graph)
 
         if mode in modes_require_context:
             if not self.is_context_populated:
-                logger.debug('Cannot use mode \'%s\' as point context is not populated, using mode \'%s\'', mode, default_mode)
+                logger.debug(f'Cannot use mode \'{mode}\' as point context is not populated, using mode \'{default_mode}\'')
                 # can probably warn if there's no post AND no pre, that would
                 # show there was no context ever set on the journey?
                 return self.get_best_edge(edges, mode='nearest', graph=graph)
@@ -290,11 +293,10 @@ class FramePoint(Context, GenericObject):
         # Remove footway (unless there's no other options).
         # May want to keep included if it's the only thing close
         if graph is not None:
-
             without_footway = []
             for edge in edges:
                 if edge[0] not in graph.edges:
-                    logger.warning('Could not find edge %s', edge[0])
+                    logger.warning(f'Could not find edge {edge[0]}')
                     continue
 
                 highway = graph.edges[edge[0]]['highway']
@@ -312,20 +314,21 @@ class FramePoint(Context, GenericObject):
             if without_footway != []:
                 edges = without_footway
 
+        # TODO: store nearest on the object
         if mode == 'nearest':
-            return nearest()
-        if mode == 'matching_angle':
-            return matching_angle()
-        if mode == 'angle_nearest':
-            return angle_nearest()
-        if mode == 'sticky':
+            return nearest(edges)
+        elif mode == 'matching_angle':
+            return matching_angle(edges, graph)
+        elif mode == 'angle_nearest':
+            return angle_nearest(edges, graph)
+        elif mode == 'sticky':
             # Try to stick to previous road if it makes sense
             # Might want to be sticky on top of some other mode?
             # Not important now
             raise NotImplementedError()
-
-        logger.warning('Can not use mode \'%s\' to get best edge as that is not recognised. Defaulting to mode \'%s\'', mode, default_mode)
-        return self.get_best_edge(edges, mode=default_mode, graph=graph)
+        else:
+            logger.warning(f'Can not use mode \'{mode}\' to get best edge as that is not recognised. Defaulting to mode \'{default_mode}\'')
+            return self.get_best_edge(edges, mode=default_mode, graph=graph)
 
     def append_acceleration(self, acc):
         if self.slow:
@@ -406,8 +409,7 @@ class FramePoint(Context, GenericObject):
             return int(numpy.mean(self.acceleration) * 100)
         except:
             logger.warning(
-                'Could not calculate road quality from: %s. Defauling to 0',
-                self.acceleration
+                f'Could not calculate road quality from: {self.acceleration}. Defauling to 0',
             )
             return 0
 
