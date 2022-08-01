@@ -119,12 +119,18 @@ class Journeys(
 
     @property
     def gps_hash(self) -> str:
+        """
+        Get the hash of all the GPSs of the points in all the journeys
+        """
         return hashlib.md5(
             str([journey.gps_hash for journey in self]).encode()
         ).hexdigest()
 
     @property
     def content_hash(self) -> str:
+        """
+        Get the hash of the contents of all the journeys
+        """
         return hashlib.md5(
             str([journey.content_hash for journey in self]).encode()
         ).hexdigest()

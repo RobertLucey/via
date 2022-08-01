@@ -9,6 +9,10 @@ from via.utils import is_within
 
 
 class PlaceCache:
+    """
+    Rather than relying on smaller networks have some defined large ones
+    that many journeys can use
+    """
     def __init__(self):
         self.data = {
             "dublin ireland": {
@@ -20,12 +24,24 @@ class PlaceCache:
         }
 
     def get_by_bbox(self, cmp_bbox):
+        """
+        Given a bbox, return a dict of the place name and bbox of the
+        place it is within
+
+        :param cmp_bbox:
+        """
         for name, bbox in self.data.items():
             if is_within(cmp_bbox, bbox):
                 return {"name": name, "bbox": bbox}
         return None
 
     def is_in_place(self, bbox: dict, place_name: str):
+        """
+        Return if a box is within the confines of a 'place'
+
+        :param bbox: dict representing a lat/lng bbox
+        :param place_name: the name of a place
+        """
         place_name = place_name.lower().replace(",", "")
         try:
             return is_within(bbox, self.data[place_name])
