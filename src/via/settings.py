@@ -39,6 +39,6 @@ CLEAN_MEMORY = os.getenv("TEST_ENV", "False") == "False"
 
 MAX_JOURNEY_METRES_SQUARED = 5e7  # 50km^2
 
-MAX_GEOJSON_AGE = 60 * 60 * 12
+MAX_GEOJSON_AGE = 60 * 60
 
 VERSION = pkg_resources.require("via-api")[0].version
