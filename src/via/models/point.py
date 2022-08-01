@@ -158,6 +158,14 @@ class FramePoint(Context, GenericObject):
 
     @property
     def speed(self):
+        """
+        Get the speed at this point (in metres per second) from the
+        first and last context of this object
+
+        Should have an option to get from the immediately surrounding points
+
+        :rtype: float
+        """
         if self.is_context_populated:
             origin = self.context_pre[0]
             dst = self.context_post[-1]
@@ -343,6 +351,10 @@ class FramePoint(Context, GenericObject):
 
     @staticmethod
     def parse(obj):
+        """
+        Given a dict representation of a FramePoint (or a FramePoint object)
+        return with a FramePoint object
+        """
         if isinstance(obj, FramePoint):
             return obj
 
@@ -442,10 +454,16 @@ class FramePoint(Context, GenericObject):
 
     @property
     def gps_hash(self) -> int:
+        """
+        Get the hash of the GPS of this point`
+        """
         return self.gps.content_hash
 
     @cached_property
     def content_hash(self) -> int:
+        """
+        Get the hash of the contents of this point`
+        """
         return (
             int.from_bytes(
                 f"{self.acceleration} {self.gps.point} {self.time}".encode(), "little"
@@ -470,18 +488,30 @@ class FramePoints(GenericObjects):
 
     @property
     def most_northern(self) -> float:
+        """
+        Get the max lat of all points
+        """
         return max([frame.gps.lat for frame in self])
 
     @property
     def most_southern(self) -> float:
+        """
+        Get the min lat of all points
+        """
         return min([frame.gps.lat for frame in self])
 
     @property
     def most_eastern(self) -> float:
+        """
+        Get the max lng of all points
+        """
         return max([frame.gps.lng for frame in self])
 
     @property
     def most_western(self) -> float:
+        """
+        Get the min lng of all points
+        """
         return min([frame.gps.lng for frame in self])
 
     @property
@@ -507,6 +537,7 @@ class FramePoints(GenericObjects):
     @property
     def origin(self):
         """
+        Get the FramePoint at the start of the journey
 
         :rtype: via.models.Frame
         :return: The first frame of the journey
@@ -516,6 +547,7 @@ class FramePoints(GenericObjects):
     @property
     def destination(self):
         """
+        Get the FramePoint at the end of the journey
 
         :rtype: via.models.Frame
         :return: The last frame of the journey
@@ -568,12 +600,18 @@ class FramePoints(GenericObjects):
 
     @property
     def gps_hash(self) -> str:
+        """
+        Get the hash of all the GPSs of all of the points
+        """
         return hashlib.md5(
             str([point.gps.content_hash for point in self]).encode()
         ).hexdigest()
 
     @property
     def content_hash(self) -> str:
+        """
+        Get the hash of all the data of all of the points
+        """
         return hashlib.md5(
             str([point.content_hash for point in self]).encode()
         ).hexdigest()

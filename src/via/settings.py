@@ -14,8 +14,12 @@ PREPARED_CACHE_BUCKET = os.getenv("PREPARED_CACHE_BUCKET", "via-cache")
 
 MIN_ACC_SCORE = float(os.getenv("MIN_ACC_SCORE", "0.001"))
 MIN_PER_JOURNEY_USAGE = float(os.getenv("MIN_PER_JOURNEY_USAGE", "1"))
-MIN_METRES_PER_SECOND = float(os.getenv("MIN_METRES_PER_SECOND", "1.4"))
-MAX_METRES_PER_SECOND = float(os.getenv("MAX_METRES_PER_SECOND", "10000"))
+MIN_METRES_PER_SECOND = float(
+    os.getenv("MIN_METRES_PER_SECOND", "1.4")
+)  # 1.4 mps is average walking speed apparently
+MAX_METRES_PER_SECOND = float(
+    os.getenv("MAX_METRES_PER_SECOND", "10000")
+)  # Arbitrarily high, will figure out a reasonable number at some point
 
 MIN_JOURNEY_VERSION = version.parse(os.getenv("MIN_JOURNEY_VERSION", "0.0.0"))
 MAX_JOURNEY_VERSION = version.parse(os.getenv("MAX_JOURNEY_VERSION", "999.999.999"))
@@ -39,6 +43,8 @@ CLEAN_MEMORY = os.getenv("TEST_ENV", "False") == "False"
 
 MAX_JOURNEY_METRES_SQUARED = 5e7  # 50km^2
 
-MAX_GEOJSON_AGE = 60 * 60
+MAX_GEOJSON_AGE = (
+    60 * 60
+)  # How long to cache served geojson files before generating again (using new data)
 
 VERSION = pkg_resources.require("via-api")[0].version

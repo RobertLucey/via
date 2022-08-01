@@ -40,14 +40,24 @@ from via.collision_edge_cache import collision_edge_cache
 
 
 class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
+    """
+    A single journey (or patial journey)
+
+    Relates to one raw file downloaded through pull_journeys
+    """
+
     def __init__(self, *args, **kwargs):
         """
 
+        :kwarg data:
         :kwarg is_culled: If the journey is culled or not
         :kwarg transport_type: What transport type being used, defaults
             to settings.TRANSPORT_TYPE
         :kwarg suspension: If using suspension or not, defaults
             to settings.SUSPENSION
+        :kwarg version: What version of the client software was used
+        :kwarg network_type: What osm network type to use for nodes/edges
+        :kwarg timestamp: The timestamp of the journey
         """
         self.gps_inclusion_iter = 0
         self.too_slow = False
@@ -85,6 +95,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
     @staticmethod
     def parse(objs):
+        """
+        Given a dict representation of a Journey (or a Journey object)
+        return with a Journey object
+        """
         if isinstance(objs, Journey):
             return objs
 
@@ -113,6 +127,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             return Journey(**fast_json.loads(journey_file.read()))
 
     def set_contexts(self):
+        """
+        For each of the FramePoints in the journey give each of them
+        context of their surrounding points
+        """
 
         if len(self._data) < 7:
             return
@@ -346,6 +364,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
     @property
     def edge_data(self):
         """
+        Get all the edges with their associated data for this journey
 
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
@@ -524,6 +543,9 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
     @property
     def has_enough_data(self):
+        """
+        Return if the journey has enough data to be included in the final stats
+        """
         return all(
             [
                 self.get_indirect_distance(n_seconds=0) >= VALID_JOURNEY_MIN_DISTANCE,
