@@ -3,15 +3,12 @@ from typing import Tuple
 from cached_property import cached_property
 
 import reverse_geocoder as rg
-from haversine import (
-    haversine,
-    Unit
-)
+from haversine import haversine, Unit
 
 HAVERSINE_CACHE = {}
 
 
-class GPSPoint():
+class GPSPoint:
     """
     GPSPoint is an object containing geospatial data in three directions.
 
@@ -20,10 +17,7 @@ class GPSPoint():
     """
 
     def __del__(self):
-        attrs_to_del = [
-            'reverse_geo',
-            'content_hash'
-        ]
+        attrs_to_del = ["reverse_geo", "content_hash"]
 
         for attr in attrs_to_del:
             try:
@@ -48,24 +42,17 @@ class GPSPoint():
     @staticmethod
     def parse(obj):
         if isinstance(obj, list):
-            return GPSPoint(
-                obj[0],
-                obj[1]
-            )
+            return GPSPoint(obj[0], obj[1])
 
         if isinstance(obj, GPSPoint):
             return obj
 
         if isinstance(obj, dict):
             return GPSPoint(
-                obj['lat'],
-                obj['lng'],
-                elevation=obj.get('elevation', None)
+                obj["lat"], obj["lng"], elevation=obj.get("elevation", None)
             )
 
-        raise NotImplementedError(
-            f'Can\'t parse gps from type {type(obj)}'
-        )
+        raise NotImplementedError(f"Can't parse gps from type {type(obj)}")
 
     def distance_from(self, point) -> float:
         """
@@ -79,16 +66,13 @@ class GPSPoint():
 
         key = hash((self.point, point))
         if key not in HAVERSINE_CACHE:
-            HAVERSINE_CACHE[key] = haversine(
-                self.point,
-                point,
-                unit=Unit.METERS
-            )
+            HAVERSINE_CACHE[key] = haversine(self.point, point, unit=Unit.METERS)
 
         return HAVERSINE_CACHE[key]
 
     def slope_between(self, dst) -> float:
         from via.models.point import FramePoint
+
         if isinstance(dst, FramePoint):
             dst = dst.gps
         try:
@@ -97,24 +81,18 @@ class GPSPoint():
             return 0
 
     def serialize(self) -> dict:
-        return {
-            'lat': self.lat,
-            'lng': self.lng,
-            'elevation': self.elevation
-        }
+        return {"lat": self.lat, "lng": self.lng, "elevation": self.elevation}
 
     @cached_property
     def reverse_geo(self):
         # TODO: make a cache for this for "close enough" positions if we end
         # up using this frequently
-        data = dict(rg.search(
-            (self.lat, self.lng)
-        )[0])
-        del data['lat']
-        del data['lon']
-        data['place_1'] = data.pop('name', None)
-        data['place_2'] = data.pop('admin1', None)
-        data['place_3'] = data.pop('admin2', None)
+        data = dict(rg.search((self.lat, self.lng))[0])
+        del data["lat"]
+        del data["lon"]
+        data["place_1"] = data.pop("name", None)
+        data["place_2"] = data.pop("admin1", None)
+        data["place_3"] = data.pop("admin2", None)
         return data
 
     @cached_property
@@ -122,7 +100,10 @@ class GPSPoint():
         """
         A content hash that will act as an id for the data, handy for caching
         """
-        return int.from_bytes(f'{self.lat} {self.lng} {self.elevation}'.encode(), 'little') % 2**100
+        return (
+            int.from_bytes(f"{self.lat} {self.lng} {self.elevation}".encode(), "little")
+            % 2**100
+        )
 
     @property
     def point(self) -> Tuple[float, float]:
@@ -143,4 +124,9 @@ class GPSPoint():
 
         :rtype: bool
         """
-        return isinstance(self.lat, (int, float)) and isinstance(self.lng, (int, float)) and self.lat != 0 and self.lng != 0
+        return (
+            isinstance(self.lat, (int, float))
+            and isinstance(self.lng, (int, float))
+            and self.lat != 0
+            and self.lng != 0
+        )

@@ -21,8 +21,5 @@ def get_edge_data(origin_uuid: str, destination_uuid: str, graph=None):
             # Since we can provide no more context
             return None
 
-        EDGE_CACHE[combined_id] = graph.get_edge_data(
-            origin_uuid,
-            destination_uuid
-        )
+        EDGE_CACHE[combined_id] = graph.get_edge_data(origin_uuid, destination_uuid)
         return EDGE_CACHE[combined_id]

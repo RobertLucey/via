@@ -8,15 +8,8 @@ import time
 from functools import lru_cache
 from numbers import Number
 from functools import wraps
-from itertools import (
-    islice,
-    chain
-)
-from typing import (
-    Any,
-    List,
-    Tuple
-)
+from itertools import islice, chain
+from typing import Any, List, Tuple
 
 from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
@@ -26,13 +19,9 @@ from via import logger
 from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION,
-    MAX_JOURNEY_METRES_SQUARED
+    MAX_JOURNEY_METRES_SQUARED,
 )
-from via.constants import (
-    METRES_PER_DEGREE,
-    DATA_DIR,
-    REMOTE_DATA_DIR
-)
+from via.constants import METRES_PER_DEGREE, DATA_DIR, REMOTE_DATA_DIR
 from via.models.gps import GPSPoint
 
 
@@ -44,24 +33,20 @@ def is_journey_data_file(potential_journey_file: str) -> bool:
     :rtype: bool
     :return: if the file contains journey data
     """
-    if os.path.splitext(potential_journey_file)[1] != '.json':
+    if os.path.splitext(potential_journey_file)[1] != ".json":
         return False
 
     try:
-        with open(potential_journey_file, 'r') as potential_journey_file_io:
+        with open(potential_journey_file, "r") as potential_journey_file_io:
             data = fast_json.loads(potential_journey_file_io.read())
     except (json.decoder.JSONDecodeError, ValueError):
-        logger.warning('%s json could not be decoded', potential_journey_file)
+        logger.warning("%s json could not be decoded", potential_journey_file)
         return False
     else:
-        if not all([
-            'uuid' in data,
-            'data' in data,
-            'transport_type' in data
-        ]):
+        if not all(["uuid" in data, "data" in data, "transport_type" in data]):
             logger.warning(
-                '%s is not a data file as it does not have appropriate data',
-                potential_journey_file
+                "%s is not a data file as it does not have appropriate data",
+                potential_journey_file,
             )
             return False
 
@@ -90,6 +75,7 @@ def get_journeys(
     :rtype: Journey
     """
     from via.models.journeys import Journeys
+
     return Journeys(
         data=list(
             iter_journeys(
@@ -99,7 +85,7 @@ def get_journeys(
                 version_op=version_op,
                 version=version,
                 earliest_time=earliest_time,
-                latest_time=latest_time
+                latest_time=latest_time,
             )
         )
     )
@@ -112,7 +98,7 @@ def iter_journeys(
     version_op=None,
     version=None,
     earliest_time=None,
-    latest_time=None
+    latest_time=None,
 ):
     """
     Get local journeys as iterable of Journey
@@ -126,10 +112,8 @@ def iter_journeys(
         journey version
     """
     from via.models.journey import Journey
-    for journey_file in get_data_files(
-        transport_type=transport_type,
-        source=source
-    ):
+
+    for journey_file in get_data_files(transport_type=transport_type, source=source):
         journey = Journey.from_file(journey_file)
         if should_include_journey(
             journey,
@@ -137,11 +121,11 @@ def iter_journeys(
             version_op=version_op,
             version=version,
             earliest_time=earliest_time,
-            latest_time=latest_time
+            latest_time=latest_time,
         ):
             yield journey
         else:
-            logger.debug('Not including journey: %s', journey.uuid)
+            logger.debug("Not including journey: %s", journey.uuid)
 
 
 def should_include_journey(
@@ -150,12 +134,11 @@ def should_include_journey(
     version_op=None,
     version=None,
     earliest_time=None,
-    latest_time=None
+    latest_time=None,
 ):
-    if any([
-        journey.version < MIN_JOURNEY_VERSION,
-        journey.version > MAX_JOURNEY_VERSION
-    ]):
+    if any(
+        [journey.version < MIN_JOURNEY_VERSION, journey.version > MAX_JOURNEY_VERSION]
+    ):
         return False
 
     if version_op is not None:
@@ -191,17 +174,18 @@ def get_data_files(transport_type=None, source=None) -> List[str]:
     :return: a list of file paths to journey files
     """
     from via.models.journey import Journey
+
     files = []
 
     path = DATA_DIR
-    if source == 'remote':
+    if source == "remote":
         path = REMOTE_DATA_DIR
     elif source is None:
         path = DATA_DIR
 
-    for filename in glob.iglob(path + '/**/*', recursive=True):
+    for filename in glob.iglob(path + "/**/*", recursive=True):
         if is_journey_data_file(filename):
-            if transport_type not in {None, 'all'}:
+            if transport_type not in {None, "all"}:
                 journey_transport_type = os.path.split(os.path.dirname(filename))[-1]
                 if journey_transport_type is not None:
                     if journey_transport_type.lower() == transport_type:
@@ -232,17 +216,17 @@ def timing(function):
     """
     Decorator wrapper to log execution time, for profiling purposes.
     """
+
     @wraps(function)
     def wrapped(*args, **kwargs):
         start_time = time.monotonic()
         ret = function(*args, **kwargs)
         end_time = time.monotonic()
         logger.debug(
-            'timing of "%s"  \t%s',
-            function.__qualname__,
-            end_time - start_time
+            'timing of "%s"  \t%s', function.__qualname__, end_time - start_time
         )
         return ret
+
     return wrapped
 
 
@@ -252,6 +236,7 @@ def sleep_until(max_seconds: Number):
 
     :param max_seconds:
     """
+
     def real_decorator(function):
         def wrapper(*args, **kwargs):
             started = time.monotonic()
@@ -267,10 +252,12 @@ def sleep_until(max_seconds: Number):
                     'function "%s" took %s %% of the max %s',
                     function.__qualname__,
                     percentage_time,
-                    max_seconds
+                    max_seconds,
                 )
             return result
+
         return wrapper
+
     return real_decorator
 
 
@@ -325,7 +312,7 @@ def force_list(val: Any) -> List[Any]:
 
 
 def flatten(lst: List) -> List[Any]:
-    '''
+    """
     Given a nested list, flatten it.
 
     Usage:
@@ -334,29 +321,23 @@ def flatten(lst: List) -> List[Any]:
 
     :param lst: list to be flattened
     :return: Flattened list
-    '''
+    """
     return list(chain.from_iterable(lst))
 
 
 def filter_nodes_from_geodataframe(
-    nodes_dataframe: GeoDataFrame,
-    nodes_to_keep: List[int]
+    nodes_dataframe: GeoDataFrame, nodes_to_keep: List[int]
 ) -> GeoDataFrame:
     nodes_to_keep = set(nodes_to_keep)
-    to_keep = [
-        node for node in nodes_dataframe.index if hash(node) in nodes_to_keep
-    ]
+    to_keep = [node for node in nodes_dataframe.index if hash(node) in nodes_to_keep]
     return nodes_dataframe.loc[to_keep]
 
 
 def filter_edges_from_geodataframe(
-    edges_dataframe: GeoDataFrame,
-    edges_to_keep: List[Tuple[int, int, int]]
+    edges_dataframe: GeoDataFrame, edges_to_keep: List[Tuple[int, int, int]]
 ) -> GeoDataFrame:
     edges_to_keep = set([hash(e) for e in edges_to_keep])
-    to_keep = [
-        edge for edge in edges_dataframe.index if hash(edge) in edges_to_keep
-    ]
+    to_keep = [edge for edge in edges_dataframe.index if hash(edge) in edges_to_keep]
     return edges_dataframe.loc[to_keep]
 
 
@@ -375,11 +356,9 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
         graph_edge_id = get_combined_id(start, end)
         if graph_edge_id in edge_data_map:
             try:
-                graph[start][end][0].update(
-                    edge_data_map[graph_edge_id]
-                )
+                graph[start][end][0].update(edge_data_map[graph_edge_id])
             except KeyError:
-                logger.error(f'Could not update edge: {start} {end}')
+                logger.error(f"Could not update edge: {start} {end}")
 
     return graph
 
@@ -404,13 +383,15 @@ def get_edge_slope(nodes: list, edge: list) -> float:
     origin = nodes[edge[0][0][0]]
     dst = nodes[edge[0][0][1]]
 
-    origin = GPSPoint(origin['y'], origin['x'])
-    dst = GPSPoint(dst['y'], dst['x'])
+    origin = GPSPoint(origin["y"], origin["x"])
+    dst = GPSPoint(dst["y"], dst["x"])
 
     return get_slope(origin, dst)
 
 
-def angle_between_slopes(s1: float, s2: float, ensure_positive: bool = False, absolute: bool = False) -> float:
+def angle_between_slopes(
+    s1: float, s2: float, ensure_positive: bool = False, absolute: bool = False
+) -> float:
     """
 
     :param s1:
@@ -436,28 +417,30 @@ def is_within(bbox: dict, potentially_larger_bbox: dict) -> bool:
     :return: Is the first param within the second
     :rtype: bool
     """
-    return all([
-        bbox['north'] <= potentially_larger_bbox['north'],
-        bbox['south'] >= potentially_larger_bbox['south'],
-        bbox['east'] <= potentially_larger_bbox['east'],
-        bbox['west'] >= potentially_larger_bbox['west']
-    ])
+    return all(
+        [
+            bbox["north"] <= potentially_larger_bbox["north"],
+            bbox["south"] >= potentially_larger_bbox["south"],
+            bbox["east"] <= potentially_larger_bbox["east"],
+            bbox["west"] >= potentially_larger_bbox["west"],
+        ]
+    )
 
 
 def area_from_coords(obj):
     """
     Returns the area of a box in metres per second
     """
-    if 'north' in obj.keys():
-        vert = obj['north'] - obj['south']
-        hori = obj['east'] - obj['west']
+    if "north" in obj.keys():
+        vert = obj["north"] - obj["south"]
+        hori = obj["east"] - obj["west"]
 
         return (vert * METRES_PER_DEGREE) * (hori * METRES_PER_DEGREE)
 
     else:
         raise NotImplementedError()
         # TODO: Allow for normal polys. Below is an example of doing it for a bbox
-        #geom = Polygon(
+        # geom = Polygon(
         #    [
         #        (obj['north'], obj['west']),
         #        (obj['north'], obj['east']),
@@ -465,8 +448,8 @@ def area_from_coords(obj):
         #        (obj['south'], obj['west']),
         #        (obj['north'], obj['west'])
         #    ]
-        #)
-        #return ops.transform(
+        # )
+        # return ops.transform(
         #    partial(
         #        pyproj.transform,
         #        pyproj.Proj('EPSG:4326'),
@@ -477,7 +460,7 @@ def area_from_coords(obj):
         #        )
         #    ),
         #    geom
-        #).area
+        # ).area
 
 
 @lru_cache(maxsize=5)
@@ -511,9 +494,9 @@ def get_size(obj, seen=None):
     if isinstance(obj, dict):
         size += sum([get_size(v, seen) for v in obj.values()])
         size += sum([get_size(k, seen) for k in obj.keys()])
-    elif hasattr(obj, '__dict__'):
+    elif hasattr(obj, "__dict__"):
         size += get_size(obj.__dict__, seen)
-    elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
+    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
         size += sum([get_size(i, seen) for i in obj])
     return size
 
@@ -537,12 +520,6 @@ def write_json(fp: str, data):
     :param fp:
     :param data: something json-ey
     """
-    os.makedirs(
-        os.path.dirname(fp),
-        exist_ok=True
-    )
-    with open(fp, 'w') as json_file:
-        fast_json.dump(
-            data,
-            json_file
-        )
+    os.makedirs(os.path.dirname(fp), exist_ok=True)
+    with open(fp, "w") as json_file:
+        fast_json.dump(data, json_file)

@@ -16,13 +16,12 @@ from via.utils import (
     get_graph_id,
     get_size,
     read_json,
-    write_json
+    write_json,
 )
 from via.place_cache import place_cache
 
 
-class SingleNetworkCache():
-
+class SingleNetworkCache:
     def __init__(self, network_type: str, fn=None):
         self.fn = fn
         self.network_type = network_type
@@ -36,8 +35,7 @@ class SingleNetworkCache():
     @staticmethod
     def from_file(cache_type: str, filepath: str, load: bool = True, fn: str = None):
         cache = SingleNetworkCache(
-            network_type=cache_type,
-            fn=os.path.basename(filepath)
+            network_type=cache_type, fn=os.path.basename(filepath)
         )
 
         if load:
@@ -49,10 +47,7 @@ class SingleNetworkCache():
         if graph_id not in self.data:
             return None
         self.load_networks(network_id=graph_id)
-        return {
-            **self.data[graph_id],
-            'network': self.networks[graph_id]
-        }
+        return {**self.data[graph_id], "network": self.networks[graph_id]}
 
     def get_at_point(self, gps_point):
         self.last_accessed = datetime.datetime.utcnow()
@@ -60,14 +55,14 @@ class SingleNetworkCache():
         self.load()
 
         point_bbox = {
-            'north': gps_point.lat,
-            'south': gps_point.lat,
-            'east': gps_point.lng,
-            'west': gps_point.lng
+            "north": gps_point.lat,
+            "south": gps_point.lat,
+            "east": gps_point.lng,
+            "west": gps_point.lng,
         }
         candidates = []
         for k, net in self.data.items():
-            if is_within(point_bbox, net['bbox']):
+            if is_within(point_bbox, net["bbox"]):
                 candidates.append(k)
                 break
 
@@ -85,15 +80,12 @@ class SingleNetworkCache():
         if network_id in self.networks:
             return
 
-        os.makedirs(
-            os.path.join(self.dir, 'networks'),
-            exist_ok=True
-        )
-        network_files = os.listdir(os.path.join(self.dir, 'networks'))
+        os.makedirs(os.path.join(self.dir, "networks"), exist_ok=True)
+        network_files = os.listdir(os.path.join(self.dir, "networks"))
 
         for network_filename in network_files:
             if os.path.splitext(network_filename)[0] in self.data.keys():
-                network_filepath = os.path.join(self.dir, 'networks', network_filename)
+                network_filepath = os.path.join(self.dir, "networks", network_filename)
                 graph_id = os.path.splitext(os.path.basename(network_filepath))[0]
                 if graph_id in self.networks:
                     # already loaded from a specific network_id previously
@@ -101,7 +93,7 @@ class SingleNetworkCache():
                 if network_id is not None:
                     if graph_id != network_id:
                         continue
-                with open(network_filepath, 'rb') as network_file:
+                with open(network_filepath, "rb") as network_file:
                     #  TODO: also use the last mod time of the file to know if we should use the network later
                     self.networks[graph_id] = pickle.load(network_file)
 
@@ -118,18 +110,19 @@ class SingleNetworkCache():
         # truncate_graph_polygon. Don't need to save that poly graph if we
         # want to optimize for storage. Can see how it does anyways
 
-        if self.network_type != 'poly':
+        if self.network_type != "poly":
             candidates = []
             for k, net in self.data.items():
                 # if too old, do not append. Remove from fs and mem
-                if is_within(journey.bbox, net['bbox']):
+                if is_within(journey.bbox, net["bbox"]):
                     candidates.append((k, net))
 
             if candidates != []:
-                logger.debug(f'{journey.gps_hash}: Using a larger network rather than generating')
+                logger.debug(
+                    f"{journey.gps_hash}: Using a larger network rather than generating"
+                )
                 selection = sorted(
-                    candidates,
-                    key=lambda x: area_from_coords(x[1]['bbox'])
+                    candidates, key=lambda x: area_from_coords(x[1]["bbox"])
                 )[0]
 
                 self.load_networks(network_id=selection[0])
@@ -138,25 +131,25 @@ class SingleNetworkCache():
 
             # see if we can use a place
             if place_cache.get_by_bbox(journey.bbox) is not None:
-                bbox = place_cache.get_by_bbox(journey.bbox)['bbox']
+                bbox = place_cache.get_by_bbox(journey.bbox)["bbox"]
 
                 network = ox.graph_from_bbox(
-                    bbox['north'],
-                    bbox['south'],
-                    bbox['east'],
-                    bbox['west'],
-                    network_type='all',
-                    simplify=True
+                    bbox["north"],
+                    bbox["south"],
+                    bbox["east"],
+                    bbox["west"],
+                    network_type="all",
+                    simplify=True,
                 )
 
                 self.data[get_graph_id(network)] = {
-                    'gps_hash': journey.gps_hash,
-                    'bbox': {
-                        'north': bbox['north'],
-                        'south': bbox['south'],
-                        'east': bbox['east'],
-                        'west': bbox['west'],
-                    }
+                    "gps_hash": journey.gps_hash,
+                    "bbox": {
+                        "north": bbox["north"],
+                        "south": bbox["south"],
+                        "east": bbox["east"],
+                        "west": bbox["west"],
+                    },
                 }
                 self.networks[get_graph_id(network)] = network
                 self.save()
@@ -164,7 +157,7 @@ class SingleNetworkCache():
 
         for net_id, net in self.data.items():
             # if too old, do not append
-            if journey.gps_hash == net['gps_hash']:
+            if journey.gps_hash == net["gps_hash"]:
                 self.load_networks(network_id=net_id)
                 return self.networks[net_id]
 
@@ -176,8 +169,8 @@ class SingleNetworkCache():
         self.load()
 
         self.data[get_graph_id(network)] = {
-            'gps_hash': journey.gps_hash,
-            'bbox': journey.bbox
+            "gps_hash": journey.gps_hash,
+            "bbox": journey.bbox,
         }
 
         # need to set networks to loaded or it may be overridden on a load
@@ -188,44 +181,42 @@ class SingleNetworkCache():
             self.save()
 
     def save(self):
-        if any([
-            not os.path.exists(self.fp),
-            len(self.data) > self.last_save_len and self.last_save_len >= 0
-        ]):
-            logger.debug(f'Saving cache {self.fp}')
+        if any(
+            [
+                not os.path.exists(self.fp),
+                len(self.data) > self.last_save_len and self.last_save_len >= 0,
+            ]
+        ):
+            logger.debug(f"Saving cache {self.fp}")
 
-            os.makedirs(
-                os.path.join(self.dir, 'networks'),
-                exist_ok=True
-            )
+            os.makedirs(os.path.join(self.dir, "networks"), exist_ok=True)
 
             for k, net in self.networks.items():
-                network_filepath = os.path.join(self.dir, 'networks', f'{k}.pickle')
+                network_filepath = os.path.join(self.dir, "networks", f"{k}.pickle")
                 if not os.path.exists(network_filepath):
-                    with open(network_filepath, 'wb') as network_file:
+                    with open(network_filepath, "wb") as network_file:
                         pickle.dump(net, network_file)
 
-            with open(self.fp, 'wb') as network_file:
+            with open(self.fp, "wb") as network_file:
                 pickle.dump(self.data, network_file)
 
     def load(self):
         if self.loaded:
             return
 
-        logger.debug(f'Loading cache {self.fp}')
+        logger.debug(f"Loading cache {self.fp}")
         if not os.path.exists(self.fp):
-            os.makedirs(
-                os.path.dirname(self.fp),
-                exist_ok=True
-            )
+            os.makedirs(os.path.dirname(self.fp), exist_ok=True)
             self.save()
 
-        with open(self.fp, 'rb') as network_file:  # TODO: also use the last mod time of the file to know if we should use the network later
+        with open(
+            self.fp, "rb"
+        ) as network_file:  # TODO: also use the last mod time of the file to know if we should use the network later
             self.data = pickle.load(network_file)
 
         self.loaded = True
         self.last_save_len = len(self.data)
-        logger.debug('Size of network cache: %sMB', get_size(self.data) / (1000 ** 2))
+        logger.debug("Size of network cache: %sMB", get_size(self.data) / (1000**2))
 
     def unload(self):
         self.networks = {}
@@ -237,21 +228,20 @@ class SingleNetworkCache():
 
     @property
     def fp(self) -> str:
-        return os.path.join(self.dir, f'{self.fn}')
+        return os.path.join(self.dir, f"{self.fn}")
 
     @property
     def since_last_accessed(self):
         return (datetime.datetime.utcnow() - self.last_accessed).total_seconds()
 
 
-class GroupedNetworkCaches():
-
+class GroupedNetworkCaches:
     def __init__(self, *args, **kwargs):
-        assert kwargs.get('cache_type', None) is not None
+        assert kwargs.get("cache_type", None) is not None
         self.loaded = False
         self.data = {}
         self.last_save_len = -1
-        self.cache_type = kwargs['cache_type']
+        self.cache_type = kwargs["cache_type"]
         self.child_class = SingleNetworkCache
         self.lock = threading.RLock()
 
@@ -294,6 +284,7 @@ class GroupedNetworkCaches():
         # if journey also do gps_hash
         from via.models.journey import Journey
         from via.models.journeys import Journeys
+
         if isinstance(obj, (Journey, Journeys)):
             self.lock.acquire()
             for k, v in self.data.items():
@@ -311,19 +302,9 @@ class GroupedNetworkCaches():
         return None
 
     def set(self, k, v, skip_save=False):
-        x = round(
-            min(
-                [d['x'] for d in dict(v.nodes(data=True)).values()]
-            ),
-            2
-        )
-        y = round(
-            min(
-                [d['y'] for d in dict(v.nodes(data=True)).values()]
-            ),
-            2
-        )
-        fn = '%s_%s' % (x, y)
+        x = round(min([d["x"] for d in dict(v.nodes(data=True)).values()]), 2)
+        y = round(min([d["y"] for d in dict(v.nodes(data=True)).values()]), 2)
+        fn = "%s_%s" % (x, y)
         self.lock.acquire()
         if fn not in self.data:
             self.data[fn] = self.child_class(network_type=self.cache_type, fn=fn)
@@ -351,7 +332,7 @@ class GroupedNetworkCaches():
         if self.loaded:
             return
 
-        logger.debug('loading %s', self.cache_type)
+        logger.debug("loading %s", self.cache_type)
 
         try:
             for c in self.caches:
@@ -365,7 +346,7 @@ class GroupedNetworkCaches():
         """
         Clean up memory from caches that haven't been used in a while
         """
-        logger.debug('Cleaning memory: %s', self.cache_type)
+        logger.debug("Cleaning memory: %s", self.cache_type)
 
         if logger.level <= logging.DEBUG:
             # since get_size is a little slow, don't want to waste time if
@@ -388,17 +369,14 @@ class GroupedNetworkCaches():
             except:
                 post_memory = -1
             logger.debug(
-                'Cleaned memory, reduced %s by %s%% (%s -> %s)',
+                "Cleaned memory, reduced %s by %s%% (%s -> %s)",
                 self.cache_type,
                 ((float(post_memory) - initial_memory) / initial_memory) * 100,
                 initial_memory,
-                post_memory
+                post_memory,
             )
 
-        cleaner = threading.Timer(
-            60 * 2,
-            self.memory_cleaner
-        )
+        cleaner = threading.Timer(60 * 2, self.memory_cleaner)
         cleaner.daemon = True
         cleaner.start()
 
@@ -412,8 +390,10 @@ class GroupedNetworkCaches():
             self.child_class.from_file(
                 cache_type=self.cache_type,
                 filepath=os.path.join(self.dir, f),
-                load=False
-            ) for f in os.listdir(self.dir) if f not in {'refs.json', 'networks'}
+                load=False,
+            )
+            for f in os.listdir(self.dir)
+            if f not in {"refs.json", "networks"}
         ]
 
     @property
@@ -425,11 +405,10 @@ class GroupedNetworkCaches():
         """
         Get the reference file path for this type of cache
         """
-        return os.path.join(self.dir, 'refs.json')
+        return os.path.join(self.dir, "refs.json")
 
 
-class NetworkCache():
-
+class NetworkCache:
     def __init__(self):
         self.network_caches = {}
         self.loaded = False
@@ -443,7 +422,7 @@ class NetworkCache():
         for cache in self.network_caches.values():
             network = cache.get_by_id(graph_id)
             if network is not None:
-                return network['network']
+                return network["network"]
 
     def get(self, key: str, journey) -> MultiDiGraph:
         self.load()
@@ -451,13 +430,7 @@ class NetworkCache():
             self.network_caches[key] = GroupedNetworkCaches(cache_type=key)
         return self.network_caches[key].get(journey)
 
-    def set(
-        self,
-        key: str,
-        journey,
-        network: MultiDiGraph,
-        skip_save=False
-    ):
+    def set(self, key: str, journey, network: MultiDiGraph, skip_save=False):
         if key not in self.network_caches:
             self.network_caches[key] = GroupedNetworkCaches(cache_type=key)
         self.network_caches[key].set(journey, network, skip_save=skip_save)

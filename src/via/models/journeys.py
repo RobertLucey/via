@@ -13,7 +13,7 @@ from via.utils import flatten
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
-    BoundingGraphMixin
+    BoundingGraphMixin,
 )
 
 
@@ -26,19 +26,15 @@ def get_journey_edge_quality_map(journey):
 
 
 class Journeys(
-    GenericObjects,
-    SnappedRouteGraphMixin,
-    GeoJsonMixin,
-    BoundingGraphMixin
+    GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin
 ):
-
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('child_class', Journey)
+        kwargs.setdefault("child_class", Journey)
         super().__init__(*args, **kwargs)
 
         network_types = [journey.network_type for journey in self]
         if len(set(network_types)) == 0 or len(set(network_types)) > 1:
-            self.network_type = 'all'
+            self.network_type = "all"
         elif len(set(network_types)) == 1:
             self.network_type = network_types[0]
 
@@ -52,7 +48,7 @@ class Journeys(
         :rtype: dict
         """
 
-        #with multiprocessing.Pool(min([multiprocessing.cpu_count() - 1, 4])) as pool:
+        # with multiprocessing.Pool(min([multiprocessing.cpu_count() - 1, 4])) as pool:
         #    journey_edge_quality_maps = pool.map(
         #        get_journey_edge_quality_map,
         #        self
@@ -67,12 +63,17 @@ class Journeys(
 
         return {
             edge_id: {
-                'avg': int(statistics.mean([d['avg'] for d in data])),
-                'count': len(data),
-                'edge_id': edge_id,
-                'speed': statistics.mean([val['speed'] for val in data]) if None not in [val['speed'] for val in data] else None,
-                'collisions': flatten([[i.serialize() for i in v['collisions']] for v in data])
-            } for edge_id, data in edge_quality_map.items()
+                "avg": int(statistics.mean([d["avg"] for d in data])),
+                "count": len(data),
+                "edge_id": edge_id,
+                "speed": statistics.mean([val["speed"] for val in data])
+                if None not in [val["speed"] for val in data]
+                else None,
+                "collisions": flatten(
+                    [[i.serialize() for i in v["collisions"]] for v in data]
+                ),
+            }
+            for edge_id, data in edge_quality_map.items()
         }
 
     @property
@@ -114,24 +115,18 @@ class Journeys(
     def from_files(filepaths):
         with closing(multiprocessing.Pool(multiprocessing.cpu_count() - 1)) as pool:
             journeys = list(pool.imap_unordered(Journey.from_file, filepaths))
-        return Journeys(
-            data=journeys
-        )
+        return Journeys(data=journeys)
 
     @property
     def gps_hash(self) -> str:
         return hashlib.md5(
-            str([
-                journey.gps_hash for journey in self
-            ]).encode()
+            str([journey.gps_hash for journey in self]).encode()
         ).hexdigest()
 
     @property
     def content_hash(self) -> str:
         return hashlib.md5(
-            str([
-                journey.content_hash for journey in self
-            ]).encode()
+            str([journey.content_hash for journey in self]).encode()
         ).hexdigest()
 
     @property
@@ -144,10 +139,10 @@ class Journeys(
     @property
     def bbox(self):
         return {
-            'north': self.most_northern,
-            'south': self.most_southern,
-            'east': self.most_eastern,
-            'west': self.most_western
+            "north": self.most_northern,
+            "south": self.most_southern,
+            "east": self.most_eastern,
+            "west": self.most_western,
         }
 
     @property

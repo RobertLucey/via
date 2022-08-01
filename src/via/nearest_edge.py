@@ -12,12 +12,7 @@ from osmnx import utils_graph
 from via import logger
 from via.settings import VERSION
 from via.constants import EDGE_CACHE_DIR
-from via.utils import (
-    get_combined_id,
-    get_graph_id,
-    read_json,
-    write_json
-)
+from via.utils import get_combined_id, get_graph_id, read_json, write_json
 from via.bounding_graph_gdfs_cache import utils_bounding_graph_gdfs_cache
 
 
@@ -35,13 +30,12 @@ def nearest_edges(G, X, Y, return_dist=False):
 
     graph_id = get_graph_id(G)
     if graph_id in GEOM_RTREE_CACHE:
-        geoms = GEOM_RTREE_CACHE[graph_id]['geoms']
-        rtree = GEOM_RTREE_CACHE[graph_id]['rtree']
+        geoms = GEOM_RTREE_CACHE[graph_id]["geoms"]
+        rtree = GEOM_RTREE_CACHE[graph_id]["rtree"]
     else:
         if utils_bounding_graph_gdfs_cache.get(get_graph_id(G)) is None:
             utils_bounding_graph_gdfs_cache.set(
-                get_graph_id(G),
-                utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
+                get_graph_id(G), utils_graph.graph_to_gdfs(G, nodes=False)["geometry"]
             )
 
         geoms = utils_bounding_graph_gdfs_cache.get(get_graph_id(G))
@@ -50,10 +44,7 @@ def nearest_edges(G, X, Y, return_dist=False):
         for pos, bounds in enumerate(geoms.bounds.values):
             rtree.insert(pos, bounds)
 
-        GEOM_RTREE_CACHE[graph_id] = {
-            'geoms': geoms,
-            'rtree': rtree
-        }
+        GEOM_RTREE_CACHE[graph_id] = {"geoms": geoms, "rtree": rtree}
 
     ne_dist = list()
     for xy in zip(X, Y):
@@ -75,8 +66,7 @@ def nearest_edges(G, X, Y, return_dist=False):
     return list(ne), list(dist)
 
 
-
-class NearestEdgeCache():
+class NearestEdgeCache:
     # TODO: split these in a grid of lat / lng 0.5 by the first gps of the upper right or something. Not very important as files are small
     # TODO: just store uuids as string so no silly casting
 
@@ -94,21 +84,20 @@ class NearestEdgeCache():
         """
         self.load()
 
-        if all([
-            self.last_save_len < len(self.data),
-            (datetime.datetime.utcnow() - self.last_saved_time).total_seconds() > 5
-        ]):
+        if all(
+            [
+                self.last_save_len < len(self.data),
+                (datetime.datetime.utcnow() - self.last_saved_time).total_seconds() > 5,
+            ]
+        ):
             self.save()
 
-        saver = threading.Timer(
-            10,
-            self.saver
-        )
+        saver = threading.Timer(10, self.saver)
         saver.daemon = True
         saver.start()
 
     def save(self):
-        logger.debug('Saving cache %s', self.filepath)
+        logger.debug("Saving cache %s", self.filepath)
         write_json(self.filepath, self.data)
         self.last_save_len = len(self.data)
         self.last_saved_time = datetime.datetime.utcnow()
@@ -126,7 +115,9 @@ class NearestEdgeCache():
 
         # FIXME: should use frame hash rather than gps hash as we want context too
         frame_ids_to_get = [
-            str(frame.gps_hash) for frame in frames if self.data.get(str(frame.gps_hash), None) is None
+            str(frame.gps_hash)
+            for frame in frames
+            if self.data.get(str(frame.gps_hash), None) is None
         ]
 
         id_frame_map = {str(f.gps_hash): f for f in frames}
@@ -140,19 +131,11 @@ class NearestEdgeCache():
                 graph,
                 [id_frame_map[frame_id].gps.lng for frame_id in frame_ids_to_get],
                 [id_frame_map[frame_id].gps.lat for frame_id in frame_ids_to_get],
-                return_dist=True
+                return_dist=True,
             )
 
             frame_id_result_map = dict(
-                zip(
-                    frame_ids_to_get,
-                    list(
-                        zip(
-                            results[0],
-                            results[1]
-                        )
-                    )
-                )
+                zip(frame_ids_to_get, list(zip(results[0], results[1])))
             )
 
             for frame_id, edge_data in frame_id_result_map.items():
@@ -169,12 +152,9 @@ class NearestEdgeCache():
         if self.loaded:
             return
 
-        logger.debug('Loading cache %s', self.filepath)
+        logger.debug("Loading cache %s", self.filepath)
         if not os.path.exists(self.filepath):
-            os.makedirs(
-                os.path.dirname(self.filepath),
-                exist_ok=True
-            )
+            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
             self.save()
         self.data = read_json(self.filepath)
         self.loaded = True
@@ -183,7 +163,7 @@ class NearestEdgeCache():
     @property
     def filepath(self):
         # TODO: split by lat lng regions
-        return os.path.join(EDGE_CACHE_DIR, VERSION, 'cache.json')
+        return os.path.join(EDGE_CACHE_DIR, VERSION, "cache.json")
 
 
 nearest_edge = NearestEdgeCache()

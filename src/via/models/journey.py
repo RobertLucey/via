@@ -18,16 +18,13 @@ import osmnx as ox
 
 from via import settings
 from via import logger
-from via.utils import (
-    window,
-    get_combined_id
-)
+from via.utils import window, get_combined_id
 from via.nearest_edge import nearest_edge
 from via.constants import (
     POLY_POINT_BUFFER,
     VALID_JOURNEY_MIN_DISTANCE,
     VALID_JOURNEY_MIN_POINTS,
-    VALID_JOURNEY_MIN_DURATION
+    VALID_JOURNEY_MIN_DURATION,
 )
 
 from via.models.point import FramePoint, FramePoints
@@ -37,18 +34,12 @@ from via.network_cache import network_cache
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
-    BoundingGraphMixin
+    BoundingGraphMixin,
 )
 from via.collision_edge_cache import collision_edge_cache
 
 
-class Journey(
-    FramePoints,
-    SnappedRouteGraphMixin,
-    GeoJsonMixin,
-    BoundingGraphMixin
-):
-
+class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
     def __init__(self, *args, **kwargs):
         """
 
@@ -62,34 +53,29 @@ class Journey(
         self.too_slow = False
 
         data = []
-        if 'data' in kwargs:
-            data = kwargs.pop('data')
+        if "data" in kwargs:
+            data = kwargs.pop("data")
 
-        kwargs.setdefault('child_class', FramePoint)
+        kwargs.setdefault("child_class", FramePoint)
         super().__init__(*args, **kwargs)
 
         self.extend(data)
 
-        self._version = kwargs.get('version', None)
+        self._version = kwargs.get("version", None)
 
-        self.is_culled = kwargs.get('is_culled', False)
-        self.is_sent = kwargs.get('is_sent', False)
+        self.is_culled = kwargs.get("is_culled", False)
+        self.is_sent = kwargs.get("is_sent", False)
 
-        self.transport_type = str(
-            kwargs.get('transport_type', 'unknown')
-        ).lower()
-        self.suspension = kwargs.get('suspension', None)
+        self.transport_type = str(kwargs.get("transport_type", "unknown")).lower()
+        self.suspension = kwargs.get("suspension", None)
 
-        self.network_type = kwargs.get('network_type', 'all')
-        self._timestamp = kwargs.get('timestamp', None)
+        self.network_type = kwargs.get("network_type", "all")
+        self._timestamp = kwargs.get("timestamp", None)
 
         self.last_gps = None
 
     def __del__(self):
-        attrs_to_del = [
-            'edge_quality_map',
-            'route_graph'
-        ]
+        attrs_to_del = ["edge_quality_map", "route_graph"]
 
         for attr in attrs_to_del:
             try:
@@ -103,13 +89,9 @@ class Journey(
             return objs
 
         if isinstance(objs, dict):
-            return Journey(
-                **objs
-            )
+            return Journey(**objs)
 
-        raise NotImplementedError(
-            f'Can\'t parse journey from type {type(objs)}'
-        )
+        raise NotImplementedError(f"Can't parse journey from type {type(objs)}")
 
     @staticmethod
     @lru_cache(maxsize=500)
@@ -120,17 +102,15 @@ class Journey(
         :param filepath: Path to a saved journey file
         :rtype: via.models.journey.Journey
         """
-        logger.debug('Loading journey from %s', filepath)
+        logger.debug("Loading journey from %s", filepath)
 
         # TODO: should cache stages of processed files from raw (currently,
         # which uses frames instead of frame points) to processed (which
         # it will use frame points) so we can skip the building up of context
         # when we should be able to find from a raw file path
 
-        with open(filepath, 'r') as journey_file:
-            return Journey(
-                **fast_json.loads(journey_file.read())
-            )
+        with open(filepath, "r") as journey_file:
+            return Journey(**fast_json.loads(journey_file.read()))
 
     def set_contexts(self):
 
@@ -142,16 +122,17 @@ class Journey(
         self._data[-2].set_context(pre=[self._data[-3]], post=[self._data[-1]])
 
         # set context for 2 and -3 as 5 (as 1 and -2 will be skipped for context setting)
-        self._data[2].set_context(pre=[self._data[0], self._data[1]], post=[self._data[3], self._data[4]])
-        self._data[-3].set_context(pre=[self._data[-5], self._data[-4]], post=[self._data[-2], self._data[-1]])
+        self._data[2].set_context(
+            pre=[self._data[0], self._data[1]], post=[self._data[3], self._data[4]]
+        )
+        self._data[-3].set_context(
+            pre=[self._data[-5], self._data[-4]], post=[self._data[-2], self._data[-1]]
+        )
 
         # then do normal loop which will skip the ones already set because they'll be on the edge
         for (one, two, three, four, five, six, seven) in window(self, window_size=7):
             if not four.is_context_populated:
-                four.set_context(
-                    pre=[one, two, three],
-                    post=[five, six, seven]
-                )
+                four.set_context(pre=[one, two, three], post=[five, six, seven])
 
     def extend(self, objs):
         # Possibly shouldn't set contexts here and should be done explicitly
@@ -170,9 +151,7 @@ class Journey(
         """
         # TODO: warn if not chronological
         if isinstance(obj, FramePoint):
-            self._data.append(
-                obj
-            )
+            self._data.append(obj)
         else:
             # Most datapoints are only accelerometer so we need to find the
             # closest point with gps in the past to add the accelerometer
@@ -189,27 +168,29 @@ class Journey(
                     frame.gps = self.last_gps
                 self.gps_inclusion_iter += 1
             else:
-                if not hasattr(self, 'last_gps'):
+                if not hasattr(self, "last_gps"):
                     return
                 if self.last_gps is None:
                     return
                 frame.gps = self.last_gps
 
             if len(self._data) == 0:
-                self._data.append(
-                    FramePoint(frame.time, frame.gps, frame.acceleration)
-                )
+                self._data.append(FramePoint(frame.time, frame.gps, frame.acceleration))
                 return
 
             # Annotate points that are too slow / fast in relation to
             # the previous point
-            if (frame_gps_populated or frame.gps.is_populated) and frame.time is not None:
+            if (
+                frame_gps_populated or frame.gps.is_populated
+            ) and frame.time is not None:
                 metres_per_second = self._data[-1].speed_between(frame)
                 if metres_per_second is not None:
-                    if any([
-                        metres_per_second < settings.MIN_METRES_PER_SECOND,
-                        metres_per_second > settings.MAX_METRES_PER_SECOND
-                    ]):
+                    if any(
+                        [
+                            metres_per_second < settings.MIN_METRES_PER_SECOND,
+                            metres_per_second > settings.MAX_METRES_PER_SECOND,
+                        ]
+                    ):
                         self.too_slow = True
                     else:
                         self.too_slow = False
@@ -219,9 +200,9 @@ class Journey(
                 # it for accelerometer data
                 # A bit more testing to do before putting in
                 pass
-                #self._data.append(
+                # self._data.append(
                 #    FramePoint(frame.time, frame.gps, frame.acceleration, slow=True)
-                #)
+                # )
             else:
                 if self._data[-1].gps == frame.gps:
                     self._data[-1].append_acceleration(frame.acceleration)
@@ -249,11 +230,7 @@ class Journey(
             if previous_used_frame is None:
                 previous_used_frame = frame
             elif n_seconds == 0 or frame.time >= previous_used_frame.time + n_seconds:
-                distances.append(
-                    previous_used_frame.distance_from(
-                        frame
-                    )
-                )
+                distances.append(previous_used_frame.distance_from(frame))
                 previous_used_frame = frame
 
         return sum(distances)
@@ -276,31 +253,33 @@ class Journey(
         self,
         minimal: bool = False,
         include_time: bool = True,
-        include_context: bool = True
+        include_context: bool = True,
     ):
         data = {
-            'uuid': str(self.uuid),
-            'version': str(self.version),
-            'data': super().serialize(include_time=include_time, include_context=include_context),
-            'transport_type': self.transport_type,
-            'suspension': self.suspension,
-            'is_culled': self.is_culled,
-            'is_sent': self.is_sent
+            "uuid": str(self.uuid),
+            "version": str(self.version),
+            "data": super().serialize(
+                include_time=include_time, include_context=include_context
+            ),
+            "transport_type": self.transport_type,
+            "suspension": self.suspension,
+            "is_culled": self.is_culled,
+            "is_sent": self.is_sent,
         }
 
         if minimal is False:
             data.update(
                 {
-                    'direct_distance': self.direct_distance,
-                    'indirect_distance': {
+                    "direct_distance": self.direct_distance,
+                    "indirect_distance": {
                         1: self.get_indirect_distance(n_seconds=1),
                         5: self.get_indirect_distance(n_seconds=5),
                         10: self.get_indirect_distance(n_seconds=10),
-                        30: self.get_indirect_distance(n_seconds=30)
+                        30: self.get_indirect_distance(n_seconds=30),
                     },
-                    'data_quality': self.data_quality,
-                    'duration': self.duration,
-                    'avg_speed': self.get_avg_speed()
+                    "data_quality": self.data_quality,
+                    "duration": self.duration,
+                    "avg_speed": self.get_avg_speed(),
                 }
             )
 
@@ -326,43 +305,42 @@ class Journey(
         # FIXME: this is very lazy making sure at least some collisions have been generated
         from via.models.collisions.collision import COLLISIONS
         from via.constants import COLLISION_EDGE_CACHE_DIR
+
         if len(collision_edge_cache.data) == 0:
             from via.collisions.utils import generate_geojson
+
             generate_geojson(
-                transport_type='bicycle',
+                transport_type="bicycle",
                 years=False,
                 county=None,
-                mode='edge',
-                only_used_regions=True
+                mode="edge",
+                only_used_regions=True,
             )
 
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
-            qualities = [edge['avg_road_quality'] for edge in single_edge_data]
-            speed = statistics.mean([val['speed'] for val in single_edge_data]) if None not in [val['speed'] for val in single_edge_data] else None
+            qualities = [edge["avg_road_quality"] for edge in single_edge_data]
+            speed = (
+                statistics.mean([val["speed"] for val in single_edge_data])
+                if None not in [val["speed"] for val in single_edge_data]
+                else None
+            )
             if len(qualities) == 0:
-                data[edge_id] = {
-                    'avg': 0,
-                    'count': 0,
-                    'speed': speed,
-                    'collisions': []
-                }
+                data[edge_id] = {"avg": 0, "count": 0, "speed": speed, "collisions": []}
             else:
                 data[edge_id] = {
-                    'avg': int(
-                        statistics.mean(
-                            qualities
-                        )
-                    ),
-                    'count': len(qualities),
-                    'speed': speed,
-                    'collisions': COLLISIONS.get_by_gps_hash(
+                    "avg": int(statistics.mean(qualities)),
+                    "count": len(qualities),
+                    "speed": speed,
+                    "collisions": COLLISIONS.get_by_gps_hash(
                         tuple(collision_edge_cache.get(edge_id))
-                    )
+                    ),
                 }
 
         return {
-            edge_id: d for edge_id, d in data.items() if d['count'] >= settings.MIN_PER_JOURNEY_USAGE
+            edge_id: d
+            for edge_id, d in data.items()
+            if d["count"] >= settings.MIN_PER_JOURNEY_USAGE
         }
 
     @property
@@ -380,30 +358,18 @@ class Journey(
 
         raw_edges_list = []
         for (our_origin, our_destination) in window(self, window_size=2):
-            nearest_edges = nearest_edge.get(
-                bounding_graph,
-                [
-                    our_origin
-                ]
-            )[0]
+            nearest_edges = nearest_edge.get(bounding_graph, [our_origin])[0]
 
             edge = our_origin.get_best_edge(
-                nearest_edges,
-                mode=settings.NEAREST_EDGE_METHOD,
-                graph=bounding_graph
+                nearest_edges, mode=settings.NEAREST_EDGE_METHOD, graph=bounding_graph
             )
 
             our_edge_data = get_edge_data(
-                our_origin.uuid,
-                our_destination.uuid,
-                graph=route_graph
+                our_origin.uuid, our_destination.uuid, graph=route_graph
             )
 
             raw_edges_list.append(
-                [
-                    get_combined_id(edge[0][0], edge[0][1]),
-                    our_edge_data
-                ]
+                [get_combined_id(edge[0][0], edge[0][1]), our_edge_data]
             )
 
         edges_list = []
@@ -413,9 +379,7 @@ class Journey(
             edges_list.append(current)
 
         for edge in edges_list:
-            data[edge[0]].append(
-                edge[1]
-            )
+            data[edge[0]].append(edge[1])
 
         return data
 
@@ -431,23 +395,21 @@ class Journey(
         for (origin, destination) in window(self, window_size=2):
             edge_id = get_combined_id(origin.uuid, destination.uuid)
 
+            graph.add_node(origin.uuid, **{"x": origin.gps.lng, "y": origin.gps.lat})
             graph.add_node(
-                origin.uuid,
-                **{'x': origin.gps.lng, 'y': origin.gps.lat}
-            )
-            graph.add_node(
-                destination.uuid,
-                **{'x': destination.gps.lng, 'y': destination.gps.lat}
+                destination.uuid, **{"x": destination.gps.lng, "y": destination.gps.lat}
             )
 
             distance = origin.distance_from(destination)
             combined_edge_data[edge_id].append(
                 {
-                    'origin': origin,
-                    'destination': destination,
-                    'distance': distance,
-                    'road_quality': origin.road_quality,
-                    'speed': (origin.speed + destination.speed) / 2 if (origin.speed is not None and destination.speed is not None) else None
+                    "origin": origin,
+                    "destination": destination,
+                    "distance": distance,
+                    "road_quality": origin.road_quality,
+                    "speed": (origin.speed + destination.speed) / 2
+                    if (origin.speed is not None and destination.speed is not None)
+                    else None
                     # TODO: other bits, speed / elevation maybe?
                 }
             )
@@ -456,22 +418,26 @@ class Journey(
         for shared_id, values in combined_edge_data.items():
 
             merged_edge_data[shared_id] = {
-                'origin': values[0]['origin'],
-                'destination': values[0]['destination'],
-                'distance': values[0]['distance'],
-                'avg_road_quality': statistics.mean([val['road_quality'] for val in values]),
-                'max_road_quality': max([val['road_quality'] for val in values]),
-                'speed': statistics.mean([val['speed'] for val in values]) if None not in [val['speed'] for val in values] else None
+                "origin": values[0]["origin"],
+                "destination": values[0]["destination"],
+                "distance": values[0]["distance"],
+                "avg_road_quality": statistics.mean(
+                    [val["road_quality"] for val in values]
+                ),
+                "max_road_quality": max([val["road_quality"] for val in values]),
+                "speed": statistics.mean([val["speed"] for val in values])
+                if None not in [val["speed"] for val in values]
+                else None,
             }
 
         for shared_id, values in merged_edge_data.items():
             graph.add_edge(
-                values['origin'].uuid,
-                values['destination'].uuid,
-                length=values['distance'],
-                avg_road_quality=values['avg_road_quality'],
-                max_road_quality=values['max_road_quality'],
-                speed=values['speed']
+                values["origin"].uuid,
+                values["destination"].uuid,
+                length=values["distance"],
+                avg_road_quality=values["avg_road_quality"],
+                max_road_quality=values["max_road_quality"],
+                speed=values["speed"],
             )
 
         return graph
@@ -479,10 +445,10 @@ class Journey(
     @property
     def bbox(self) -> dict:
         return {
-            'north': self.most_northern,
-            'south': self.most_southern,
-            'east': self.most_eastern,
-            'west': self.most_western
+            "north": self.most_northern,
+            "south": self.most_southern,
+            "east": self.most_eastern,
+            "west": self.most_western,
         }
 
     @property
@@ -493,8 +459,8 @@ class Journey(
         :rtype: networkx.classes.multidigraph.MultiDiGraph
         """
 
-        if network_cache.get('poly', self) is None:
-            logger.debug('poly > %s not found in cache, generating...', self.gps_hash)
+        if network_cache.get("poly", self) is None:
+            logger.debug("poly > %s not found in cache, generating...", self.gps_hash)
 
             # TODO: might want to not use polygon for this since we could
             # get the benefits of using a parent bbox from the cache
@@ -506,17 +472,15 @@ class Journey(
             boundary = gpd.GeoSeries(cascaded_union(buf))
 
             network = ox.graph_from_polygon(
-                boundary.geometry[0],
-                network_type=self.network_type,
-                simplify=True
+                boundary.geometry[0], network_type=self.network_type, simplify=True
             )
 
             # TODO: might want to merge our edge_quality_data with
             # edge data here
 
-            network_cache.set('poly', self, network)
+            network_cache.set("poly", self, network)
 
-        return network_cache.get('poly', self)
+        return network_cache.get("poly", self)
 
     @property
     def graph(self):
@@ -548,7 +512,7 @@ class Journey(
         if isinstance(self._version, version.Version):
             return self._version
         if isinstance(self._version, type(None)):
-            return version.parse('0.0.0')
+            return version.parse("0.0.0")
         return version.parse(self._version)
 
     @property
@@ -556,7 +520,7 @@ class Journey(
         """
         Get the region name in which this journey started
         """
-        return self.origin.gps.reverse_geo['place_2']
+        return self.origin.gps.reverse_geo["place_2"]
 
     @property
     def has_enough_data(self):
@@ -564,6 +528,9 @@ class Journey(
             [
                 self.get_indirect_distance(n_seconds=0) >= VALID_JOURNEY_MIN_DISTANCE,
                 len(self._data) >= VALID_JOURNEY_MIN_POINTS,
-                self.duration >= VALID_JOURNEY_MIN_DURATION or (self.destination.time is None and self.origin.time is None) if self.duration is not None else True
+                self.duration >= VALID_JOURNEY_MIN_DURATION
+                or (self.destination.time is None and self.origin.time is None)
+                if self.duration is not None
+                else True,
             ]
         )

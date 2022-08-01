@@ -4,25 +4,18 @@ from operator import itemgetter
 
 import numpy
 from cached_property import cached_property
-from shapely.geometry import (
-    MultiPoint,
-    Point
-)
+from shapely.geometry import MultiPoint, Point
 
 from via import settings
 from via.constants import HIGHWAYS_TO_EXCLUDE
 from via import logger
 from via.place_cache import place_cache
-from via.models.generic import (
-    GenericObject,
-    GenericObjects
-)
+from via.models.generic import GenericObject, GenericObjects
 from via.models.gps import GPSPoint
 from via.utils import angle_between_slopes
 
 
-class Context():
-
+class Context:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -30,9 +23,7 @@ class Context():
         self.context_post = []
 
     def __del__(self):
-        attrs_to_del = [
-            'content_hash'
-        ]
+        attrs_to_del = ["content_hash"]
 
         for attr in attrs_to_del:
             try:
@@ -45,29 +36,29 @@ class Context():
             self.context_pre = pre
             self.context_post = post
 
-    def get_slope_incoming(self, mode='near'):
+    def get_slope_incoming(self, mode="near"):
         """
 
         :kwarg mode: near or far - how much context should be used
         """
-        if mode == 'far':
+        if mode == "far":
             return self.context_pre[0].gps.slope_between(self.gps)
-        if mode == 'near':
+        if mode == "near":
             return self.context_pre[-1].gps.slope_between(self.gps)
-        raise ValueError(f'Mode {mode} not recognised')
+        raise ValueError(f"Mode {mode} not recognised")
 
-    def get_slope_outgoing(self, mode='near'):
+    def get_slope_outgoing(self, mode="near"):
         """
 
         :kwarg mode: near or far - how much context should be used
         """
-        if mode == 'far':
+        if mode == "far":
             return self.gps.slope_between(self.context_post[-1].gps)
-        if mode == 'near':
+        if mode == "near":
             return self.gps.slope_between(self.context_post[0].gps)
-        raise ValueError(f'Mode {mode} not recognised')
+        raise ValueError(f"Mode {mode} not recognised")
 
-    def get_slope_around_point(self, mode='near'):
+    def get_slope_around_point(self, mode="near"):
         """
         Get the slope of the few points around the point.
 
@@ -76,18 +67,14 @@ class Context():
 
         :kwarg mode: near or far - how much context should be used
         """
-        if mode == 'far':
-            return self.context_pre[0].gps.slope_between(
-                self.context_post[-1]
-            )
-        if mode == 'near':
-            return self.context_pre[-1].gps.slope_between(
-                self.context_post[0]
-            )
+        if mode == "far":
+            return self.context_pre[0].gps.slope_between(self.context_post[-1])
+        if mode == "near":
+            return self.context_pre[-1].gps.slope_between(self.context_post[0])
 
-        raise ValueError('Mode {mode} not recognised')
+        raise ValueError("Mode {mode} not recognised")
 
-    def get_in_out_angle(self, mode='near'):
+    def get_in_out_angle(self, mode="near"):
         """
 
         :kwarg mode: near or far - how much context should be used
@@ -99,7 +86,7 @@ class Context():
         return angle_between_slopes(
             self.get_slope_incoming(mode=mode),
             self.get_slope_outgoing(mode=mode),
-            absolute=True
+            absolute=True,
         )
 
     @property
@@ -120,8 +107,14 @@ class Context():
 
     def serialize(self, include_time=True):
         return {
-            'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.context_pre],
-            'post': [p.serialize(include_time=include_time, include_context=False) for p in self.context_post]
+            "pre": [
+                p.serialize(include_time=include_time, include_context=False)
+                for p in self.context_pre
+            ],
+            "post": [
+                p.serialize(include_time=include_time, include_context=False)
+                for p in self.context_post
+            ],
         }
 
 
@@ -152,12 +145,16 @@ class FramePoint(Context, GenericObject):
         self.slow = slow
 
         if isinstance(acceleration, list):
-            self.acceleration = [acc for acc in acceleration if acc >= settings.MIN_ACC_SCORE]
+            self.acceleration = [
+                acc for acc in acceleration if acc >= settings.MIN_ACC_SCORE
+            ]
         else:
             if acceleration is None:
                 acceleration = 0
             assert isinstance(acceleration, Number)
-            self.acceleration = [acc for acc in [acceleration] if acc >= settings.MIN_ACC_SCORE]
+            self.acceleration = [
+                acc for acc in [acceleration] if acc >= settings.MIN_ACC_SCORE
+            ]
 
     @property
     def speed(self):
@@ -205,23 +202,17 @@ class FramePoint(Context, GenericObject):
                 origin = graph.nodes[edge[0][0]]
                 dst = graph.nodes[edge[0][1]]
                 data = {
-                    'edge': edge,
-                    'origin': GPSPoint(origin['y'], origin['x']),
-                    'dst': GPSPoint(dst['y'], dst['x']),
+                    "edge": edge,
+                    "origin": GPSPoint(origin["y"], origin["x"]),
+                    "dst": GPSPoint(dst["y"], dst["x"]),
                 }
-                data['slope'] = data['origin'].slope_between(
-                    data['dst']
+                data["slope"] = data["origin"].slope_between(data["dst"])
+                data["angle_between"] = angle_between_slopes(
+                    slope_around, data["slope"], absolute=True
                 )
-                data['angle_between'] = angle_between_slopes(
-                    slope_around,
-                    data['slope'],
-                    absolute=True
-                )
-                edge_node_data.append(
-                    data
-                )
+                edge_node_data.append(data)
             except Exception as ex:
-                logger.warning(f'Could not get edge data: {edge}: {ex}')
+                logger.warning(f"Could not get edge data: {edge}: {ex}")
 
         return edge_node_data
 
@@ -234,9 +225,9 @@ class FramePoint(Context, GenericObject):
             # FIXME: should not return, should get the context of the previous edge not slow and the next edge not slow
             return
 
-        default_mode = 'nearest'
-        modes_require_graph = {'matching_angle', 'angle_nearest'}
-        modes_require_context = {'matching_angle', 'angle_nearest'}
+        default_mode = "nearest"
+        modes_require_graph = {"matching_angle", "angle_nearest"}
+        modes_require_context = {"matching_angle", "angle_nearest"}
 
         def nearest(edges):
             return sorted(edges, key=itemgetter(1))[0]
@@ -244,8 +235,8 @@ class FramePoint(Context, GenericObject):
         def matching_angle(edges, graph):
             return sorted(
                 self.get_edges_with_context(graph, edges),
-                key=lambda x: x['angle_between']
-            )[0]['edge']
+                key=lambda x: x["angle_between"],
+            )[0]["edge"]
 
         def angle_nearest(edges, graph):
             # Find a middleground between the best angle match and the
@@ -256,7 +247,7 @@ class FramePoint(Context, GenericObject):
 
             edges_by_angle = sorted(
                 self.get_edges_with_context(graph, edges),
-                key=lambda x: x['angle_between']
+                key=lambda x: x["angle_between"],
             )
 
             if not edges_by_angle:
@@ -266,29 +257,35 @@ class FramePoint(Context, GenericObject):
             for edge in edges_by_angle:
                 # if best angle match is x degrees within the next and the
                 # next is closer, use the closer one
-                if all([
-                    edge['angle_between'] < settings.CLOSE_ANGLE_TO_ROAD,
-                    edge['edge'][1] < best_edge['edge'][1],
-                    edge['edge'][1] < 0.0001  # TODO: to settings
-                ]):
+                if all(
+                    [
+                        edge["angle_between"] < settings.CLOSE_ANGLE_TO_ROAD,
+                        edge["edge"][1] < best_edge["edge"][1],
+                        edge["edge"][1] < 0.0001,  # TODO: to settings
+                    ]
+                ):
                     best_edge = edge
 
-            return best_edge['edge']
+            return best_edge["edge"]
 
         if mode is None:
             mode = default_mode
 
         if mode in modes_require_graph:
             if not graph:
-                logger.warning(f'graph not supplied to get_best_edge and mode \'{mode}\' was selected. Defaulting to mode \'{default_mode}\'')
+                logger.warning(
+                    f"graph not supplied to get_best_edge and mode '{mode}' was selected. Defaulting to mode '{default_mode}'"
+                )
                 return self.get_best_edge(edges, mode=default_mode, graph=graph)
 
         if mode in modes_require_context:
             if not self.is_context_populated:
-                logger.debug(f'Cannot use mode \'{mode}\' as point context is not populated, using mode \'{default_mode}\'')
+                logger.debug(
+                    f"Cannot use mode '{mode}' as point context is not populated, using mode '{default_mode}'"
+                )
                 # can probably warn if there's no post AND no pre, that would
                 # show there was no context ever set on the journey?
-                return self.get_best_edge(edges, mode='nearest', graph=graph)
+                return self.get_best_edge(edges, mode="nearest", graph=graph)
 
         # Remove footway (unless there's no other options).
         # May want to keep included if it's the only thing close
@@ -296,10 +293,10 @@ class FramePoint(Context, GenericObject):
             without_footway = []
             for edge in edges:
                 if edge[0] not in graph.edges:
-                    logger.warning(f'Could not find edge {edge[0]}')
+                    logger.warning(f"Could not find edge {edge[0]}")
                     continue
 
-                highway = graph.edges[edge[0]]['highway']
+                highway = graph.edges[edge[0]]["highway"]
                 include = True
 
                 if not isinstance(highway, list):
@@ -315,19 +312,21 @@ class FramePoint(Context, GenericObject):
                 edges = without_footway
 
         # TODO: store nearest on the object
-        if mode == 'nearest':
+        if mode == "nearest":
             return nearest(edges)
-        elif mode == 'matching_angle':
+        elif mode == "matching_angle":
             return matching_angle(edges, graph)
-        elif mode == 'angle_nearest':
+        elif mode == "angle_nearest":
             return angle_nearest(edges, graph)
-        elif mode == 'sticky':
+        elif mode == "sticky":
             # Try to stick to previous road if it makes sense
             # Might want to be sticky on top of some other mode?
             # Not important now
             raise NotImplementedError()
         else:
-            logger.warning(f'Can not use mode \'{mode}\' to get best edge as that is not recognised. Defaulting to mode \'{default_mode}\'')
+            logger.warning(
+                f"Can not use mode '{mode}' to get best edge as that is not recognised. Defaulting to mode '{default_mode}'"
+            )
             return self.get_best_edge(edges, mode=default_mode, graph=graph)
 
     def append_acceleration(self, acc):
@@ -349,13 +348,11 @@ class FramePoint(Context, GenericObject):
 
         if isinstance(obj, dict):
             return FramePoint(
-                obj.get('time', None),
-                obj['gps'],
-                [acc for acc in obj['acc'] if acc >= settings.MIN_ACC_SCORE]
+                obj.get("time", None),
+                obj["gps"],
+                [acc for acc in obj["acc"] if acc >= settings.MIN_ACC_SCORE],
             )
-        raise NotImplementedError(
-            f'Can\'t parse Point from type {type(obj)}'
-        )
+        raise NotImplementedError(f"Can't parse Point from type {type(obj)}")
 
     def speed_between(self, point: GPSPoint) -> float:
         """
@@ -391,7 +388,11 @@ class FramePoint(Context, GenericObject):
         """
         Does the point contain all expected data
         """
-        return isinstance(self.time, float) and self.gps.is_populated and self.acceleration != []
+        return (
+            isinstance(self.time, float)
+            and self.gps.is_populated
+            and self.acceleration != []
+        )
 
     @property
     def road_quality(self) -> int:
@@ -409,29 +410,33 @@ class FramePoint(Context, GenericObject):
             return int(numpy.mean(self.acceleration) * 100)
         except:
             logger.warning(
-                f'Could not calculate road quality from: {self.acceleration}. Defauling to 0',
+                f"Could not calculate road quality from: {self.acceleration}. Defauling to 0",
             )
             return 0
 
     def serialize(
-        self,
-        include_time: bool = True,
-        include_context: bool = True
+        self, include_time: bool = True, include_context: bool = True
     ) -> dict:
         data = {
-            'gps': self.gps.serialize(),
-            'acc': list(self.acceleration),
-            'slow': self.slow
+            "gps": self.gps.serialize(),
+            "acc": list(self.acceleration),
+            "slow": self.slow,
         }
         if include_time:
             if self.time is not None:
-                data['time'] = round(self.time, 2)
+                data["time"] = round(self.time, 2)
             else:
-                data['time'] = None
+                data["time"] = None
         if include_context:
-            data['context'] = {
-                'pre': [p.serialize(include_time=include_time, include_context=False) for p in self.context_pre],
-                'post': [p.serialize(include_time=include_time, include_context=False) for p in self.context_post],
+            data["context"] = {
+                "pre": [
+                    p.serialize(include_time=include_time, include_context=False)
+                    for p in self.context_pre
+                ],
+                "post": [
+                    p.serialize(include_time=include_time, include_context=False)
+                    for p in self.context_post
+                ],
             }
         return data
 
@@ -441,19 +446,21 @@ class FramePoint(Context, GenericObject):
 
     @cached_property
     def content_hash(self) -> int:
-        return int.from_bytes(f'{self.acceleration} {self.gps.point} {self.time}'.encode(), 'little') % 2**100
+        return (
+            int.from_bytes(
+                f"{self.acceleration} {self.gps.point} {self.time}".encode(), "little"
+            )
+            % 2**100
+        )
 
 
 class FramePoints(GenericObjects):
-
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('child_class', FramePoint)
+        kwargs.setdefault("child_class", FramePoint)
         super().__init__(*args, **kwargs)
 
     def __del__(self):
-        attrs_to_del = [
-            'country'
-        ]
+        attrs_to_del = ["country"]
 
         for attr in attrs_to_del:
             try:
@@ -480,10 +487,10 @@ class FramePoints(GenericObjects):
     @property
     def bbox(self) -> dict:
         return {
-            'north': self.most_northern,
-            'south': self.most_southern,
-            'east': self.most_eastern,
-            'west': self.most_western,
+            "north": self.most_northern,
+            "south": self.most_southern,
+            "east": self.most_eastern,
+            "west": self.most_western,
         }
 
     @property
@@ -535,12 +542,12 @@ class FramePoints(GenericObjects):
         """
         return self[0].distance_from(self[-1])
 
-    def serialize(self, include_time: bool = False, include_context: bool = True) -> list:
+    def serialize(
+        self, include_time: bool = False, include_context: bool = True
+    ) -> list:
         return [
-            frame.serialize(
-                include_time=include_time,
-                include_context=include_context
-            ) for frame in self
+            frame.serialize(include_time=include_time, include_context=include_context)
+            for frame in self
         ]
 
     def get_multi_points(self) -> MultiPoint:
@@ -553,33 +560,22 @@ class FramePoints(GenericObjects):
             if frame.gps.is_populated:
                 if prev is not None:
                     if prev.gps.lat != frame.gps.lat:
-                        unique_points.append(
-                            Point(
-                                frame.gps.lng,
-                                frame.gps.lat
-                            )
-                        )
+                        unique_points.append(Point(frame.gps.lng, frame.gps.lat))
 
             prev = frame
 
-        return MultiPoint(
-            unique_points
-        )
+        return MultiPoint(unique_points)
 
     @property
     def gps_hash(self) -> str:
         return hashlib.md5(
-            str([
-                point.gps.content_hash for point in self
-            ]).encode()
+            str([point.gps.content_hash for point in self]).encode()
         ).hexdigest()
 
     @property
     def content_hash(self) -> str:
         return hashlib.md5(
-            str([
-                point.content_hash for point in self
-            ]).encode()
+            str([point.content_hash for point in self]).encode()
         ).hexdigest()
 
     @cached_property
@@ -590,7 +586,7 @@ class FramePoints(GenericObjects):
         :return: a two letter country code
         :rtype: str
         """
-        return self.origin.gps.reverse_geo['cc']
+        return self.origin.gps.reverse_geo["cc"]
 
     def is_in_place(self, place_name: str) -> bool:
         """

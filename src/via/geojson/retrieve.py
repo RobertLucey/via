@@ -15,10 +15,10 @@ def get_geojson(
     place=None,
     version=None,
     version_op=None,
-    max_age=None
+    max_age=None,
 ):
     if journey_type is None:
-        journey_type = 'all'
+        journey_type = "all"
 
     basename = generate_basename(
         name=journey_type,
@@ -26,12 +26,9 @@ def get_geojson(
         version_op=version_op,
         earliest_time=earliest_time,
         latest_time=latest_time,
-        place=place
+        place=place,
     )
-    geojson_file = os.path.join(
-        GEOJSON_DIR,
-        f'{basename}.geojson'
-    )
+    geojson_file = os.path.join(GEOJSON_DIR, f"{basename}.geojson")
 
     if not os.path.exists(geojson_file):
         raise FileNotFoundError()

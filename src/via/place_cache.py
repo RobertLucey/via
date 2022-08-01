@@ -8,29 +8,25 @@ import osmnx as ox
 from via.utils import is_within
 
 
-class PlaceCache():
-
+class PlaceCache:
     def __init__(self):
         self.data = {
-            'dublin ireland': {
-                'north': 53.626487,
-                'south': 53.3018049,
-                'east': -6.1366563,
-                'west': -6.433500
+            "dublin ireland": {
+                "north": 53.626487,
+                "south": 53.3018049,
+                "east": -6.1366563,
+                "west": -6.433500,
             }
         }
 
     def get_by_bbox(self, cmp_bbox):
         for name, bbox in self.data.items():
             if is_within(cmp_bbox, bbox):
-                return {
-                    'name': name,
-                    'bbox': bbox
-                }
+                return {"name": name, "bbox": bbox}
         return None
 
     def is_in_place(self, bbox: dict, place_name: str):
-        place_name = place_name.lower().replace(',', '')
+        place_name = place_name.lower().replace(",", "")
         try:
             return is_within(bbox, self.data[place_name])
         except KeyError:
@@ -45,26 +41,23 @@ class PlaceCache():
         :return: A dict of north, south, east, and west
             lats and lngs
         """
-        place_name = place_name.lower().replace(',', '')
+        place_name = place_name.lower().replace(",", "")
         try:
             return self.data[place_name]
         except KeyError:
-            place_graph = ox.graph_from_place(
-                place_name,
-                network_type='all'
-            )
+            place_graph = ox.graph_from_place(place_name, network_type="all")
 
             lats = []
             lngs = []
             for _, node_data in place_graph._node.items():
-                lats.append(node_data['y'])
-                lngs.append(node_data['x'])
+                lats.append(node_data["y"])
+                lngs.append(node_data["x"])
 
             self.data[place_name] = {
-                'north': max(lats),
-                'south': min(lats),
-                'east': max(lngs),
-                'west': min(lngs)
+                "north": max(lats),
+                "south": min(lats),
+                "east": max(lngs),
+                "west": min(lngs),
             }
             return self.data[place_name]
 

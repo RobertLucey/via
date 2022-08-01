@@ -1,7 +1,4 @@
-from via.models.generic import (
-    GenericObject,
-    GenericObjects
-)
+from via.models.generic import GenericObject, GenericObjects
 from via.models.gps import GPSPoint
 
 
@@ -26,16 +23,10 @@ class Frame(GenericObject):
     @staticmethod
     def parse(obj):
         if isinstance(obj, dict):
-            return Frame(
-                obj.get('time', None),
-                obj['gps'],
-                obj['acc']
-            )
+            return Frame(obj.get("time", None), obj["gps"], obj["acc"])
         if isinstance(obj, Frame):
             return obj
-        raise NotImplementedError(
-            'Can\'t parse Frame from type %s' % (type(obj))
-        )
+        raise NotImplementedError("Can't parse Frame from type %s" % (type(obj)))
 
     def distance_from(self, point: GPSPoint) -> float:
         """
@@ -53,26 +44,26 @@ class Frame(GenericObject):
         """
         Does the frame contain all expected data
         """
-        return isinstance(self.time, float) and self.gps.is_populated and self.acceleration != []
+        return (
+            isinstance(self.time, float)
+            and self.gps.is_populated
+            and self.acceleration != []
+        )
 
     @property
     def road_quality(self) -> int:
         return int(self.acceleration.quality * 100)
 
     def serialize(self, **kwargs) -> dict:
-        data = {
-            'gps': self.gps.serialize(),
-            'acc': self.acceleration
-        }
-        if kwargs.get('include_time', True):
-            data['time'] = round(self.time, 2)
+        data = {"gps": self.gps.serialize(), "acc": self.acceleration}
+        if kwargs.get("include_time", True):
+            data["time"] = round(self.time, 2)
         return data
 
 
 class Frames(GenericObjects):
-
     def __init__(self, *args, **kwargs):
-        kwargs.setdefault('child_class', Frame)
+        kwargs.setdefault("child_class", Frame)
         super().__init__(*args, **kwargs)
 
     @property
@@ -150,6 +141,4 @@ class Frames(GenericObjects):
         return self[0].distance_from(self[-1])
 
     def serialize(self, include_time: bool = True) -> list:
-        return [
-            frame.serialize(include_time=include_time) for frame in self
-        ]
+        return [frame.serialize(include_time=include_time) for frame in self]

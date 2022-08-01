@@ -8,10 +8,7 @@ from botocore import UNSIGNED
 from botocore.client import Config
 
 from via import logger
-from via.settings import (
-    DOWNLOAD_JOURNEYS_URL,
-    S3_REGION
-)
+from via.settings import DOWNLOAD_JOURNEYS_URL, S3_REGION
 from via.constants import REMOTE_DATA_DIR
 from via.models.journey import Journey
 
@@ -23,7 +20,7 @@ def get_journey_files():
 def get_journey_files_to_download():
 
     journey_ids = []
-    for filename in glob.iglob(REMOTE_DATA_DIR + '/**/*', recursive=True):
+    for filename in glob.iglob(REMOTE_DATA_DIR + "/**/*", recursive=True):
         journey_ids.append(os.path.splitext(os.path.basename(filename))[0])
 
     journey_files_to_download = []
@@ -45,9 +42,7 @@ def pull_journeys(cache_graphs=False, log_geo=False):
         the pulling
     """
     s3 = boto3.client(
-        's3',
-        region_name=S3_REGION,
-        config=Config(signature_version=UNSIGNED)
+        "s3", region_name=S3_REGION, config=Config(signature_version=UNSIGNED)
     )
 
     if not os.path.exists(REMOTE_DATA_DIR):
@@ -55,47 +50,37 @@ def pull_journeys(cache_graphs=False, log_geo=False):
 
     journey_files_to_download = get_journey_files_to_download()
 
-    logger.info(f'Downloading {len(journey_files_to_download)} files')
+    logger.info(f"Downloading {len(journey_files_to_download)} files")
 
     for filename in journey_files_to_download:
 
         journey_id = os.path.splitext(filename)[0]
 
-        tmp_filepath = f'/tmp/{journey_id}.json'
+        tmp_filepath = f"/tmp/{journey_id}.json"
 
-        s3.download_file(
-            'bike-road-quality',
-            filename,
-            tmp_filepath
-        )
+        s3.download_file("bike-road-quality", filename, tmp_filepath)
 
         journey = Journey.from_file(tmp_filepath)
 
         if not journey.has_enough_data:
-            logger.warning(f'Journey {journey_id} has not enough data')
+            logger.warning(f"Journey {journey_id} has not enough data")
             continue
 
         if log_geo:
             geo = journey.origin.gps.reverse_geo
-            logger.info(f'Pulled journey from: {geo["cc"]}, {geo["place_3"]}, {geo["place_2"]}, {geo["place_1"]}')
+            logger.info(
+                f'Pulled journey from: {geo["cc"]}, {geo["place_3"]}, {geo["place_2"]}, {geo["place_1"]}'
+            )
 
         if cache_graphs:
-            logger.info(f'Caching graphs for {journey_id}')
+            logger.info(f"Caching graphs for {journey_id}")
             journey.bounding_graph
 
         local_filepath = os.path.join(
-            REMOTE_DATA_DIR,
-            journey.transport_type.lower(),
-            filename
+            REMOTE_DATA_DIR, journey.transport_type.lower(), filename
         )
-        logger.info(f'Putting to {local_filepath}')
+        logger.info(f"Putting to {local_filepath}")
 
-        os.makedirs(
-            os.path.dirname(local_filepath),
-            exist_ok=True
-        )
+        os.makedirs(os.path.dirname(local_filepath), exist_ok=True)
 
-        shutil.move(
-            tmp_filepath,
-            local_filepath
-        )
+        shutil.move(tmp_filepath, local_filepath)

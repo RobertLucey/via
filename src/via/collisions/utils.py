@@ -4,17 +4,10 @@ import urllib
 from road_collisions_ireland.constants import COUNTY_MAP
 
 from via import logger
-from via.utils import (
-    read_json,
-    write_json,
-    get_journeys
-)
+from via.utils import read_json, write_json, get_journeys
 from via.models.collisions.collision import Collisions
 from via.geojson.utils import get_point
-from via.constants import (
-    GEOJSON_DIR,
-    COUNTY_REGION_MAP
-)
+from via.constants import GEOJSON_DIR, COUNTY_REGION_MAP
 
 
 def get_collisions() -> Collisions:
@@ -22,9 +15,7 @@ def get_collisions() -> Collisions:
 
 
 def clean_filters(filters: dict) -> dict:
-    return {
-        k: v for k, v in filters.items() if v is not None and v != 'all'
-    }
+    return {k: v for k, v in filters.items() if v is not None and v != "all"}
 
 
 def get_filters(transport_type=None, years=False, county=None, regions=None):
@@ -38,7 +29,7 @@ def get_filters(transport_type=None, years=False, county=None, regions=None):
     """
     transport_types = set()
     if transport_type is None:
-        transport_types = {None, 'bicycle', 'car', 'bus'}
+        transport_types = {None, "bicycle", "car", "bus"}
     else:
         transport_types = {transport_type}
 
@@ -47,7 +38,9 @@ def get_filters(transport_type=None, years=False, county=None, regions=None):
         counties = [county]
     if regions is not None:
         counties = [
-            c for c in counties if COUNTY_REGION_MAP.get(c.lower(), None) in [r.lower() for r in regions]
+            c
+            for c in counties
+            if COUNTY_REGION_MAP.get(c.lower(), None) in [r.lower() for r in regions]
         ]
 
     if years:
@@ -58,12 +51,7 @@ def get_filters(transport_type=None, years=False, county=None, regions=None):
     return transport_types, counties, years_list
 
 
-def retrieve_geojson(
-    transport_type=None,
-    years=False,
-    county=None,
-    mode='edge'
-):
+def retrieve_geojson(transport_type=None, years=False, county=None, mode="edge"):
     """
     :kwarg transport_type:
     :kwarg years:
@@ -72,41 +60,44 @@ def retrieve_geojson(
         - edge: get geojson data as road data
         - point: get geojson data as points on map
     """
-    logger.info('Getting collision geojson: transport_type=%s years=%s county=%s mode=%s', transport_type, years, county, mode)
-
-    transport_types, counties, years_list = get_filters(
-        transport_type=transport_type,
-        years=years,
-        county=county
+    logger.info(
+        "Getting collision geojson: transport_type=%s years=%s county=%s mode=%s",
+        transport_type,
+        years,
+        county,
+        mode,
     )
 
-    geojson = {
-        'type': 'FeatureCollection',
-        'features': []
-    }
+    transport_types, counties, years_list = get_filters(
+        transport_type=transport_type, years=years, county=county
+    )
+
+    geojson = {"type": "FeatureCollection", "features": []}
 
     for county in counties:
         for vehicle_type in transport_types:
             for year in years_list:
 
-                filters = clean_filters({
-                    'county': county.lower(),
-                    'year': year,
-                    'vehicle_type': vehicle_type
-                })
+                filters = clean_filters(
+                    {
+                        "county": county.lower(),
+                        "year": year,
+                        "vehicle_type": vehicle_type,
+                    }
+                )
 
-                if mode == 'point':
-                    filters['mode'] = mode
-                elif mode == 'edge':
+                if mode == "point":
+                    filters["mode"] = mode
+                elif mode == "edge":
                     pass
                 else:
                     raise NotImplementedError()
 
-                filename = 'collision_' + urllib.parse.urlencode(filters) + '.geojson'
+                filename = "collision_" + urllib.parse.urlencode(filters) + ".geojson"
                 data = read_json(os.path.join(GEOJSON_DIR, filename))
-                geojson['features'].extend(data['features'])
+                geojson["features"].extend(data["features"])
 
-    if geojson['features'] == []:
+    if geojson["features"] == []:
         # FIXME: bit yucky
         raise FileNotFoundError()
 
@@ -114,11 +105,7 @@ def retrieve_geojson(
 
 
 def generate_geojson(
-    transport_type=None,
-    years=False,
-    county=None,
-    mode='edge',
-    only_used_regions=True
+    transport_type=None, years=False, county=None, mode="edge", only_used_regions=True
 ):
     """
 
@@ -130,7 +117,14 @@ def generate_geojson(
     :kwarg only_used_regions: Only generate collision
         data from regions we have road quality data from
     """
-    logger.info('Generating collision geojson: transport_type=%s years=%s county=%s mode=%s only_used_regions=%s', transport_type, years, county, mode, only_used_regions)
+    logger.info(
+        "Generating collision geojson: transport_type=%s years=%s county=%s mode=%s only_used_regions=%s",
+        transport_type,
+        years,
+        county,
+        mode,
+        only_used_regions,
+    )
 
     all_collisions = get_collisions()
 
@@ -139,64 +133,46 @@ def generate_geojson(
         regions = set(get_journeys().regions)
 
     transport_types, counties, years_list = get_filters(
-        transport_type=transport_type,
-        years=years,
-        county=county,
-        regions=regions
+        transport_type=transport_type, years=years, county=county, regions=regions
     )
 
-    all_geojson = {
-        'type': 'FeatureCollection',
-        'features': []
-    }
-    single_geojson = {
-        'type': 'FeatureCollection',
-        'features': []
-    }
+    all_geojson = {"type": "FeatureCollection", "features": []}
+    single_geojson = {"type": "FeatureCollection", "features": []}
 
     # TODO: multiprocess
     for county in counties:
         for vehicle_type in transport_types:
             for year in years_list:
 
-                filters = clean_filters({
-                    'county': county.lower(),
-                    'year': year,
-                    'vehicle_type': vehicle_type
-                })
-
-                logger.debug('Process collisions geojson: %s', filters)
-                collisions = all_collisions.filter(
-                    **filters
+                filters = clean_filters(
+                    {
+                        "county": county.lower(),
+                        "year": year,
+                        "vehicle_type": vehicle_type,
+                    }
                 )
 
-                if mode == 'point':
+                logger.debug("Process collisions geojson: %s", filters)
+                collisions = all_collisions.filter(**filters)
+
+                if mode == "point":
                     for collision in collisions:
-                        all_geojson['features'].append(
-                            get_point(
-                                properties=None,
-                                gps=collision.gps
-                            )
+                        all_geojson["features"].append(
+                            get_point(properties=None, gps=collision.gps)
                         )
-                        single_geojson['features'].append(
-                            get_point(
-                                properties=None,
-                                gps=collision.gps
-                            )
+                        single_geojson["features"].append(
+                            get_point(properties=None, gps=collision.gps)
                         )
-                elif mode == 'edge':
+                elif mode == "edge":
                     individual_geojson = collisions.geojson
-                    single_geojson['features'].extend(individual_geojson['features'])
-                    all_geojson['features'].extend(individual_geojson['features'])
+                    single_geojson["features"].extend(individual_geojson["features"])
+                    all_geojson["features"].extend(individual_geojson["features"])
                 else:
                     raise NotImplementedError()
 
-                filters['mode'] = mode
-                filename = 'collision_' + urllib.parse.urlencode(filters) + '.geojson'
+                filters["mode"] = mode
+                filename = "collision_" + urllib.parse.urlencode(filters) + ".geojson"
                 write_json(os.path.join(GEOJSON_DIR, filename), single_geojson)
-                single_geojson = {
-                    'type': 'FeatureCollection',
-                    'features': []
-                }
+                single_geojson = {"type": "FeatureCollection", "features": []}
 
     return all_geojson

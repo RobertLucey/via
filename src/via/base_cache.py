@@ -9,15 +9,10 @@ from via import logger
 from via import settings
 from via.constants import CACHE_DIR
 from via.settings import CLEAN_MEMORY
-from via.utils import (
-    get_size,
-    read_json,
-    write_json
-)
+from via.utils import get_size, read_json, write_json
 
 
-class BaseCache():
-
+class BaseCache:
     def __init__(self, cache_type: str = None, fn: str = None):
         assert cache_type is not None
         self.loaded = False
@@ -47,20 +42,17 @@ class BaseCache():
 
     def create_dirs(self):
         if not os.path.exists(self.fp):
-            logger.debug(f'Creating cache dir: {self.fp}')
-            os.makedirs(
-                os.path.dirname(self.fp),
-                exist_ok=True
-            )
+            logger.debug(f"Creating cache dir: {self.fp}")
+            os.makedirs(os.path.dirname(self.fp), exist_ok=True)
 
     def save(self):
         self.lock.acquire()
         if len(self.data) <= self.last_save_len:
             self.lock.release()
             return
-        logger.debug(f'Saving cache {self.fp}')
+        logger.debug(f"Saving cache {self.fp}")
         self.create_dirs()
-        with open(self.fp, 'wb') as f:
+        with open(self.fp, "wb") as f:
             pickle.dump(self.data, f)
         self.last_save_len = len(self.data)
         self.lock.release()
@@ -74,13 +66,13 @@ class BaseCache():
         if self.loaded:
             return
 
-        logger.debug(f'Loading cache {self.fp}')
+        logger.debug(f"Loading cache {self.fp}")
         if not os.path.exists(self.fp):
             self.create_dirs()
             self.save()
 
         self.lock.acquire()
-        with open(self.fp, 'rb') as f:
+        with open(self.fp, "rb") as f:
             self.data = pickle.load(f)
 
         self.loaded = True
@@ -88,9 +80,7 @@ class BaseCache():
 
         if logger.level <= logging.DEBUG:
             logger.debug(
-                'Size of %s cache: %sMB',
-                self.fp,
-                get_size(self.data) / (1000 ** 2)
+                "Size of %s cache: %sMB", self.fp, get_size(self.data) / (1000**2)
             )
         self.lock.release()
 
@@ -103,10 +93,7 @@ class BaseCache():
 
     @staticmethod
     def from_file(cache_type: str, filepath: str, load: bool = True, fn: str = None):
-        cache = BaseCache(
-            cache_type=cache_type,
-            fn=os.path.basename(filepath)
-        )
+        cache = BaseCache(cache_type=cache_type, fn=os.path.basename(filepath))
 
         if load:
             cache.load()
@@ -119,23 +106,22 @@ class BaseCache():
 
     @property
     def fp(self) -> str:
-        return os.path.join(self.dir, f'{self.fn}')
+        return os.path.join(self.dir, f"{self.fn}")
 
     @property
     def since_last_accessed(self):
         return (datetime.datetime.utcnow() - self.last_accessed).total_seconds()
 
 
-class BaseCaches():
-
+class BaseCaches:
     def __init__(self, *args, **kwargs):
-        assert kwargs.get('cache_type', None) is not None
+        assert kwargs.get("cache_type", None) is not None
         self.loaded = False
         self.data = {}
         self.lock = threading.RLock()
         self.last_save_len = -1
-        self.cache_type = kwargs['cache_type']
-        self.child_class = kwargs.get('child_class', BaseCache)
+        self.cache_type = kwargs["cache_type"]
+        self.child_class = kwargs.get("child_class", BaseCache)
 
         # set up references
         self.refs = {}
@@ -201,7 +187,7 @@ class BaseCaches():
         """
         Clean up memory from caches that haven't been used in a while
         """
-        logger.debug('Cleaning memory: %s', self.cache_type)
+        logger.debug("Cleaning memory: %s", self.cache_type)
 
         if logger.level <= logging.DEBUG:
             # since get_size is a little slow, don't want to waste time if
@@ -223,17 +209,14 @@ class BaseCaches():
             except:
                 post_memory = -1
             logger.debug(
-                'Cleaned memory, reduced %s by %s%% (%s -> %s)',
+                "Cleaned memory, reduced %s by %s%% (%s -> %s)",
                 self.cache_type,
                 ((float(post_memory) - initial_memory) / initial_memory) * 100,
                 initial_memory,
-                post_memory
+                post_memory,
             )
 
-        cleaner = threading.Timer(
-            60 * 2,
-            self.memory_cleaner
-        )
+        cleaner = threading.Timer(60 * 2, self.memory_cleaner)
         cleaner.daemon = True
         cleaner.start()
 
@@ -248,10 +231,9 @@ class BaseCaches():
         """
         return [
             self.child_class.from_file(
-                self.cache_type,
-                os.path.join(self.dir, f),
-                load=False
-            ) for f in os.listdir(self.dir)
+                self.cache_type, os.path.join(self.dir, f), load=False
+            )
+            for f in os.listdir(self.dir)
         ]
 
     @property
@@ -259,4 +241,4 @@ class BaseCaches():
         """
         Get the reference file path for this type of cache
         """
-        return os.path.join(self.dir, 'refs.json')
+        return os.path.join(self.dir, "refs.json")
