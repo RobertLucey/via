@@ -250,6 +250,7 @@ class FramePoint(Context, GenericObject):
         def angle_nearest():
             # Find a middleground between the best angle match and the
             # nearest by distance
+
             edges_by_angle = sorted(
                 self.get_edges_with_context(graph, edges),
                 key=lambda x: x['angle_between']
@@ -264,7 +265,8 @@ class FramePoint(Context, GenericObject):
                 # next is closer, use the closer one
                 if all([
                     edge['angle_between'] < settings.CLOSE_ANGLE_TO_ROAD,
-                    edge['edge'][1] < best_edge['edge'][1]
+                    edge['edge'][1] < best_edge['edge'][1],
+                    edge['edge'][1] < 0.0001  # TODO: to settings
                 ]):
                     best_edge = edge
 
