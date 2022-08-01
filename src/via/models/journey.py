@@ -40,7 +40,6 @@ from via.models.journey_mixins import (
     BoundingGraphMixin
 )
 from via.collision_edge_cache import collision_edge_cache
-from via.models.collisions.collision import COLLISIONS
 
 
 class Journey(
@@ -325,6 +324,7 @@ class Journey(
         """
 
         # FIXME: this is very lazy making sure at least some collisions have been generated
+        from via.models.collisions.collision import COLLISIONS
         from via.constants import COLLISION_EDGE_CACHE_DIR
         if len(collision_edge_cache.data) == 0:
             from via.collisions.utils import generate_geojson
