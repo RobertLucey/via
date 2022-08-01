@@ -27,7 +27,6 @@ def parse_start_date(earliest_date):
 
     if isinstance(earliest_date, str):
         earliest_date = dateutil.parser.parse(earliest_date)
-        print('now: %s' % (earliest_date))
 
     if isinstance(earliest_date, datetime.date):
         earliest_date = datetime.datetime.combine(
@@ -43,8 +42,6 @@ def parse_start_date(earliest_date):
 
         if earliest_date < datetime.datetime(2021, 1, 1):
             earliest_date = datetime.datetime(2021, 1, 1)
-
-        print('aaa: %s' % (earliest_date))
 
     return str(earliest_date.date())
 
