@@ -125,8 +125,8 @@ class GPSPoint:
         :rtype: bool
         """
         return (
-            isinstance(self.lat, (int, float))
-            and isinstance(self.lng, (int, float))
-            and self.lat != 0
+            self.lat != 0
             and self.lng != 0
+            and isinstance(self.lat, (int, float))
+            and isinstance(self.lng, (int, float))
         )
