@@ -11,12 +11,10 @@ CACHE_DIR = os.path.join(BASE_DIR, "cache")
 REMOTE_DATA_DIR = os.path.join(DATA_DIR, "raw")
 
 EDGE_CACHE_NAME = "edge_cache"
-COLLISION_EDGE_CACHE_NAME = "collision_edge_cache"
 NETWORK_CACHE_NAME = "network_cache"
 BOUNDING_GRAPH_GDFS_NAME = "bounding_graph_gdfs_cache"
 
 EDGE_CACHE_DIR = os.path.join(CACHE_DIR, EDGE_CACHE_NAME)
-COLLISION_EDGE_CACHE_DIR = os.path.join(CACHE_DIR, COLLISION_EDGE_CACHE_NAME)
 NETWORK_CACHE_DIR = os.path.join(CACHE_DIR, NETWORK_CACHE_NAME)
 BOUNDING_GRAPH_GDFS_CACHE = os.path.join(CACHE_DIR, BOUNDING_GRAPH_GDFS_NAME)
 

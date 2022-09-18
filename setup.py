@@ -4,7 +4,6 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
-    'road-collisions-ireland>=0.0.9',
     'cached_property',
     'packaging',
     'reverse_geocoder',
@@ -32,8 +31,7 @@ setup(
     entry_points={
         'console_scripts': [
             'pull_journeys = via.bin.pull_journeys:main',
-            'generate_geojson = via.bin.generate_geojson:main',
-            'generate_collision_geojson = via.bin.generate_collision_geojson:main'
+            'generate_geojson = via.bin.generate_geojson:main'
         ]
     }
 )

@@ -312,6 +312,7 @@ class GroupedNetworkCaches:
         len_refs = len(self.refs)
 
         # k is collisions, so needs to be serializable
+        # FIXME: is k collisions? If so need to remove
         self.refs[k.gps_hash] = fn
 
         if len_refs < len(self.refs):
