@@ -333,7 +333,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                 data[edge_id] = {
                     "avg": int(statistics.mean(qualities)),
                     "count": len(qualities),
-                    "speed": speed
+                    "speed": speed,
                 }
 
         return {

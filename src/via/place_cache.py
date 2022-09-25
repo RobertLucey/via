@@ -13,6 +13,7 @@ class PlaceCache:
     Rather than relying on smaller networks have some defined large ones
     that many journeys can use
     """
+
     def __init__(self):
         self.data = {
             "dublin ireland": {

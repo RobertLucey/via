@@ -10,12 +10,11 @@ from via.utils import (
     get_slope,
     get_edge_slope,
     is_journey_data_file,
+    should_include_journey,
     get_data_files,
     window,
     iter_journeys,
-    sleep_until,
     get_idx_default,
-    force_list,
     flatten,
     get_journeys,
     angle_between_slopes,
@@ -25,11 +24,6 @@ from via.utils import (
 )
 from via.constants import REMOTE_DATA_DIR, DATA_DIR
 from via.models.gps import GPSPoint
-
-
-@sleep_until(0.5)
-def sleep_a_bit():
-    return None
 
 
 class UtilTest(TestCase):
@@ -59,6 +53,11 @@ class UtilTest(TestCase):
             is_journey_data_file(os.path.join(REMOTE_DATA_DIR, "just_route.json"))
         )
 
+        with open("/tmp/bad_data.json", "w") as f:
+            f.write('some_bad_data')
+
+        self.assertFalse(is_journey_data_file("/tmp/bad_data.json"))
+
         self.assertFalse(is_journey_data_file("/dev/null"))
 
     def test_get_journeys(self):
@@ -79,22 +78,9 @@ class UtilTest(TestCase):
             [(1, 2, 3), (2, 3, 4), (3, 4, 5)],
         )
 
-    def test_sleep_until(self):
-        st = time.monotonic()
-        sleep_a_bit()
-        et = time.monotonic()
-        taken = et - st
-
-        self.assertTrue(taken >= 0.5)
-
     def test_get_idx_default(self):
         self.assertEqual(get_idx_default([1, 2, 3], 0, None), 1)
         self.assertEqual(get_idx_default([1, 2, 3], 9, None), None)
-
-    def test_force_list(self):
-        self.assertEqual(force_list([]), [])
-        self.assertEqual(force_list([[]]), [[]])
-        self.assertEqual(force_list(1), [1])
 
     def test_flatten(self):
         self.assertEqual(flatten([[1, 2, 3], [1, 2]]), [1, 2, 3, 1, 2])

@@ -196,71 +196,6 @@ def get_data_files(transport_type=None, source=None) -> List[str]:
     return files
 
 
-def sleep_until_ready(started: Number, finished: Number, max_seconds=0):
-    """
-    Given a starting time of the kickoff, if there is still time
-    to wait, sleep that time, otherwise warn of being overdue.
-
-    :param started:
-    :param finished:
-    :kwarg max_seconds:
-    """
-    time_diff = float(finished - started)
-
-    wait_remainder = max_seconds - time_diff
-    if wait_remainder > 0:
-        time.sleep(wait_remainder)
-
-
-def timing(function):
-    """
-    Decorator wrapper to log execution time, for profiling purposes.
-    """
-
-    @wraps(function)
-    def wrapped(*args, **kwargs):
-        start_time = time.monotonic()
-        ret = function(*args, **kwargs)
-        end_time = time.monotonic()
-        logger.debug(
-            'timing of "%s"  \t%s', function.__qualname__, end_time - start_time
-        )
-        return ret
-
-    return wrapped
-
-
-def sleep_until(max_seconds: Number):
-    """
-    Decorator which sleeps until a given x seconds from starting if possible.
-
-    :param max_seconds:
-    """
-
-    def real_decorator(function):
-        def wrapper(*args, **kwargs):
-            started = time.monotonic()
-            result = function(*args, **kwargs)
-            finished = time.monotonic()
-            sleep_until_ready(started, finished, max_seconds=max_seconds)
-
-            time_diff = finished - started
-            percentage_time = (float(time_diff) / max_seconds) * 100
-            if percentage_time > 100:
-                # If it's getting up there, then log
-                logger.debug(
-                    'function "%s" took %s %% of the max %s',
-                    function.__qualname__,
-                    percentage_time,
-                    max_seconds,
-                )
-            return result
-
-        return wrapper
-
-    return real_decorator
-
-
 def window(sequence, window_size=2):
     """
     Returns a sliding window (of width n) over data from the iterable
@@ -298,17 +233,6 @@ def get_combined_id(obj: Any, other_obj: Any) -> int:
     :return: A unque id that will be the same regardless of param order
     """
     return hash(obj) + hash(other_obj)
-
-
-def force_list(val: Any) -> List[Any]:
-    """
-    If the val is not already a list, make it the only element in the list
-
-    :rtype: list
-    """
-    if not isinstance(val, list):
-        return [val]
-    return val
 
 
 def flatten(lst: List) -> List[Any]:
