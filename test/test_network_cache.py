@@ -40,8 +40,28 @@ class SingleNetworkCacheTest(TestCase):
 
 
 class GroupedNetworkCacheTest(TestCase):
-    def test_something(self):
-        pass
+    def test_get_by_id(self):
+        cache = GroupedNetworkCaches(cache_type='blah')
+
+        single_network_cache = SingleNetworkCache("something")
+        single_network_cache.networks = {
+            "a": 1,
+            "b": 2,
+            "c": 3,
+        }
+        single_network_cache.data = {
+            "a": {"a1": 1, "a2": 2},
+            "b": {"b1": 1, "b2": 2},
+            "c": {"c1": 1, "c2": 2},
+        }
+
+        cache.loaded = True
+        cache.data = {
+            "a": single_network_cache,
+            "b": single_network_cache,
+            "c": single_network_cache,
+        }
+        self.assertEqual(cache.get_by_id('b'), {'b1': 1, 'b2': 2, 'network': 2})
 
 
 class NetworkCacheTest(TestCase):
