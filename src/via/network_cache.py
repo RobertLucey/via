@@ -44,6 +44,7 @@ class SingleNetworkCache:
         return cache
 
     def get_by_id(self, graph_id):
+        self.last_accessed = datetime.datetime.utcnow()
         if graph_id not in self.data:
             return None
         self.load_networks(network_id=graph_id)
