@@ -54,7 +54,7 @@ class UtilTest(TestCase):
         )
 
         with open("/tmp/bad_data.json", "w") as f:
-            f.write('some_bad_data')
+            f.write("some_bad_data")
 
         self.assertFalse(is_journey_data_file("/tmp/bad_data.json"))
 
