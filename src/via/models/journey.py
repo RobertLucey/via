@@ -361,7 +361,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             nearest_edges = nearest_edge.get(bounding_graph, [our_origin])[0]
 
             edge = our_origin.get_best_edge(
-                nearest_edges, mode=settings.NEAREST_EDGE_METHOD, graph=bounding_graph
+                nearest_edges,
+                mode=settings.NEAREST_EDGE_METHOD,
+                graph=bounding_graph,
+                include_slow=True,
             )
 
             our_edge_data = get_edge_data(
@@ -401,6 +404,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             )
 
             distance = origin.distance_from(destination)
+
+            # NOTE: Maybe road_quality to None if speed is too slow?
             combined_edge_data[edge_id].append(
                 {
                     "origin": origin,

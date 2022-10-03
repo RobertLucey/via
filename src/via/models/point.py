@@ -129,7 +129,7 @@ class FramePoint(Context, GenericObject):
     {gps: (1, 2), acc: 3, time: 3}
     """
 
-    def __init__(self, time, gps, acceleration, slow=False):
+    def __init__(self, time, gps, acceleration, slow=None):
         """
 
         :param time:
@@ -141,8 +141,7 @@ class FramePoint(Context, GenericObject):
 
         self.time = time
         self.gps = GPSPoint.parse(gps)
-
-        self.slow = slow
+        self._slow = slow
 
         if isinstance(acceleration, list):
             self.acceleration = [
@@ -155,6 +154,19 @@ class FramePoint(Context, GenericObject):
             self.acceleration = [
                 acc for acc in [acceleration] if acc >= settings.MIN_ACC_SCORE
             ]
+
+    @property
+    def slow(self):
+        if self.speed is None:
+            return False  # Is this fair?
+
+        if self._slow is not None:
+            return self._slow
+
+        return self._slow is False or (
+            isinstance(self.speed, float)
+            and self.speed <= settings.MIN_METRES_PER_SECOND
+        )
 
     @property
     def speed(self):
@@ -173,7 +185,7 @@ class FramePoint(Context, GenericObject):
             if origin.time is None and dst.time is None:
                 return None
 
-            metres_per_second = None
+            metres_per_second = 0
             distance = origin.distance_from(dst.gps)
             if distance != 0:
                 time_diff = dst.time - origin.time
@@ -182,7 +194,7 @@ class FramePoint(Context, GenericObject):
 
         return None
 
-    def get_edges_with_context(self, graph, edges):
+    def get_edges_with_context(self, graph, edges, include_slow=True):
         """
         Get a list of dicts, giving context to how it relates to the
         current FramePoint
@@ -198,7 +210,7 @@ class FramePoint(Context, GenericObject):
                 and the slope of actual travel
         :rtype: list
         """
-        if self.slow:
+        if self.slow and not include_slow:
             # FIXME: should not return, should get the context of the previous edge not slow and the next edge not slow
             return
 
@@ -224,12 +236,12 @@ class FramePoint(Context, GenericObject):
 
         return edge_node_data
 
-    def get_best_edge(self, edges, graph=None, mode=None):
+    def get_best_edge(self, edges, graph=None, mode=None, include_slow=True):
         """
 
         :kwarg mode: strategy to use to get the best edge
         """
-        if self.slow:
+        if self.slow and not include_slow:
             # FIXME: should not return, should get the context of the previous edge not slow and the next edge not slow
             return
 
@@ -242,7 +254,7 @@ class FramePoint(Context, GenericObject):
 
         def matching_angle(edges, graph):
             return sorted(
-                self.get_edges_with_context(graph, edges),
+                self.get_edges_with_context(graph, edges, include_slow=include_slow),
                 key=lambda x: x["angle_between"],
             )[0]["edge"]
 
@@ -254,7 +266,7 @@ class FramePoint(Context, GenericObject):
             # Can do for the previous few
 
             edges_by_angle = sorted(
-                self.get_edges_with_context(graph, edges),
+                self.get_edges_with_context(graph, edges, include_slow=include_slow),
                 key=lambda x: x["angle_between"],
             )
 
