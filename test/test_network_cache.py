@@ -41,7 +41,7 @@ class SingleNetworkCacheTest(TestCase):
 
 class GroupedNetworkCacheTest(TestCase):
     def test_get_by_id(self):
-        cache = GroupedNetworkCaches(cache_type='blah')
+        cache = GroupedNetworkCaches(cache_type="blah")
 
         single_network_cache = SingleNetworkCache("something")
         single_network_cache.networks = {
@@ -61,7 +61,7 @@ class GroupedNetworkCacheTest(TestCase):
             "b": single_network_cache,
             "c": single_network_cache,
         }
-        self.assertEqual(cache.get_by_id('b'), {'b1': 1, 'b2': 2, 'network': 2})
+        self.assertEqual(cache.get_by_id("b"), {"b1": 1, "b2": 2, "network": 2})
 
 
 class NetworkCacheTest(TestCase):
