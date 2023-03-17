@@ -1,4 +1,5 @@
 mock
 nose
+nose2
 coverage
 nose-timer
