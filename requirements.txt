@@ -9,3 +9,4 @@ scikit-learn
 requests
 geopandas
 python-logging-loki
+rtree

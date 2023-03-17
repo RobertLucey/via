@@ -14,13 +14,14 @@ INSTALL_REQUIRES = (
     'scikit-learn',
     'requests',
     'geopandas',
-    'python-logging-loki'
+    'python-logging-loki',
+    'rtree'
 )
 
 setup(
     name='via-api',
-    version='1.1.1',
-    python_requires='>=3.6,<3.10',
+    version='1.1.2',
+    python_requires='>=3.6',
     description='Analysing and serving crowdsourced road quality data',
     long_description='Analysing and serving crowdsourced road quality data',
     author='Robert Lucey',
