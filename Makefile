@@ -70,4 +70,13 @@ local_query:
 	@curl http://127.0.0.1:8000/items/123
 	@echo
 
+	@echo "POST /items/ (Simulated data packet):"
+	@curl \
+		-X POST \
+		-H "accept: application/json" \
+		-H "Content-Type: application/json" \
+		-d @resources/basic_packet.json \
+		http://127.0.0.1:8000/items/
+	@echo
+
 	@echo "Done."

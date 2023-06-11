@@ -1,16 +1,25 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from typing import List
 
 app = FastAPI()
 
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
 
-class Item(BaseModel):
-    name: str
-    description: str | None = None
-    price: float
-    tax: float | None = None
+class JourneyDataPoint(BaseModel):
+    acc: float
+    gps: List[float]
+    time: float
+
+class Journey(BaseModel):
+    version: str
+    uuid: str
+    device: str
+    data: List[JourneyDataPoint]
+    transport_type: str
+    suspension: bool
+    is_partial: bool
 
 
 @app.get("/")
@@ -33,5 +42,6 @@ async def read_item_with_offset(skip: int = 0, limit: int = 10):
 
 
 @app.post("/items/")
-async def create_item(item: Item):
-    return item
+async def create_journey(journey: Journey):
+    print(journey)
+    return journey
