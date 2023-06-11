@@ -51,7 +51,7 @@ production_setup:
 
 production_run:
 	@echo "Running Make rule production_run..."
-	uvicorn via.main:app --reload
+	uvicorn via.main:app --proxy-headers --host 0.0.0.0 --port 8000 --reload
 
 local_query:
 	@echo "GET /:"
