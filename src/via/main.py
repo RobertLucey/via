@@ -1,5 +1,8 @@
+import os
+
 from fastapi import FastAPI
 from pydantic import BaseModel
+from pymongo import MongoClient
 from typing import List
 
 app = FastAPI()
@@ -22,26 +25,36 @@ class Journey(BaseModel):
     is_partial: bool
 
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Hello world",
-    }
+def get_mongo_interface():
+    """
+    Returns the MongoDB DB interface. Here so it can be moved to utils.
+    """
+    db_url = os.environ.get("MONGODB_URL", None)
 
+    client = MongoClient(db_url)
+    return client[os.environ.get("MONGODB_DATABASE")]
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    return {"item_id": item_id}
-
-
-@app.get("/offset_items")
-async def read_item_with_offset(skip: int = 0, limit: int = 10):
-    print(skip)
-    print(limit)
-    return fake_items_db[skip : skip + limit]
-
-
-@app.post("/items/")
+@app.post("/push_journey")
 async def create_journey(journey: Journey):
-    print(journey)
-    return journey
+    """
+    Simply dumps this journey into Mongo for now.
+    """
+    db = get_mongo_interface()
+
+    db.journeys.insert_one(journey.dict())
+
+    return {}
+
+
+@app.get("/get_journey")
+async def get_journey():
+    """
+    Simply grabs a random journey from Mongo.
+    """
+    db = get_mongo_interface()
+
+    res = db.journeys.find_one()
+    # Make the ID a string so it's returnable:
+    res["_id"] = str(res["_id"])
+
+    return res

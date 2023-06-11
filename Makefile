@@ -36,6 +36,8 @@ quick_test:
 	$(IN_ENV) $(TEST_CONTEXT) nose2
 
 
+
+
 local_setup:
 	@echo "Running Make rule local_setup..."
 	$(PYTHON) -m venv $(ENV_DIR)
@@ -46,37 +48,25 @@ local_run:
 	@echo "Running Make rule local_run..."
 	$(IN_ENV) uvicorn src.via.main:app --reload
 
+local_docker_run:
+	docker compose up --build
+
+local_query:
+	@echo "POST /push_journey (Simulated data packet):"
+	@curl \
+		-X POST \
+		-H "accept: application/json" \
+		-H "Content-Type: application/json" \
+		-d @resources/basic_packet.json \
+		http://127.0.0.1:8000/push_journey
+	@echo
+
+	@echo "Done."
+
+
 production_setup:
 	@echo "Running Make rule production_setup..."
 
 production_run:
 	@echo "Running Make rule production_run..."
 	uvicorn via.main:app --proxy-headers --host 0.0.0.0 --port 8000 --reload
-
-local_query:
-	@echo "GET /:"
-	@curl http://127.0.0.1:8000
-	@echo
-
-	@echo "GET /items/{item_id}:"
-	@curl http://127.0.0.1:8000/items/123
-	@echo
-
-	@echo "GET /offset_items/:"
-	@curl http://127.0.0.1:8000/offset_items?skip=1&limit=2
-	@echo
-
-	@echo "POST /items/:"
-	@curl http://127.0.0.1:8000/items/123
-	@echo
-
-	@echo "POST /items/ (Simulated data packet):"
-	@curl \
-		-X POST \
-		-H "accept: application/json" \
-		-H "Content-Type: application/json" \
-		-d @resources/basic_packet.json \
-		http://127.0.0.1:8000/items/
-	@echo
-
-	@echo "Done."
