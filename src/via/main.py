@@ -25,8 +25,10 @@ async def read_item(item_id: int):
     return {"item_id": item_id}
 
 
-@app.get("/offset_items/")
+@app.get("/offset_items")
 async def read_item_with_offset(skip: int = 0, limit: int = 10):
+    print(skip)
+    print(limit)
     return fake_items_db[skip : skip + limit]
 
 

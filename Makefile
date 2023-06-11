@@ -38,10 +38,13 @@ quick_test:
 
 local_setup:
 	@echo "Running Make rule local_setup..."
+	$(PYTHON) -m venv $(ENV_DIR)
+	$(IN_ENV) python -m pip install --upgrade pip
+	$(IN_ENV) python -m pip install --upgrade -r requirements.txt
 
 local_run:
 	@echo "Running Make rule local_run..."
-	uvicorn via.main:app --reload
+	$(IN_ENV) uvicorn src.via.main:app --reload
 
 production_setup:
 	@echo "Running Make rule production_setup..."
@@ -49,3 +52,22 @@ production_setup:
 production_run:
 	@echo "Running Make rule production_run..."
 	uvicorn via.main:app --reload
+
+local_query:
+	@echo "GET /:"
+	@curl http://127.0.0.1:8000
+	@echo
+
+	@echo "GET /items/{item_id}:"
+	@curl http://127.0.0.1:8000/items/123
+	@echo
+
+	@echo "GET /offset_items/:"
+	@curl http://127.0.0.1:8000/offset_items?skip=1&limit=2
+	@echo
+
+	@echo "POST /items/:"
+	@curl http://127.0.0.1:8000/items/123
+	@echo
+
+	@echo "Done."
