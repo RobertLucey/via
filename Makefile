@@ -1,4 +1,4 @@
-PYTHON=python3
+PYTHON=python3.10
 
 # TODO: might be nice to have a non threading setting
 TEST_CONTEXT=export TEST_ENV=True &&
@@ -34,3 +34,18 @@ test: build test_requirements quick_test
 
 quick_test:
 	$(IN_ENV) $(TEST_CONTEXT) nose2
+
+
+local_setup:
+	@echo "Running Make rule local_setup..."
+
+local_run:
+	@echo "Running Make rule local_run..."
+	uvicorn via.main:app --reload
+
+production_setup:
+	@echo "Running Make rule production_setup..."
+
+production_run:
+	@echo "Running Make rule production_run..."
+	uvicorn via.main:app --reload
