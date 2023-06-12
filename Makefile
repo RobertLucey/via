@@ -72,6 +72,15 @@ local_pull_journey:
 
 	@echo "Done."
 
+local_get_geojson:
+	@echo "GET /get_geojson:"
+	@curl \
+		-X GET \
+		http://127.0.0.1:8000/get_geojson?earliest_time=2021-01&latest_time=2023-12
+	@echo
+
+	@echo "Done."
+
 production_setup:
 	@echo "Running Make rule production_setup..."
 

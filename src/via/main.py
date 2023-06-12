@@ -70,3 +70,24 @@ async def get_journey():
     res["_id"] = str(res["_id"])
 
     return res
+
+# TODO: Update this endpoint name and support time ranges/coords
+@app.get("/get_geojson")
+async def get_all_journeys():
+    """
+    Fetch all the parsed journeys from the database between earliest/latest and
+    return them as one GeoJSON FeatureCollection.
+    """
+    db = get_mongo_interface()
+
+    # TODO: Filter by time and coords:
+    all_journeys_cursor = db.parsed_journeys.find()
+
+    all_features = []
+    for journey in all_journeys_cursor:
+        all_features.extend(journey["features"])
+
+    return {
+        "type": "FeatureCollection",
+        "features": all_features
+    }
