@@ -1,15 +1,15 @@
-# cached_property
-# packaging
-# reverse_geocoder
-# fast_json
-# boto3
-# haversine
-# osmnx
-# scikit-learn
-# requests
-# geopandas
-# python-logging-loki
-# rtree
+cached_property
+packaging
+reverse_geocoder
+fast_json
+boto3
+haversine
+osmnx
+scikit-learn
+requests
+geopandas
+python-logging-loki
+rtree
 fastapi[all]
 pydantic
 pymongo

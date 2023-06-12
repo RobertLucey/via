@@ -5,21 +5,21 @@ from pydantic import BaseModel
 from pymongo import MongoClient
 from typing import List
 
+from via.models.journey import Journey
+
 app = FastAPI()
 
-fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
-
-class JourneyDataPoint(BaseModel):
+class RawJourneyDataPoint(BaseModel):
     acc: float
     gps: List[float]
     time: float
 
-class Journey(BaseModel):
+class RawJourney(BaseModel):
     version: str
     uuid: str
     device: str
-    data: List[JourneyDataPoint]
+    data: List[RawJourneyDataPoint]
     transport_type: str
     suspension: bool
     is_partial: bool
@@ -35,14 +35,25 @@ def get_mongo_interface():
     return client[os.environ.get("MONGODB_DATABASE")]
 
 @app.post("/push_journey")
-async def create_journey(journey: Journey):
+async def create_journey(raw_journey: RawJourney):
     """
     Simply dumps this journey into Mongo for now.
     """
     db = get_mongo_interface()
 
-    db.journeys.insert_one(journey.dict())
+    # Store the complete raw journey:
+    db.raw_journeys.insert_one(raw_journey.dict())
 
+    # Parse it into some GeoJSON to store:
+    journey = Journey(
+        data = raw_journey.dict()["data"],
+        is_culled=True,
+        transport_type=raw_journey.transport_type,
+        suspension=raw_journey.suspension,
+        version=raw_journey.version,
+    )
+
+    db.parsed_journeys.insert_one(journey.geojson)
     return {}
 
 
@@ -53,7 +64,8 @@ async def get_journey():
     """
     db = get_mongo_interface()
 
-    res = db.journeys.find_one()
+    res = db.parsed_journeys.find_one()
+
     # Make the ID a string so it's returnable:
     res["_id"] = str(res["_id"])
 

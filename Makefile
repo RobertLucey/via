@@ -51,18 +51,26 @@ local_run:
 local_docker_run:
 	docker compose up --build
 
-local_query:
-	@echo "POST /push_journey (Simulated data packet):"
+local_push_journey:
+	@echo "POST /push_journey:"
 	@curl \
 		-X POST \
 		-H "accept: application/json" \
 		-H "Content-Type: application/json" \
-		-d @resources/basic_packet.json \
+		-d @resources/full.json \
 		http://127.0.0.1:8000/push_journey
 	@echo
 
 	@echo "Done."
 
+local_pull_journey:
+	@echo "GET /get_journey:"
+	@curl \
+		-X GET \
+		http://127.0.0.1:8000/get_journey
+	@echo
+
+	@echo "Done."
 
 production_setup:
 	@echo "Running Make rule production_setup..."
