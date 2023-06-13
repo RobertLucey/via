@@ -47,4 +47,4 @@ MAX_GEOJSON_AGE = (
     60 * 60
 )  # How long to cache served geojson files before generating again (using new data)
 
-VERSION = pkg_resources.require("via-api")[0].version
+VERSION = "test"  # pkg_resources.require("via-api")[0].version
