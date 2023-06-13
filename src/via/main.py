@@ -1,6 +1,8 @@
 import os
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import BaseModel
 from pymongo import MongoClient
 from typing import List
@@ -8,6 +10,16 @@ from typing import List
 from via.models.journey import Journey
 
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class RawJourneyDataPoint(BaseModel):
