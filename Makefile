@@ -87,3 +87,16 @@ production_setup:
 production_run:
 	@echo "Running Make rule production_run..."
 	uvicorn via.main:app --proxy-headers --host 0.0.0.0 --port 8000 --reload
+
+
+remote_push_journey:
+	@echo "POST /push_journey:"
+	@curl \
+		-X POST \
+		-H "accept: application/json" \
+		-H "Content-Type: application/json" \
+		-d @resources/full.json \
+		https://test-via-api.randombits.host/push_journey
+	@echo
+
+	@echo "Done."
