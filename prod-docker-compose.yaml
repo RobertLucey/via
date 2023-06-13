@@ -1,0 +1,108 @@
+version: '3.3'
+
+networks:
+  live_network:
+    external: true
+  internal_network:
+    external: false
+
+services:
+  test-via-web:
+    container_name: "test-via-web"
+    image: conorjf/via-web:latest
+    restart: unless-stopped
+
+    networks:
+      - "live_network"
+
+    volumes:
+      - /var/log/instance_logs/test-via:/var/log
+
+    env_file:
+      - ./config/via.env
+
+    command: ["make", "test_run"]
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.test-via-web-web.loadbalancer.server.port=8080"
+      - "traefik.docker.network=live_network"
+
+      - "traefik.http.routers.test-via-web-websecure.rule=Host(`test-via.randombits.host`)"
+      - "traefik.http.routers.test-via-web-websecure.entrypoints=websecure"
+      - "traefik.http.routers.test-via-web-websecure.tls=true"
+      - "traefik.http.routers.test-via-web-websecure.tls.certresolver=le"
+
+      - "traefik.http.routers.test-via-web-web.rule=Host(`test-via.randombits.host`)"
+      - "traefik.http.routers.test-via-web-web.entrypoints=web"
+      - "traefik.http.routers.test-via-web-web.middlewares=test-via-web-http-redirect"
+
+      - "traefik.http.middlewares.test-via-web-http-redirect.redirectscheme.scheme=https"
+
+      - "com.centurylinklabs.watchtower.scope=test-via"
+
+  test-via-api:
+    container_name: "test-via-api"
+    image: conorjf/via-api:latest
+    restart: unless-stopped
+
+    networks:
+      - "live_network"
+      - "internal_network"
+
+    volumes:
+      - /var/log/instance_logs/test-via-api:/var/log
+      - ./data:/opt
+
+    env_file:
+      - ./config/via.env
+
+    depends_on:
+      - test-via-mongodb
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.test-via-api-web.loadbalancer.server.port=8000"
+      - "traefik.docker.network=live_network"
+
+      - "traefik.http.routers.test-via-api-websecure.rule=Host(`test-via-api.randombits.host`)"
+      - "traefik.http.routers.test-via-api-websecure.entrypoints=websecure"
+      - "traefik.http.routers.test-via-api-websecure.tls=true"
+      - "traefik.http.routers.test-via-api-websecure.tls.certresolver=le"
+
+      - "traefik.http.routers.test-via-api-web.rule=Host(`test-via-api.randombits.host`)"
+      - "traefik.http.routers.test-via-api-web.entrypoints=web"
+      - "traefik.http.routers.test-via-api-web.middlewares=test-via-api-http-redirect"
+
+      - "traefik.http.middlewares.test-via-api-http-redirect.redirectscheme.scheme=https"
+
+      - "com.centurylinklabs.watchtower.scope=test-via"
+
+  test-via-mongodb:
+    container_name: "test-via-mongodb"
+    image: mongo:latest
+    restart: unless-stopped
+
+    env_file:
+      - ./config/via.env
+
+    networks:
+      - "internal_network"
+
+    volumes:
+      - ./data/db:/data/db
+
+  test-via-watchtower:
+    container_name: "test-via-watchtower"
+    image: containrrr/watchtower
+    restart: unless-stopped
+
+    volumes:
+      - /var/log/instance_logs/test-via-watchtower:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    command: test-via-api test-via-web --interval 120 --scope test-via
+
+    labels:
+      - "traefik.enable=false"
+      - "com.centurylinklabs.watchtower.scope=test-via"
