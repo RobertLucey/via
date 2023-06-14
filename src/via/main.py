@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 from pymongo import MongoClient
-from typing import List
+from typing import List, Optional
 
 from via.models.journey import Journey
 
@@ -25,16 +25,16 @@ app.add_middleware(
 class RawJourneyDataPoint(BaseModel):
     acc: float
     gps: List[float]
-    time: float
+    time: Optional[float]
 
 class RawJourney(BaseModel):
-    version: str
+    version: Optional[str] = "1.0"
     uuid: str
     device: str
     data: List[RawJourneyDataPoint]
-    transport_type: str
-    suspension: bool
-    is_partial: bool
+    transport_type: Optional[str] = "bike"
+    suspension: Optional[bool] = False
+    is_partial: Optional[bool] = False
 
 
 def get_mongo_interface():
