@@ -12,7 +12,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: supercharge/mongodb-github-action@1.9.0
     - name: set up
       uses: actions/setup-python@v2
       with:
@@ -23,7 +23,6 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install virtualenv
     - name: Test
-      uses: supercharge/mongodb-github-action@1.9.0
       run: make test
 
   release:
