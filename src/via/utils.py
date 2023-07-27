@@ -22,7 +22,7 @@ from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION,
     MAX_JOURNEY_METRES_SQUARED,
-    MONGO_RAW_JOURNEYS_COLLECTION
+    MONGO_RAW_JOURNEYS_COLLECTION,
 )
 from via.constants import METRES_PER_DEGREE
 from via.models.gps import GPSPoint
@@ -34,7 +34,7 @@ def get_mongo_interface():
     """
     db_url = os.environ.get("MONGODB_URL", "localhost")
     client = MongoClient(db_url)
-    interface = client[os.environ.get('MONGODB_DATABASE', 'localhost')]
+    interface = client[os.environ.get("MONGODB_DATABASE", "localhost")]
     return interface
 
 

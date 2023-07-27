@@ -10,7 +10,6 @@ from via.edge_cache import get_edge_data
 
 class EdgeCacheTest(TestCase):
     def setUp(self):
-
         with open("test/resources/just_route.json") as json_file:
             self.test_data = json.load(json_file)
 

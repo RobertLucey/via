@@ -67,7 +67,6 @@ class SnappedRouteGraphMixin:
 
 
 class GeoJsonMixin:
-
     @property
     def geojson(self):
         """
@@ -110,8 +109,9 @@ class GeoJsonMixin:
         # handled wherever... edge_id wasn't being returned for any data I
         # tried so this is a hack for now.
         return geojson_from_graph(
-            #self.snapped_route_graph, must_include_props=["count", "avg", "edge_id"]
-            self.snapped_route_graph, must_include_props=None
+            # self.snapped_route_graph, must_include_props=["count", "avg", "edge_id"]
+            self.snapped_route_graph,
+            must_include_props=None,
         )
 
 

@@ -14,7 +14,7 @@ def get_geojson(
     latest_time=None,
     place=None,
     version=None,
-    version_op=None
+    version_op=None,
 ):
     # TODO: react to version/version_op/earliest_time/latest_time
 
@@ -24,14 +24,19 @@ def get_geojson(
     db = get_mongo_interface()
     data = getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).find_one(
         {
-            'journey_type': journey_type,
-            'save_time': {'$gt': (datetime.datetime.utcnow() - datetime.timedelta(seconds=MAX_GEOJSON_AGE)).timestamp()},
-            'place': place
+            "journey_type": journey_type,
+            "save_time": {
+                "$gt": (
+                    datetime.datetime.utcnow()
+                    - datetime.timedelta(seconds=MAX_GEOJSON_AGE)
+                ).timestamp()
+            },
+            "place": place,
         }
     )
     if not data:
         raise FileNotFoundError()  # Quick hack
 
-    data['_id'] = str(data['_id'])
+    data["_id"] = str(data["_id"])
 
     return data

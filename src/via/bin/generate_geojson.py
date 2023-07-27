@@ -4,7 +4,6 @@ from via.geojson.generate import generate_geojson
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--transport-type",

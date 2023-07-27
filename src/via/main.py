@@ -49,7 +49,9 @@ async def create_journey(raw_journey: RawJourney):
     """
     db = get_mongo_interface()
 
-    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one({"uuid": raw_journey.uuid})
+    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+        {"uuid": raw_journey.uuid}
+    )
 
     if not result:
         # Store the complete raw journey:
@@ -64,7 +66,7 @@ async def create_journey(raw_journey: RawJourney):
             version=raw_journey.version,
         )
 
-        #db.parsed_journeys.insert_one(journey.geojson)
+        # db.parsed_journeys.insert_one(journey.geojson)
     return {"status": "inserted" if not result else "already exists"}
 
 
@@ -78,7 +80,12 @@ async def get_raw_journeys(page: int = Query(1, gt=0), page_size: int = Query(5,
 
     db = get_mongo_interface()
 
-    data = list(getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find({}).skip((page - 1) * page_size).limit(page_size))
+    data = list(
+        getattr(db, MONGO_RAW_JOURNEYS_COLLECTION)
+        .find({})
+        .skip((page - 1) * page_size)
+        .limit(page_size)
+    )
 
     for obj in data:
         obj["_id"] = str(obj["_id"])
@@ -103,42 +110,38 @@ async def get_journey():
 
 # TODO: Update this endpoint name and support time ranges/coords
 @app.get("/get_geojson")
-async def get_all_journeys(earliest_time: str = None, latest_time: str = None, place: str = None):
+async def get_all_journeys(
+    earliest_time: str = None, latest_time: str = None, place: str = None
+):
     """
     Fetch all the parsed journeys from the database between earliest/latest and
     return them as one GeoJSON FeatureCollection.
     """
 
-    from via.geojson import (
-        generate,
-        retrieve
-    )
+    from via.geojson import generate, retrieve
 
     data = None
     try:
         data = retrieve.get_geojson(
-            "bike",
-            earliest_time=earliest_time,
-            latest_time=latest_time,
-            place=place
+            "bike", earliest_time=earliest_time, latest_time=latest_time, place=place
         )
     except FileNotFoundError:
-        logger.info('geojson not found, generating')
+        logger.info("geojson not found, generating")
         try:
             generate.generate_geojson(
-                'bike',
+                "bike",
                 earliest_time=earliest_time,
                 latest_time=latest_time,
-                place=place
+                place=place,
             )
         except Exception as ex:
-            logger.error(f'Could not generate geojson: {ex}')
+            logger.error(f"Could not generate geojson: {ex}")
         else:
             data = retrieve.get_geojson(
-                'bike',
+                "bike",
                 earliest_time=earliest_time,
                 latest_time=latest_time,
-                place=place
+                place=place,
             )
 
     return data

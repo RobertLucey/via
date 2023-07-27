@@ -128,7 +128,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         )
 
         # then do normal loop which will skip the ones already set because they'll be on the edge
-        for (one, two, three, four, five, six, seven) in window(self, window_size=7):
+        for one, two, three, four, five, six, seven in window(self, window_size=7):
             if not four.is_context_populated:
                 four.set_context(pre=[one, two, three], post=[five, six, seven])
 
@@ -338,7 +338,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         nearest_edge.get(bounding_graph, self._data)
 
         raw_edges_list = []
-        for (our_origin, our_destination) in window(self, window_size=2):
+        for our_origin, our_destination in window(self, window_size=2):
             nearest_edges = nearest_edge.get(bounding_graph, [our_origin])[0]
 
             edge = our_origin.get_best_edge(
@@ -361,7 +361,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             )
 
         edges_list = []
-        for (pre, current, post) in window(raw_edges_list, window_size=3):
+        for pre, current, post in window(raw_edges_list, window_size=3):
             if pre[0] == post[0] and current[0] != pre[0]:
                 current[0] = pre[0]
             edges_list.append(current)
@@ -380,7 +380,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         combined_edge_data = defaultdict(list)
 
-        for (origin, destination) in window(self, window_size=2):
+        for origin, destination in window(self, window_size=2):
             edge_id = get_combined_id(origin.uuid, destination.uuid)
 
             graph.add_node(origin.uuid, **{"x": origin.gps.lng, "y": origin.gps.lat})
@@ -406,7 +406,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         merged_edge_data = {}
         for shared_id, values in combined_edge_data.items():
-
             merged_edge_data[shared_id] = {
                 "origin": values[0]["origin"],
                 "destination": values[0]["destination"],

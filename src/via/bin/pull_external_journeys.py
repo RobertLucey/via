@@ -12,16 +12,14 @@ URLS = [
 
 
 def main():
-
     for url in URLS:
-
         page = 1
         page_size = 5
         still_has_data = True
 
         while still_has_data:
             query_string = urlencode(OrderedDict(page=page, page_size=page_size))
-            query_url = f'{url}?{query_string}'
+            query_url = f"{url}?{query_string}"
 
             print(query_url)
 
@@ -33,11 +31,12 @@ def main():
                 still_has_data = False
             else:
                 for d in data:
-
                     # TODO: validate the data
 
                     db = get_mongo_interface()
-                    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one({"uuid": d['uuid']})
+                    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+                        {"uuid": d["uuid"]}
+                    )
 
                     if not result:
                         getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(d)

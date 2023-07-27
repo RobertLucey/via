@@ -11,7 +11,7 @@ from via.models.journey import Journey
 from via.settings import (
     MONGO_RAW_JOURNEYS_COLLECTION,
     MONGO_NETWORKS_COLLECTION,
-    MONGO_PARSED_JOURNEYS_COLLECTION
+    MONGO_PARSED_JOURNEYS_COLLECTION,
 )
 
 from via.utils import (
@@ -28,20 +28,20 @@ from via.utils import (
     get_slope,
     filter_edges_from_geodataframe,
     filter_nodes_from_geodataframe,
-    get_mongo_interface
+    get_mongo_interface,
 )
 from via.models.gps import GPSPoint
 
 
 class UtilTest(TestCase):
-
     # TODO: setup and teardown
 
     def setUp(self):
-
         # TODO: can we get from test resources?
         with open("test/resources/raw_journey_data/1.json") as json_file:
-            getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(json.loads(json_file.read()))
+            getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
+                json.loads(json_file.read())
+            )
 
     def tearDown(self):
         getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).drop()

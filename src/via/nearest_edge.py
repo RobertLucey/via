@@ -12,7 +12,13 @@ from osmnx import utils_graph
 
 from via import logger
 from via.settings import VERSION
-from via.utils import get_combined_id, get_graph_id, read_json, write_json, get_mongo_interface
+from via.utils import (
+    get_combined_id,
+    get_graph_id,
+    read_json,
+    write_json,
+    get_mongo_interface,
+)
 from via.bounding_graph_gdfs_cache import utils_bounding_graph_gdfs_cache
 
 
@@ -87,7 +93,6 @@ class NearestEdgeCache:
         outside_cache = set(gps_hashes) - self.cached_hashes
 
         if outside_cache:
-
             found_keys = self.mongo_interface.nearest_edge_cache.find(
                 {"gps_hash": {"$in": list(outside_cache)}}, {"gps_hashes": 1}
             )
@@ -112,7 +117,9 @@ class NearestEdgeCache:
 
                 for frame_id, edge_data in frame_id_result_map.items():
                     edge_data = list(edge_data)
-                    self.data[frame_id] = list(zip(edge_data[0], edge_data[1]))  # FIXME Setting here. To mongo
+                    self.data[frame_id] = list(
+                        zip(edge_data[0], edge_data[1])
+                    )  # FIXME Setting here. To mongo
                     self.cached_hashes.add(frame_id)
 
         return [self.data.get(f.gps_hash, None) for f in frames]

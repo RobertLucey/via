@@ -35,11 +35,11 @@ MAX_GEOJSON_AGE = (
 
 VERSION = pkg_resources.require("via-api")[0].version
 
-if os.getenv('TEST_ENV', 'False') == 'True':
-    MONGO_RAW_JOURNEYS_COLLECTION = 'test_raw_journeys'
-    MONGO_NETWORKS_COLLECTION = 'test_networks'
-    MONGO_PARSED_JOURNEYS_COLLECTION = 'test_parsed_journeys'
+if os.getenv("TEST_ENV", "False") == "True":
+    MONGO_RAW_JOURNEYS_COLLECTION = "test_raw_journeys"
+    MONGO_NETWORKS_COLLECTION = "test_networks"
+    MONGO_PARSED_JOURNEYS_COLLECTION = "test_parsed_journeys"
 else:
-    MONGO_RAW_JOURNEYS_COLLECTION = 'raw_journeys'
-    MONGO_NETWORKS_COLLECTION = 'networks'
-    MONGO_PARSED_JOURNEYS_COLLECTION = 'parsed_journeys'
+    MONGO_RAW_JOURNEYS_COLLECTION = "raw_journeys"
+    MONGO_NETWORKS_COLLECTION = "networks"
+    MONGO_PARSED_JOURNEYS_COLLECTION = "parsed_journeys"

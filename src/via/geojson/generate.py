@@ -4,7 +4,12 @@ import datetime
 
 from via import logger
 from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
-from via.utils import get_journeys, should_include_journey, write_json, get_mongo_interface
+from via.utils import (
+    get_journeys,
+    should_include_journey,
+    write_json,
+    get_mongo_interface,
+)
 from via.models.journeys import Journeys
 from via.geojson.utils import generate_basename
 
@@ -79,9 +84,8 @@ def generate_geojson(
     version_op=None,
     earliest_time=None,
     latest_time=None,
-    place=None
+    place=None,
 ):
-
     logger.info(
         "Generating geojson: transport_type=%s version=%s version_op=%s earliest_time=%s latest_time=%s place=%s",
         transport_type,
@@ -124,24 +128,26 @@ def generate_geojson(
 
         db = get_mongo_interface()
 
-        getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).delete_many({
-            'journey_type': config_item['name'],
-            'geojson_version': config_item['version'],
-            'geojson_version_op': config_item['version_op'],
-            'geojson_earliest_time': config_item['earliest_time'],
-            'geojson_latest_time': config_item['latest_time'],
-            'geojson_place': config_item['place']
-        })
+        getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).delete_many(
+            {
+                "journey_type": config_item["name"],
+                "geojson_version": config_item["version"],
+                "geojson_version_op": config_item["version_op"],
+                "geojson_earliest_time": config_item["earliest_time"],
+                "geojson_latest_time": config_item["latest_time"],
+                "geojson_place": config_item["place"],
+            }
+        )
 
         if len(journeys):
             data = journeys.geojson
 
-            data['journey_type'] = config_item['name']
-            data['geojson_version'] = config_item['version']
-            data['geojson_version_op'] = config_item['version_op']
-            data['geojson_earliest_time'] = config_item['earliest_time']
-            data['geojson_latest_time'] = config_item['latest_time']
-            data['place'] = config_item['place']
-            data['save_time'] = datetime.datetime.utcnow().timestamp()
+            data["journey_type"] = config_item["name"]
+            data["geojson_version"] = config_item["version"]
+            data["geojson_version_op"] = config_item["version_op"]
+            data["geojson_earliest_time"] = config_item["earliest_time"]
+            data["geojson_latest_time"] = config_item["latest_time"]
+            data["place"] = config_item["place"]
+            data["save_time"] = datetime.datetime.utcnow().timestamp()
 
             getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(data)
