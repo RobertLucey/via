@@ -1,5 +1,6 @@
 import pickle
 
+import mongomock
 from unittest import TestCase, skip
 
 from via.nearest_edge import NearestEdgeCache
@@ -11,6 +12,7 @@ class NearestEdgeTest(TestCase):
         with open("test/resources/dublin_graph.pickle", "rb") as f:
             self.graph = pickle.load(f)
 
+    @mongomock.patch(servers=(('localhost', 27017),))
     def test_get(self):
         cache = NearestEdgeCache()
         edges = cache.get(
