@@ -9,7 +9,7 @@ from via.models.journeys import Journeys
 from via.models.frame import Frame
 
 
-IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class JourneysTest(TestCase):

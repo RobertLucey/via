@@ -7,7 +7,7 @@ from via.nearest_edge import NearestEdgeCache
 from via.models.point import FramePoint
 
 
-IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class NearestEdgeTest(TestCase):

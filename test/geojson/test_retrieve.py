@@ -5,7 +5,7 @@ from unittest import TestCase, skip, skipUnless
 from via.geojson.retrieve import get_geojson
 
 
-IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class GeoJsonRetrieveTest(TestCase):

@@ -33,11 +33,10 @@ from via.utils import (
 from via.models.gps import GPSPoint
 
 
-IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class UtilTest(TestCase):
-
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_journeys(self):
         with open("test/resources/raw_journey_data/1.json") as json_file:

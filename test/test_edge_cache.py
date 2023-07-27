@@ -9,7 +9,7 @@ from via.models.frame import Frame
 from via.edge_cache import get_edge_data
 
 
-IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class EdgeCacheTest(TestCase):

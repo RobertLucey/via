@@ -15,7 +15,7 @@ from via.settings import (
 from via.utils import get_mongo_interface
 
 
-IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class GeoJsonGenerateTest(TestCase):
