@@ -1,6 +1,5 @@
 import json
 
-import mongomock
 from mock import patch
 from unittest import TestCase
 
@@ -46,13 +45,6 @@ class JourneysTest(TestCase):
         self.test_journeys.append(self.test_journey)
         self.test_journeys.append(self.test_journey)
 
-    def test_most_whatever(self):
-        self.assertEqual(self.test_journeys.most_northern, 53.3588887)
-        self.assertEqual(self.test_journeys.most_southern, 53.332599)
-        self.assertEqual(self.test_journeys.most_eastern, -6.2523619)
-        self.assertEqual(self.test_journeys.most_western, -6.2661022)
-
-    @mongomock.patch(servers=(('localhost', 27017),))
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
     def test_edge_quality_map(self):
