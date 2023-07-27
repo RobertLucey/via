@@ -1,10 +1,10 @@
 import os
 import time
 import stat
+import datetime
 
-from via.constants import GEOJSON_DIR
-from via.settings import MAX_GEOJSON_AGE
-from via.utils import read_json
+from via.settings import MAX_GEOJSON_AGE, MONGO_PARSED_JOURNEYS_COLLECTION
+from via.utils import read_json, get_mongo_interface
 from via.geojson.utils import generate_basename
 
 
@@ -14,29 +14,24 @@ def get_geojson(
     latest_time=None,
     place=None,
     version=None,
-    version_op=None,
-    max_age=None,
+    version_op=None
 ):
+    # TODO: react to version/version_op/earliest_time/latest_time
+
     if journey_type is None:
         journey_type = "all"
 
-    basename = generate_basename(
-        name=journey_type,
-        version=version,
-        version_op=version_op,
-        earliest_time=earliest_time,
-        latest_time=latest_time,
-        place=place,
+    db = get_mongo_interface()
+    data = getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).find_one(
+        {
+            'journey_type': journey_type,
+            'save_time': {'$gt': (datetime.datetime.utcnow() - datetime.timedelta(seconds=MAX_GEOJSON_AGE)).timestamp()},
+            'place': place
+        }
     )
-    geojson_file = os.path.join(GEOJSON_DIR, f"{basename}.geojson")
+    if not data:
+        raise FileNotFoundError()  # Quick hack
 
-    if not os.path.exists(geojson_file):
-        raise FileNotFoundError()
+    data['_id'] = str(data['_id'])
 
-    if max_age is None:
-        max_age = MAX_GEOJSON_AGE
-
-    if time.time() - os.stat(geojson_file)[stat.ST_MTIME] > max_age:
-        raise FileNotFoundError()
-
-    return read_json(geojson_file)
+    return data

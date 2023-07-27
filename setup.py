@@ -15,7 +15,11 @@ INSTALL_REQUIRES = (
     'requests',
     'geopandas',
     'python-logging-loki',
-    'rtree'
+    'rtree',
+    'fastapi[all]',
+    'pydantic',
+    'pymongo',
+    'cachetools'
 )
 
 setup(

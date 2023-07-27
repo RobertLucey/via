@@ -15,7 +15,6 @@ from via.utils import (
 )
 from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
-from via.constants import GEOJSON_DIR
 
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
 
@@ -30,7 +29,7 @@ class SnappedRouteGraphMixin:
         """
         bounding_graph = self.graph
 
-        nearest_edge.get(bounding_graph, self.all_points)
+        mongo = nearest_edge.get(bounding_graph, self.all_points)  # prep the cache
 
         edges = []
         used_node_ids = []
@@ -68,23 +67,12 @@ class SnappedRouteGraphMixin:
 
 
 class GeoJsonMixin:
-    def save_geojson(self):
-        geojson_file = os.path.join(GEOJSON_DIR, self.content_hash + ".geojson")
-
-        if not os.path.exists(geojson_file):
-            logger.debug("%s not found, generating...", geojson_file)
-
-            write_json(geojson_file, self.geojson)
 
     @property
     def geojson(self):
         """
         Write and return a GeoJSON object string of the graph.
         """
-
-        geojson_file = os.path.join(GEOJSON_DIR, self.content_hash + ".geojson")
-
-        logger.debug("%s generating...", geojson_file)
 
         from via.models.journeys import Journeys
 
@@ -97,6 +85,7 @@ class GeoJsonMixin:
                 # starts in a different area nearby
                 # This is also a possible issue with place_2 but will happen
                 # much less, still a FIXME
+                # {'cc': 'IE', 'place_1': 'Rathgar', 'place_2': 'Leinster', 'place_3': 'Dublin City'}
                 region_name = journey.origin.gps.reverse_geo["place_2"]
                 region_map[region_name].append(journey)
 
@@ -136,7 +125,7 @@ class BoundingGraphMixin:
             self.most_western,
         )
 
-        if use_graph_cache is False or network_cache.get("bbox", self) is None:
+        if use_graph_cache is False or network_cache.get(self) is None:
             logger.debug("bbox > %s not found in cache, generating...", self.gps_hash)
             network = ox.graph_from_bbox(
                 self.most_northern,
@@ -146,9 +135,9 @@ class BoundingGraphMixin:
                 network_type=self.network_type,
                 simplify=True,
             )
-            network_cache.set("bbox", self, network)
+            network_cache.set(network, self.bbox)
 
-        return network_cache.get("bbox", self)
+        return network_cache.get(self)
 
     @property
     def bounding_graph(self):

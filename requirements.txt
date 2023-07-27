@@ -13,3 +13,4 @@ rtree
 fastapi[all]
 pydantic
 pymongo
+cachetools

@@ -1,17 +1,24 @@
 import os
 import time
+import json
 from shutil import copyfile, rmtree
 
 from unittest import TestCase, skip
 
 import geopandas
 
+from via.models.journey import Journey
+from via.settings import (
+    MONGO_RAW_JOURNEYS_COLLECTION,
+    MONGO_NETWORKS_COLLECTION,
+    MONGO_PARSED_JOURNEYS_COLLECTION
+)
+
 from via.utils import (
     get_slope,
     get_edge_slope,
     is_journey_data_file,
     should_include_journey,
-    get_data_files,
     window,
     iter_journeys,
     get_idx_default,
@@ -21,44 +28,25 @@ from via.utils import (
     get_slope,
     filter_edges_from_geodataframe,
     filter_nodes_from_geodataframe,
+    get_mongo_interface
 )
-from via.constants import REMOTE_DATA_DIR, DATA_DIR
 from via.models.gps import GPSPoint
 
 
 class UtilTest(TestCase):
+
+    # TODO: setup and teardown
+
     def setUp(self):
-        try:
-            rmtree(DATA_DIR)
-        except Exception as ex:
-            pass
-        os.makedirs(REMOTE_DATA_DIR, exist_ok=True)
-        copyfile(
-            "test/resources/journey_point_at_node.json",
-            os.path.join(REMOTE_DATA_DIR, "journey_point_at_node.json"),
-        )
-        copyfile(
-            "test/resources/just_route.json",
-            os.path.join(REMOTE_DATA_DIR, "just_route.json"),
-        )
 
-    def test_is_journey_data_file(self):
-        self.assertTrue(
-            is_journey_data_file(
-                os.path.join(REMOTE_DATA_DIR, "journey_point_at_node.json")
-            )
-        )
+        # TODO: can we get from test resources?
+        with open("test/resources/raw_journey_data/1.json") as json_file:
+            getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(json.loads(json_file.read()))
 
-        self.assertFalse(
-            is_journey_data_file(os.path.join(REMOTE_DATA_DIR, "just_route.json"))
-        )
-
-        with open("/tmp/bad_data.json", "w") as f:
-            f.write("some_bad_data")
-
-        self.assertFalse(is_journey_data_file("/tmp/bad_data.json"))
-
-        self.assertFalse(is_journey_data_file("/dev/null"))
+    def tearDown(self):
+        getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).drop()
+        getattr(get_mongo_interface(), MONGO_NETWORKS_COLLECTION).drop()
+        getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).drop()
 
     def test_get_journeys(self):
         self.assertEqual(len(get_journeys()), 1)

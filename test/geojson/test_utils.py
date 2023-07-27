@@ -7,7 +7,6 @@ from via.geojson.utils import (
     parse_end_date,
     generate_basename,
     geojson_from_graph,
-    download_prepared_geojson,
     get_point,
 )
 
@@ -40,10 +39,6 @@ class GeoJsonUtilTest(TestCase):
 
     @skip("todo")
     def test_geojson_from_graph(self):
-        pass
-
-    @skip("todo")
-    def test_download_prepared_geojson(self):
         pass
 
     @skip("todo")

@@ -89,7 +89,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         for attr in attrs_to_del:
             try:
                 delattr(self, attr)
-            except:
+            except Exception:
                 pass
 
     @staticmethod
@@ -105,25 +105,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             return Journey(**objs)
 
         raise NotImplementedError(f"Can't parse journey from type {type(objs)}")
-
-    @staticmethod
-    @lru_cache(maxsize=500)
-    def from_file(filepath: str):
-        """
-        Given a file get a Journey object
-
-        :param filepath: Path to a saved journey file
-        :rtype: via.models.journey.Journey
-        """
-        logger.debug("Loading journey from %s", filepath)
-
-        # TODO: should cache stages of processed files from raw (currently,
-        # which uses frames instead of frame points) to processed (which
-        # it will use frame points) so we can skip the building up of context
-        # when we should be able to find from a raw file path
-
-        with open(filepath, "r") as journey_file:
-            return Journey(**fast_json.loads(journey_file.read()))
 
     def set_contexts(self):
         """
@@ -370,6 +351,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             our_edge_data = get_edge_data(
                 our_origin.uuid, our_destination.uuid, graph=route_graph
             )
+
+            if not edge:
+                logger.warning(f"Bad edge in {self}")
+                continue
 
             raw_edges_list.append(
                 [get_combined_id(edge[0][0], edge[0][1]), our_edge_data]

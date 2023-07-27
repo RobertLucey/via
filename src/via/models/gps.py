@@ -87,7 +87,7 @@ class GPSPoint:
     def reverse_geo(self):
         # TODO: make a cache for this for "close enough" positions if we end
         # up using this frequently
-        data = dict(rg.search((self.lat, self.lng))[0])
+        data = dict(rg.search((self.lat, self.lng), mode=1)[0])
         del data["lat"]
         del data["lon"]
         data["place_1"] = data.pop("name", None)
@@ -100,10 +100,14 @@ class GPSPoint:
         """
         A content hash that will act as an id for the data, handy for caching
         """
-        return (
-            int.from_bytes(f"{self.lat} {self.lng} {self.elevation}".encode(), "little")
-            % 2**100
-        )
+        input_string = f"{self.lat} {self.lng} {self.elevation}"
+        encoded_int = 0
+
+        for char in input_string:
+            encoded_int = (encoded_int << 8) + ord(char)
+            encoded_int %= 1000000000
+
+        return encoded_int
 
     @property
     def point(self) -> Tuple[float, float]:

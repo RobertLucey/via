@@ -11,8 +11,7 @@ from botocore.client import Config
 import shapely
 from networkx.readwrite import json_graph
 
-from via.settings import S3_REGION, PREPARED_GEOJSON_BUCKET
-from via.constants import GEOJSON_DIR, USELESS_GEOJSON_PROPERTIES
+from via.constants import USELESS_GEOJSON_PROPERTIES
 
 
 def parse_start_date(earliest_date):
@@ -115,27 +114,6 @@ def geojson_from_graph(graph, must_include_props=None):
         ]
 
     return geojson_features
-
-
-def download_prepared_geojson():
-    os.makedirs(GEOJSON_DIR, exist_ok=True)
-
-    s3 = boto3.client(
-        "s3", region_name=S3_REGION, config=Config(signature_version=UNSIGNED)
-    )
-
-    paginator = s3.get_paginator("list_objects")
-    for result in paginator.paginate(Bucket=PREPARED_GEOJSON_BUCKET):
-        for key in result.get("Contents", []):
-            s3.download_file(
-                PREPARED_GEOJSON_BUCKET,
-                key["Key"],
-                os.path.join(GEOJSON_DIR, key["Key"]),
-            )
-            os.utime(
-                os.path.join(GEOJSON_DIR, key["Key"]),
-                (key["LastModified"].timestamp(), key["LastModified"].timestamp()),
-            )
 
 
 def get_point(properties=None, gps=None):

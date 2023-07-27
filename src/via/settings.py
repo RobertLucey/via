@@ -2,10 +2,7 @@ import os
 import pkg_resources
 from packaging import version
 
-S3_REGION = os.getenv("S3_REGION", "eu-west-1")
-
-PREPARED_GEOJSON_BUCKET = os.getenv("PREPARED_GEOJSON_BUCKET", "via-geojson")
-PREPARED_CACHE_BUCKET = os.getenv("PREPARED_CACHE_BUCKET", "via-cache")
+# TODO: data from DOWNLOAD_JOURNEYS_URL should give back the s3 region
 
 MIN_ACC_SCORE = float(os.getenv("MIN_ACC_SCORE", "0.001"))
 MIN_PER_JOURNEY_USAGE = float(os.getenv("MIN_PER_JOURNEY_USAGE", "1"))
@@ -30,16 +27,19 @@ CLOSE_ANGLE_TO_ROAD = float(os.getenv("CLOSE_ANGLE_TO_ROAD", 20))
 DEFAULT_OVERPASS_API = os.getenv("DEFAULT_OVERPASS_API", "https://overpass-api.de/api")
 CUSTOM_OVERPASS_API = os.getenv("CUSTOM_OVERPASS_API", "http://54.73.95.15/api")
 
-ENABLE_COLLISIONS = (
-    True if os.getenv("ENABLE_COLLISIONS", "False").lower()[0] == "t" else False
-)
-
-CLEAN_MEMORY = os.getenv("TEST_ENV", "False") == "False"
-
 MAX_JOURNEY_METRES_SQUARED = 5e7  # 50km^2
 
 MAX_GEOJSON_AGE = (
     60 * 60
 )  # How long to cache served geojson files before generating again (using new data)
 
-VERSION = "test"  # pkg_resources.require("via-api")[0].version
+VERSION = pkg_resources.require("via-api")[0].version
+
+if os.getenv('TEST_ENV', 'False') == 'True':
+    MONGO_RAW_JOURNEYS_COLLECTION = 'test_raw_journeys'
+    MONGO_NETWORKS_COLLECTION = 'test_networks'
+    MONGO_PARSED_JOURNEYS_COLLECTION = 'test_parsed_journeys'
+else:
+    MONGO_RAW_JOURNEYS_COLLECTION = 'raw_journeys'
+    MONGO_NETWORKS_COLLECTION = 'networks'
+    MONGO_PARSED_JOURNEYS_COLLECTION = 'parsed_journeys'

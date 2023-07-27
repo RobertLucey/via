@@ -1,13 +1,17 @@
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
 from pymongo import MongoClient
-from typing import List, Optional
+from typing import List, Optional, Union
 
+from via import logger
+from via.settings import MONGO_RAW_JOURNEYS_COLLECTION, MONGO_PARSED_JOURNEYS_COLLECTION
 from via.models.journey import Journey
+from via.utils import get_mongo_interface
+
 
 app = FastAPI()
 
@@ -23,9 +27,10 @@ app.add_middleware(
 
 
 class RawJourneyDataPoint(BaseModel):
-    acc: float
-    gps: List[float]
-    time: Optional[float]
+    acc: Union[float, int]
+    gps: List[Union[int, float]]
+    time: Optional[Union[float, int]] = None
+
 
 class RawJourney(BaseModel):
     version: Optional[str] = "1.0"
@@ -37,15 +42,6 @@ class RawJourney(BaseModel):
     is_partial: Optional[bool] = False
 
 
-def get_mongo_interface():
-    """
-    Returns the MongoDB DB interface. Here so it can be moved to utils.
-    """
-    db_url = os.environ.get("MONGODB_URL", None)
-
-    client = MongoClient(db_url)
-    return client[os.environ.get("MONGODB_DATABASE")]
-
 @app.post("/push_journey")
 async def create_journey(raw_journey: RawJourney):
     """
@@ -53,20 +49,41 @@ async def create_journey(raw_journey: RawJourney):
     """
     db = get_mongo_interface()
 
-    # Store the complete raw journey:
-    db.raw_journeys.insert_one(raw_journey.dict())
+    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one({"uuid": raw_journey.uuid})
 
-    # Parse it into some GeoJSON to store:
-    journey = Journey(
-        data = raw_journey.dict()["data"],
-        is_culled=True,
-        transport_type=raw_journey.transport_type,
-        suspension=raw_journey.suspension,
-        version=raw_journey.version,
-    )
+    if not result:
+        # Store the complete raw journey:
+        getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(raw_journey.dict())
 
-    db.parsed_journeys.insert_one(journey.geojson)
-    return {}
+        # Parse it into some GeoJSON to store:
+        journey = Journey(
+            data=raw_journey.dict()["data"],
+            is_culled=True,
+            transport_type=raw_journey.transport_type,
+            suspension=raw_journey.suspension,
+            version=raw_journey.version,
+        )
+
+        #db.parsed_journeys.insert_one(journey.geojson)
+    return {"status": "inserted" if not result else "already exists"}
+
+
+@app.get("/get_raw_journeys")
+async def get_raw_journeys(page: int = Query(1, gt=0), page_size: int = Query(5, gt=0)):
+    """
+    Exposes raw journey data so others running via can
+    get data from many hosts
+    """
+    # TODO: better pagination
+
+    db = get_mongo_interface()
+
+    data = list(getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find({}).skip((page - 1) * page_size).limit(page_size))
+
+    for obj in data:
+        obj["_id"] = str(obj["_id"])
+
+    return data
 
 
 @app.get("/get_journey")
@@ -76,30 +93,52 @@ async def get_journey():
     """
     db = get_mongo_interface()
 
-    res = db.parsed_journeys.find_one()
+    res = getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).find_one()
 
     # Make the ID a string so it's returnable:
     res["_id"] = str(res["_id"])
 
     return res
 
+
 # TODO: Update this endpoint name and support time ranges/coords
 @app.get("/get_geojson")
-async def get_all_journeys():
+async def get_all_journeys(earliest_time: str = None, latest_time: str = None, place: str = None):
     """
     Fetch all the parsed journeys from the database between earliest/latest and
     return them as one GeoJSON FeatureCollection.
     """
-    db = get_mongo_interface()
 
-    # TODO: Filter by time and coords:
-    all_journeys_cursor = db.parsed_journeys.find()
+    from via.geojson import (
+        generate,
+        retrieve
+    )
 
-    all_features = []
-    for journey in all_journeys_cursor:
-        all_features.extend(journey["features"])
+    data = None
+    try:
+        data = retrieve.get_geojson(
+            "bike",
+            earliest_time=earliest_time,
+            latest_time=latest_time,
+            place=place
+        )
+    except FileNotFoundError:
+        logger.info('geojson not found, generating')
+        try:
+            generate.generate_geojson(
+                'bike',
+                earliest_time=earliest_time,
+                latest_time=latest_time,
+                place=place
+            )
+        except Exception as ex:
+            logger.error(f'Could not generate geojson: {ex}')
+        else:
+            data = retrieve.get_geojson(
+                'bike',
+                earliest_time=earliest_time,
+                latest_time=latest_time,
+                place=place
+            )
 
-    return {
-        "type": "FeatureCollection",
-        "features": all_features
-    }
+    return data

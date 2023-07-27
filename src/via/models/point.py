@@ -28,7 +28,7 @@ class Context:
         for attr in attrs_to_del:
             try:
                 delattr(self, attr)
-            except:
+            except Exception:
                 pass
 
     def set_context(self, pre=None, post=None):
@@ -182,7 +182,7 @@ class FramePoint(Context, GenericObject):
             origin = self.context_pre[0]
             dst = self.context_post[-1]
 
-            if origin.time is None and dst.time is None:
+            if origin.time is None or dst.time is None:
                 return None
 
             metres_per_second = 0
@@ -432,7 +432,7 @@ class FramePoint(Context, GenericObject):
             return 0
         try:
             return int(numpy.mean(self.acceleration) * 100)
-        except:
+        except Exception:
             logger.warning(
                 f"Could not calculate road quality from: {self.acceleration}. Defauling to 0",
             )
@@ -476,12 +476,14 @@ class FramePoint(Context, GenericObject):
         """
         Get the hash of the contents of this point`
         """
-        return (
-            int.from_bytes(
-                f"{self.acceleration} {self.gps.point} {self.time}".encode(), "little"
-            )
-            % 2**100
-        )
+        input_string = f"{self.acceleration} {self.gps.point} {self.time}"
+        encoded_int = 0
+
+        for char in input_string:
+            encoded_int = (encoded_int << 8) + ord(char)
+            encoded_int %= 1000000000
+
+        return encoded_int
 
 
 class FramePoints(GenericObjects):
