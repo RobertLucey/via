@@ -89,7 +89,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         for attr in attrs_to_del:
             try:
                 delattr(self, attr)
-            except:
+            except Exception:
                 pass
 
     @staticmethod
@@ -105,25 +105,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             return Journey(**objs)
 
         raise NotImplementedError(f"Can't parse journey from type {type(objs)}")
-
-    @staticmethod
-    @lru_cache(maxsize=500)
-    def from_file(filepath: str):
-        """
-        Given a file get a Journey object
-
-        :param filepath: Path to a saved journey file
-        :rtype: via.models.journey.Journey
-        """
-        logger.debug("Loading journey from %s", filepath)
-
-        # TODO: should cache stages of processed files from raw (currently,
-        # which uses frames instead of frame points) to processed (which
-        # it will use frame points) so we can skip the building up of context
-        # when we should be able to find from a raw file path
-
-        with open(filepath, "r") as journey_file:
-            return Journey(**fast_json.loads(journey_file.read()))
 
     def set_contexts(self):
         """
@@ -147,7 +128,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         )
 
         # then do normal loop which will skip the ones already set because they'll be on the edge
-        for (one, two, three, four, five, six, seven) in window(self, window_size=7):
+        for one, two, three, four, five, six, seven in window(self, window_size=7):
             if not four.is_context_populated:
                 four.set_context(pre=[one, two, three], post=[five, six, seven])
 
@@ -357,7 +338,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         nearest_edge.get(bounding_graph, self._data)
 
         raw_edges_list = []
-        for (our_origin, our_destination) in window(self, window_size=2):
+        for our_origin, our_destination in window(self, window_size=2):
             nearest_edges = nearest_edge.get(bounding_graph, [our_origin])[0]
 
             edge = our_origin.get_best_edge(
@@ -371,12 +352,16 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                 our_origin.uuid, our_destination.uuid, graph=route_graph
             )
 
+            if not edge:
+                logger.warning(f"Bad edge in {self}")
+                continue
+
             raw_edges_list.append(
                 [get_combined_id(edge[0][0], edge[0][1]), our_edge_data]
             )
 
         edges_list = []
-        for (pre, current, post) in window(raw_edges_list, window_size=3):
+        for pre, current, post in window(raw_edges_list, window_size=3):
             if pre[0] == post[0] and current[0] != pre[0]:
                 current[0] = pre[0]
             edges_list.append(current)
@@ -395,7 +380,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         combined_edge_data = defaultdict(list)
 
-        for (origin, destination) in window(self, window_size=2):
+        for origin, destination in window(self, window_size=2):
             edge_id = get_combined_id(origin.uuid, destination.uuid)
 
             graph.add_node(origin.uuid, **{"x": origin.gps.lng, "y": origin.gps.lat})
@@ -421,7 +406,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         merged_edge_data = {}
         for shared_id, values in combined_edge_data.items():
-
             merged_edge_data[shared_id] = {
                 "origin": values[0]["origin"],
                 "destination": values[0]["destination"],

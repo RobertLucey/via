@@ -10,3 +10,7 @@ requests
 geopandas
 python-logging-loki
 rtree
+fastapi[all]
+pydantic
+pymongo
+cachetools

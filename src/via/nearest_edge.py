@@ -6,13 +6,19 @@ from collections import defaultdict
 import numpy as np
 from rtree.index import Index as RTreeIndex
 from shapely.geometry import Point
+from gridfs import GridFS
 
 from osmnx import utils_graph
 
 from via import logger
 from via.settings import VERSION
-from via.constants import EDGE_CACHE_DIR
-from via.utils import get_combined_id, get_graph_id, read_json, write_json
+from via.utils import (
+    get_combined_id,
+    get_graph_id,
+    read_json,
+    write_json,
+    get_mongo_interface,
+)
 from via.bounding_graph_gdfs_cache import utils_bounding_graph_gdfs_cache
 
 
@@ -68,102 +74,55 @@ def nearest_edges(G, X, Y, return_dist=False):
 
 class NearestEdgeCache:
     # TODO: split these in a grid of lat / lng 0.5 by the first gps of the upper right or something. Not very important as files are small
-    # TODO: just store uuids as string so no silly casting
 
     def __init__(self):
-        self.loaded = False
         self.data = {}
-        self.last_save_len = -1
-        self.last_saved_time = datetime.datetime.utcnow()
-        self.saver()
+        self.cached_hashes = set()
 
-    def saver(self):
-        """
-        Saves every now and then if necessary, there were too many happening
-        each time an edge was set and was annoying
-        """
-        self.load()
-
-        if all(
-            [
-                self.last_save_len < len(self.data),
-                (datetime.datetime.utcnow() - self.last_saved_time).total_seconds() > 5,
-            ]
-        ):
-            self.save()
-
-        saver = threading.Timer(10, self.saver)
-        saver.daemon = True
-        saver.start()
-
-    def save(self):
-        logger.debug("Saving cache %s", self.filepath)
-        write_json(self.filepath, self.data)
-        self.last_save_len = len(self.data)
-        self.last_saved_time = datetime.datetime.utcnow()
+        self.mongo_interface = get_mongo_interface()
+        self.grid = GridFS(self.mongo_interface)
 
     def get(self, graph, frames):
-        """
+        # TODO: first go through the data and see if we can skip any there
 
-        :param graph:
-        :param frames: list of frames to get nearest edges of
-        :return: list of list of edge ids or tuple of edge_id and distance.
-            Each frame having its own list of closest few roads
-        """
+        if len(frames) == 1 and frames[0].gps_hash in self.cached_hashes:
+            return [self.data[frames[0].gps_hash]]
 
-        self.load()
+        gps_hashes = [f.gps_hash for f in frames]
 
-        # FIXME: should use frame hash rather than gps hash as we want context too
-        frame_ids_to_get = [
-            str(frame.gps_hash)
-            for frame in frames
-            if self.data.get(str(frame.gps_hash), None) is None
-        ]
+        outside_cache = set(gps_hashes) - self.cached_hashes
 
-        id_frame_map = {str(f.gps_hash): f for f in frames}
-
-        requested_frame_edge_map = {
-            str(f.gps_hash): self.data.get(str(f.gps_hash), None) for f in frames
-        }
-
-        if frame_ids_to_get != []:
-            results = nearest_edges(
-                graph,
-                [id_frame_map[frame_id].gps.lng for frame_id in frame_ids_to_get],
-                [id_frame_map[frame_id].gps.lat for frame_id in frame_ids_to_get],
-                return_dist=True,
+        if outside_cache:
+            found_keys = self.mongo_interface.nearest_edge_cache.find(
+                {"gps_hash": {"$in": list(outside_cache)}}, {"gps_hashes": 1}
             )
+            found_keys = set(doc["gps_hashes"] for doc in found_keys)
+            missing_keys = set(gps_hashes) - found_keys
 
-            frame_id_result_map = dict(
-                zip(frame_ids_to_get, list(zip(results[0], results[1])))
-            )
+            frame_ids_to_get = missing_keys
 
-            for frame_id, edge_data in frame_id_result_map.items():
-                edge_data = list(edge_data)
-                self.data[frame_id] = list(zip(edge_data[0], edge_data[1]))
+            if frame_ids_to_get != []:
+                id_frame_map = {f.gps_hash: f for f in frames}
 
-        requested_frame_edge_map = {
-            str(f.gps_hash): self.data.get(str(f.gps_hash), None) for f in frames
-        }
+                results = nearest_edges(
+                    graph,
+                    [id_frame_map[frame_id].gps.lng for frame_id in frame_ids_to_get],
+                    [id_frame_map[frame_id].gps.lat for frame_id in frame_ids_to_get],
+                    return_dist=True,
+                )
 
-        return list(requested_frame_edge_map.values())
+                frame_id_result_map = dict(
+                    zip(frame_ids_to_get, list(zip(results[0], results[1])))
+                )
 
-    def load(self):
-        if self.loaded:
-            return
+                for frame_id, edge_data in frame_id_result_map.items():
+                    edge_data = list(edge_data)
+                    self.data[frame_id] = list(
+                        zip(edge_data[0], edge_data[1])
+                    )  # FIXME Setting here. To mongo
+                    self.cached_hashes.add(frame_id)
 
-        logger.debug("Loading cache %s", self.filepath)
-        if not os.path.exists(self.filepath):
-            os.makedirs(os.path.dirname(self.filepath), exist_ok=True)
-            self.save()
-        self.data = read_json(self.filepath)
-        self.loaded = True
-        self.last_save_len = len(self.data)
-
-    @property
-    def filepath(self):
-        # TODO: split by lat lng regions
-        return os.path.join(EDGE_CACHE_DIR, VERSION, "cache.json")
+        return [self.data.get(f.gps_hash, None) for f in frames]
 
 
 nearest_edge = NearestEdgeCache()

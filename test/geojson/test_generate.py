@@ -5,25 +5,27 @@ from shutil import copyfile, rmtree
 from unittest import TestCase, skip
 
 from via.geojson.generate import get_generation_config, generate_geojson
-from via.constants import REMOTE_DATA_DIR, DATA_DIR, GEOJSON_DIR
+
+from via.settings import (
+    MONGO_RAW_JOURNEYS_COLLECTION,
+    MONGO_NETWORKS_COLLECTION,
+    MONGO_PARSED_JOURNEYS_COLLECTION,
+)
+
+from via.utils import get_mongo_interface
 
 
 class GeoJsonGenerateTest(TestCase):
     def setUp(self):
-        try:
-            rmtree(DATA_DIR)
-        except Exception as ex:
-            pass
+        with open("test/resources/raw_journey_data/1.json") as json_file:
+            getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
+                json.loads(json_file.read())
+            )
 
-        os.makedirs(REMOTE_DATA_DIR + "/bike", exist_ok=True)
-        copyfile(
-            "test/resources/raw_journey_data/1.json",
-            os.path.join(REMOTE_DATA_DIR, "bike/1.json"),
-        )
-        copyfile(
-            "test/resources/raw_journey_data/2.json",
-            os.path.join(REMOTE_DATA_DIR, "bike/2.json"),
-        )
+    def tearDown(self):
+        getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).drop()
+        getattr(get_mongo_interface(), MONGO_NETWORKS_COLLECTION).drop()
+        getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).drop()
 
     def test_get_generation_config(self):
         self.assertEqual(
@@ -86,15 +88,13 @@ class GeoJsonGenerateTest(TestCase):
     def test_generate_geojson(self):
         generate_geojson("bike")
 
-        data = None
-        with open(
-            os.path.join(
-                GEOJSON_DIR,
-                "transport_type=bike&earliest_time=2021-01-01&latest_time=2023-12-31.geojson",
-            ),
-            "r",
-        ) as f:
-            data = json.loads(f.read())
+        data = list(
+            getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).find()
+        )
+
+        self.assertEqual(len(data), 1)
+
+        data = data[0]
 
         self.assertGreater(len(data["features"]), 10)
         self.assertLess(len(data["features"]), 50)

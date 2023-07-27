@@ -11,6 +11,8 @@ from functools import wraps
 from itertools import islice, chain
 from typing import Any, List, Tuple
 
+from pymongo import MongoClient
+
 from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
 import fast_json
@@ -20,9 +22,20 @@ from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION,
     MAX_JOURNEY_METRES_SQUARED,
+    MONGO_RAW_JOURNEYS_COLLECTION,
 )
-from via.constants import METRES_PER_DEGREE, DATA_DIR, REMOTE_DATA_DIR
+from via.constants import METRES_PER_DEGREE
 from via.models.gps import GPSPoint
+
+
+def get_mongo_interface():
+    """
+    Returns the MongoDB DB interface. Here so it can be moved to utils.
+    """
+    db_url = os.environ.get("MONGODB_URL", "localhost")
+    client = MongoClient(db_url)
+    interface = client[os.environ.get("MONGODB_DATABASE", "localhost")]
+    return interface
 
 
 @lru_cache(maxsize=10000)
@@ -113,19 +126,18 @@ def iter_journeys(
     """
     from via.models.journey import Journey
 
-    for journey_file in get_data_files(transport_type=transport_type, source=source):
-        journey = Journey.from_file(journey_file)
-        if should_include_journey(
-            journey,
-            place=place,
-            version_op=version_op,
-            version=version,
-            earliest_time=earliest_time,
-            latest_time=latest_time,
-        ):
-            yield journey
-        else:
-            logger.debug("Not including journey: %s", journey.uuid)
+    db = get_mongo_interface()
+
+    # TODO: react to the following:
+    # journey,
+    # place=place,
+    # version_op=version_op,
+    # version=version,
+    # earliest_time=earliest_time,
+    # latest_time=latest_time,
+
+    for raw_journey in getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find():
+        yield Journey(**raw_journey)
 
 
 def should_include_journey(
@@ -163,37 +175,6 @@ def should_include_journey(
         return False
 
     return journey
-
-
-def get_data_files(transport_type=None, source=None) -> List[str]:
-    """
-
-    :kwarg transport_type: bike|car|scooter|whatever else is on the app
-    :kwarg source: The data dir to get from
-    :rtype: list
-    :return: a list of file paths to journey files
-    """
-    from via.models.journey import Journey
-
-    files = []
-
-    path = DATA_DIR
-    if source == "remote":
-        path = REMOTE_DATA_DIR
-    elif source is None:
-        path = DATA_DIR
-
-    for filename in glob.iglob(path + "/**/*", recursive=True):
-        if is_journey_data_file(filename):
-            if transport_type not in {None, "all"}:
-                journey_transport_type = os.path.split(os.path.dirname(filename))[-1]
-                if journey_transport_type is not None:
-                    if journey_transport_type.lower() == transport_type:
-                        files.append(filename)
-            else:
-                files.append(filename)
-
-    return files
 
 
 def window(sequence, window_size=2):
@@ -447,3 +428,13 @@ def write_json(fp: str, data):
     os.makedirs(os.path.dirname(fp), exist_ok=True)
     with open(fp, "w") as json_file:
         fast_json.dump(data, json_file)
+
+
+def string_to_int(input_string):
+    encoded_int = 0
+
+    for char in input_string:
+        encoded_int = (encoded_int << 8) + ord(char)
+        encoded_int %= 1000000000
+
+    return encoded_int

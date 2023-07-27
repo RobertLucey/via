@@ -1,9 +1,15 @@
 import os
 import operator
+import datetime
 
 from via import logger
-from via.constants import GEOJSON_DIR
-from via.utils import get_journeys, should_include_journey, write_json
+from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
+from via.utils import (
+    get_journeys,
+    should_include_journey,
+    write_json,
+    get_mongo_interface,
+)
 from via.models.journeys import Journeys
 from via.geojson.utils import generate_basename
 
@@ -80,7 +86,6 @@ def generate_geojson(
     latest_time=None,
     place=None,
 ):
-
     logger.info(
         "Generating geojson: transport_type=%s version=%s version_op=%s earliest_time=%s latest_time=%s place=%s",
         transport_type,
@@ -107,16 +112,6 @@ def generate_geojson(
             latest_time=latest_time,
         )
 
-        basename = generate_basename(
-            name=config_item["name"],
-            version=config_item["version"],
-            version_op=config_item["version_op"],
-            earliest_time=config_item["earliest_time"],
-            latest_time=config_item["latest_time"],
-            place=config_item["place"],
-        )
-        geojson_file = os.path.join(GEOJSON_DIR, f"{basename}.geojson")
-
         journeys = Journeys(
             data=[
                 journey
@@ -131,4 +126,28 @@ def generate_geojson(
             ]
         )
 
-        write_json(geojson_file, journeys.geojson)
+        db = get_mongo_interface()
+
+        getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).delete_many(
+            {
+                "journey_type": config_item["name"],
+                "geojson_version": config_item["version"],
+                "geojson_version_op": config_item["version_op"],
+                "geojson_earliest_time": config_item["earliest_time"],
+                "geojson_latest_time": config_item["latest_time"],
+                "geojson_place": config_item["place"],
+            }
+        )
+
+        if len(journeys):
+            data = journeys.geojson
+
+            data["journey_type"] = config_item["name"]
+            data["geojson_version"] = config_item["version"]
+            data["geojson_version_op"] = config_item["version_op"]
+            data["geojson_earliest_time"] = config_item["earliest_time"]
+            data["geojson_latest_time"] = config_item["latest_time"]
+            data["place"] = config_item["place"]
+            data["save_time"] = datetime.datetime.utcnow().timestamp()
+
+            getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(data)

@@ -189,4 +189,4 @@ class FramePointsTest(TestCase):
                 {"time": 30, "gps": {"lat": 5, "lng": 6}, "acc": [1, 2, 3, 4]}
             )
         )
-        self.assertEqual(points.content_hash, "c8765c4a19d013541f9c2d2c9428c178")
+        self.assertEqual(points.content_hash, "cc89534832eec0c531038b1beade9b93")
