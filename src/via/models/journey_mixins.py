@@ -116,8 +116,13 @@ class GeoJsonMixin:
                 self.snapped_route_graph, must_include_props=["count", "avg", "edge_id"]
             )
 
+        # TODO: Does this *need* to return edge_id (or any other props)?
+        # edge_id not used in front end seemingly and other nullables can be
+        # handled wherever... edge_id wasn't being returned for any data I
+        # tried so this is a hack for now.
         return geojson_from_graph(
-            self.snapped_route_graph, must_include_props=["count", "avg", "edge_id"]
+            #self.snapped_route_graph, must_include_props=["count", "avg", "edge_id"]
+            self.snapped_route_graph, must_include_props=None
         )
 
 
