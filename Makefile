@@ -35,6 +35,11 @@ test: build test_requirements quick_test
 quick_test:
 	$(IN_ENV) $(TEST_CONTEXT) nose2
 
+ci_test: build test_requirements ci_quick_test
+
+ci_quick_test:
+	$(IN_ENV) $(TEST_CONTEXT) IS_ACTION=True nose2
+
 
 
 
