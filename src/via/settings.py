@@ -2,11 +2,6 @@ import os
 import pkg_resources
 from packaging import version
 
-# TODO: data from DOWNLOAD_JOURNEYS_URL should give back the s3 region
-DOWNLOAD_JOURNEYS_URL = os.getenv(
-    "DOWNLOAD_JOURNEYS",
-    "https://l7vv5djf9h.execute-api.eu-west-1.amazonaws.com/default/getUUIDs",
-)
 S3_REGION = os.getenv("S3_REGION", "eu-west-1")
 
 PREPARED_GEOJSON_BUCKET = os.getenv("PREPARED_GEOJSON_BUCKET", "via-geojson")
