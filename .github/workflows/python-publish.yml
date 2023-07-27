@@ -23,7 +23,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install virtualenv
     - name: Test
-      run: make test
+      run: make ci_test
 
   release:
     runs-on: ubuntu-latest
