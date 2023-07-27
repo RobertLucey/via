@@ -1,9 +1,15 @@
-from unittest import TestCase, skip
+import os
+
+from unittest import TestCase, skip, skipUnless
 
 from via.geojson.retrieve import get_geojson
 
 
+IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
+
+
 class GeoJsonRetrieveTest(TestCase):
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_not_exist(self):
         with self.assertRaises(FileNotFoundError):
             get_geojson("blahblah")

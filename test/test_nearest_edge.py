@@ -1,9 +1,13 @@
 import pickle
+import os
 
-from unittest import TestCase, skip
+from unittest import TestCase, skip, skipUnless
 
 from via.nearest_edge import NearestEdgeCache
 from via.models.point import FramePoint
+
+
+IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
 
 
 class NearestEdgeTest(TestCase):
@@ -11,6 +15,7 @@ class NearestEdgeTest(TestCase):
         with open("test/resources/dublin_graph.pickle", "rb") as f:
             self.graph = pickle.load(f)
 
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_get(self):
         cache = NearestEdgeCache()
         edges = cache.get(

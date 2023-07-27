@@ -1,11 +1,15 @@
 import json
+import os
 
-from unittest import TestCase, skip
+from unittest import TestCase, skip, skipUnless
 
 from via.models.journey import Journey
 from via.models.frame import Frame
 
 from via.edge_cache import get_edge_data
+
+
+IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
 
 
 class EdgeCacheTest(TestCase):
@@ -23,6 +27,7 @@ class EdgeCacheTest(TestCase):
                 )
             )
 
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_get(self):
         self.assertEqual(
             get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]["osmid"],
@@ -36,6 +41,7 @@ class EdgeCacheTest(TestCase):
     def test_get_no_graph(self):
         self.assertEqual(get_edge_data(1, 2, graph=None), None)
 
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_caching(self):
         self.assertEqual(
             get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]["osmid"],

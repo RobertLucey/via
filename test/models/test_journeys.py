@@ -1,11 +1,15 @@
 import json
+import os
 
 from mock import patch
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 
 from via.models.journey import Journey
 from via.models.journeys import Journeys
 from via.models.frame import Frame
+
+
+IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
 
 
 class JourneysTest(TestCase):
@@ -45,6 +49,13 @@ class JourneysTest(TestCase):
         self.test_journeys.append(self.test_journey)
         self.test_journeys.append(self.test_journey)
 
+    def test_most_whatever(self):
+        self.assertEqual(self.test_journeys.most_northern, 53.3588887)
+        self.assertEqual(self.test_journeys.most_southern, 53.332599)
+        self.assertEqual(self.test_journeys.most_eastern, -6.2523619)
+        self.assertEqual(self.test_journeys.most_western, -6.2661022)
+
+    @skipUnless(not IS_ACTION, "action_mongo")
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
     def test_edge_quality_map(self):

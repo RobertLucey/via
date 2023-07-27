@@ -3,7 +3,7 @@ import time
 import json
 from shutil import copyfile, rmtree
 
-from unittest import TestCase, skip
+from unittest import TestCase, skip, skipUnless
 
 import geopandas
 
@@ -33,23 +33,21 @@ from via.utils import (
 from via.models.gps import GPSPoint
 
 
-class UtilTest(TestCase):
-    # TODO: setup and teardown
+IS_ACTION = os.environ.get('IS_ACTION', 'False') == 'True'
 
-    def setUp(self):
-        # TODO: can we get from test resources?
+
+class UtilTest(TestCase):
+
+    @skipUnless(not IS_ACTION, "action_mongo")
+    def test_get_journeys(self):
         with open("test/resources/raw_journey_data/1.json") as json_file:
             getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
                 json.loads(json_file.read())
             )
-
-    def tearDown(self):
+        self.assertEqual(len(get_journeys()), 1)
         getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).drop()
         getattr(get_mongo_interface(), MONGO_NETWORKS_COLLECTION).drop()
         getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).drop()
-
-    def test_get_journeys(self):
-        self.assertEqual(len(get_journeys()), 1)
 
     def test_window(self):
         self.assertEqual(
