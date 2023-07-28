@@ -39,7 +39,7 @@ quick_test:
 ci_test: build test_requirements ci_quick_test
 
 ci_quick_test:
-	$(IN_ENV) $(TEST_CONTEXT) IS_ACTION=True nose2 coverage run -m pytest
+	$(IN_ENV) $(TEST_CONTEXT) IS_ACTION=True coverage run -m pytest
 	$(IN_ENV) coverage report -m --skip-empty --include="src/*"
 
 
