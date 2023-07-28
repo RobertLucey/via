@@ -16,12 +16,9 @@ from via.settings import (
 
 from via.utils import (
     get_slope,
-    get_edge_slope,
-    is_journey_data_file,
     should_include_journey,
     window,
     iter_journeys,
-    get_idx_default,
     flatten,
     get_journeys,
     angle_between_slopes,
@@ -63,10 +60,6 @@ class UtilTest(TestCase):
             [(1, 2, 3), (2, 3, 4), (3, 4, 5)],
         )
 
-    def test_get_idx_default(self):
-        self.assertEqual(get_idx_default([1, 2, 3], 0, None), 1)
-        self.assertEqual(get_idx_default([1, 2, 3], 9, None), None)
-
     def test_flatten(self):
         self.assertEqual(flatten([[1, 2, 3], [1, 2]]), [1, 2, 3, 1, 2])
 
@@ -99,11 +92,6 @@ class UtilTest(TestCase):
                 GPSPoint(0, 0),
             ),
             1,
-        )
-
-    def test_get_edge_slope(self):
-        self.assertEqual(
-            get_edge_slope({1: {"x": 0, "y": 0}, 2: {"x": 1, "y": 1}}, [[[1, 2]]]), 1
         )
 
     def test_filter_edges_from_geodataframe(self):

@@ -1,4 +1,3 @@
-import os
 from collections import defaultdict
 
 import osmnx as ox
@@ -11,7 +10,6 @@ from via.utils import (
     update_edge_data,
     get_graph_id,
     area_from_coords,
-    write_json,
 )
 from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
@@ -29,7 +27,7 @@ class SnappedRouteGraphMixin:
         """
         bounding_graph = self.graph
 
-        mongo = nearest_edge.get(bounding_graph, self.all_points)  # prep the cache
+        nearest_edge.get(bounding_graph, self.all_points)  # prep the cache
 
         edges = []
         used_node_ids = []

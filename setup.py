@@ -7,8 +7,6 @@ INSTALL_REQUIRES = (
     'cached_property',
     'packaging',
     'reverse_geocoder',
-    'fast_json',
-    'boto3',
     'haversine',
     'osmnx',
     'scikit-learn',

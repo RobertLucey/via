@@ -1,4 +1,3 @@
-import os
 import operator
 import datetime
 
@@ -7,11 +6,9 @@ from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
 from via.utils import (
     get_journeys,
     should_include_journey,
-    write_json,
     get_mongo_interface,
 )
 from via.models.journeys import Journeys
-from via.geojson.utils import generate_basename
 
 
 def get_generation_config(
@@ -104,7 +101,7 @@ def generate_geojson(
         latest_time=latest_time,
         place=place,
     ):
-        logger.info(f'Generating geojson for "{config_item["transport_type"]}"')
+        logger.info('Generating geojson for "%s"', config_item["transport_type"])
 
         journeys = get_journeys(
             transport_type=config_item["transport_type"],
@@ -126,9 +123,9 @@ def generate_geojson(
             ]
         )
 
-        db = get_mongo_interface()
+        mongo_interface = get_mongo_interface()
 
-        getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).delete_many(
+        getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).delete_many(
             {
                 "journey_type": config_item["name"],
                 "geojson_version": config_item["version"],
@@ -150,4 +147,4 @@ def generate_geojson(
             data["place"] = config_item["place"]
             data["save_time"] = datetime.datetime.utcnow().timestamp()
 
-            getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(data)
+            getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(data)

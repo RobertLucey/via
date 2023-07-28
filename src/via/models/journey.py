@@ -2,14 +2,12 @@ import datetime
 import statistics
 
 from collections import defaultdict
-from functools import lru_cache
 from packaging import version
 
 from dateutil.parser import parse
 
 from cached_property import cached_property
 import geopandas as gpd
-import fast_json
 
 from shapely.ops import cascaded_union
 
@@ -326,7 +324,9 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
     @property
     def edge_data(self):
         """
-        Get all the edges with their associated data for this journey
+        Get all the edges with their associated data for this journey.
+
+        TODO: replace with a conventional algo for matching
 
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
@@ -353,7 +353,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             )
 
             if not edge:
-                logger.warning(f"Bad edge in {self}")
+                logger.warning("Bad edge in %s", self)
                 continue
 
             raw_edges_list.append(

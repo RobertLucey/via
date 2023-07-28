@@ -9,7 +9,7 @@ from via.utils import get_mongo_interface
 
 
 class UtilsBoundingGraphGDFSGraphs:
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.mongo_interface = get_mongo_interface()
         self.grid = GridFS(self.mongo_interface)
 
@@ -23,15 +23,19 @@ class UtilsBoundingGraphGDFSGraphs:
         if self.grid.find_one({"filename": filename}):
             return self.get_from_gridfs(filename)
 
-    def set(self, k: Any, v: Any, skip_save: bool = False):
-        if self.get(k):
+        return None
+
+    def set(self, key: Any, value: Any):
+        if self.get(key):
             return
 
-        self.grid.put(pickle.dumps(v), filename=f"utils_bounding_graph_gdfs_graph_{k}")
+        self.grid.put(
+            pickle.dumps(value), filename=f"utils_bounding_graph_gdfs_graph_{key}"
+        )
 
 
 class BoundingGraphGDFSGraphs:
-    def __init__(self, *args, **kwargs):
+    def __init__(self):
         self.mongo_interface = get_mongo_interface()
         self.grid = GridFS(self.mongo_interface)
 
@@ -45,11 +49,13 @@ class BoundingGraphGDFSGraphs:
         if self.grid.find_one({"filename": filename}):
             return self.get_from_gridfs(filename)
 
-    def set(self, k: Any, v: Any, skip_save: bool = False):
-        if self.get(k):
+        return None
+
+    def set(self, key: Any, value: Any):
+        if self.get(key):
             return
 
-        self.grid.put(pickle.dumps(v), filename=f"bounding_graph_gdfs_graph_{k}")
+        self.grid.put(pickle.dumps(value), filename=f"bounding_graph_gdfs_graph_{key}")
 
 
 bounding_graph_gdfs_cache = BoundingGraphGDFSGraphs()

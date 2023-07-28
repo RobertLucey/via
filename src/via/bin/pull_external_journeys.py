@@ -1,9 +1,11 @@
-import requests
 from urllib.parse import urlencode
 from collections import OrderedDict
 
+import requests
+
 from via.utils import get_mongo_interface
 from via.settings import MONGO_RAW_JOURNEYS_COLLECTION
+from via.models.journey import Journey
 
 
 URLS = [
@@ -23,25 +25,34 @@ def main():
 
             print(query_url)
 
-            data = requests.get(query_url).json()
+            journeys_data = requests.get(query_url).json()
 
             page += 1
 
-            if not data:
+            if not journeys_data:
                 still_has_data = False
             else:
-                for d in data:
-                    # TODO: validate the data
-
-                    db = get_mongo_interface()
-                    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
-                        {"uuid": d["uuid"]}
+                for journey_data in journeys_data:
+                    # validate the journey
+                    Journey(
+                        data=journeys_data,
+                        is_culled=True,
+                        transport_type=journey_data["transport_type"],
+                        suspension=journey_data["suspension"],
+                        version=journey_data["version"],
                     )
 
+                    mongo_interface = get_mongo_interface()
+                    result = getattr(
+                        mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION
+                    ).find_one({"uuid": journey_data["uuid"]})
+
                     if not result:
-                        getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(d)
+                        getattr(
+                            mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION
+                        ).insert_one(journey_data)
                     else:
-                        print(f'already exists: {d["uuid"]}')
+                        print(f'already exists: {journey_data["uuid"]}')
 
 
 if __name__ == "__main__":

@@ -1,6 +1,3 @@
-import os
-import threading
-import datetime
 from collections import defaultdict
 
 import numpy as np
@@ -10,13 +7,9 @@ from gridfs import GridFS
 
 from osmnx import utils_graph
 
-from via import logger
-from via.settings import VERSION
 from via.utils import (
     get_combined_id,
     get_graph_id,
-    read_json,
-    write_json,
     get_mongo_interface,
 )
 from via.bounding_graph_gdfs_cache import utils_bounding_graph_gdfs_cache
@@ -52,7 +45,7 @@ def nearest_edges(G, X, Y, return_dist=False):
 
         GEOM_RTREE_CACHE[graph_id] = {"geoms": geoms, "rtree": rtree}
 
-    ne_dist = list()
+    ne_dist = []
     for xy in zip(X, Y):
         dists = geoms.iloc[list(rtree.nearest(xy, num_results=12))].distance(Point(xy))
 

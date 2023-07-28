@@ -1,11 +1,8 @@
-import os
-
+from typing import List, Optional, Union
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel
-from pymongo import MongoClient
-from typing import List, Optional, Union
 
 from via import logger
 from via.settings import MONGO_RAW_JOURNEYS_COLLECTION, MONGO_PARSED_JOURNEYS_COLLECTION
@@ -47,18 +44,15 @@ async def create_journey(raw_journey: RawJourney):
     """
     Simply dumps this journey into Mongo for now.
     """
-    db = get_mongo_interface()
+    mongo_interface = get_mongo_interface()
 
-    result = getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+    result = getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
         {"uuid": raw_journey.uuid}
     )
 
     if not result:
-        # Store the complete raw journey:
-        getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(raw_journey.dict())
-
-        # Parse it into some GeoJSON to store:
-        journey = Journey(
+        # Validate
+        Journey(
             data=raw_journey.dict()["data"],
             is_culled=True,
             transport_type=raw_journey.transport_type,
@@ -66,7 +60,9 @@ async def create_journey(raw_journey: RawJourney):
             version=raw_journey.version,
         )
 
-        # db.parsed_journeys.insert_one(journey.geojson)
+        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
+            raw_journey.dict()
+        )
     return {"status": "inserted" if not result else "already exists"}
 
 
@@ -78,10 +74,10 @@ async def get_raw_journeys(page: int = Query(1, gt=0), page_size: int = Query(5,
     """
     # TODO: better pagination
 
-    db = get_mongo_interface()
+    mongo_interface = get_mongo_interface()
 
     data = list(
-        getattr(db, MONGO_RAW_JOURNEYS_COLLECTION)
+        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION)
         .find({})
         .skip((page - 1) * page_size)
         .limit(page_size)
@@ -98,9 +94,9 @@ async def get_journey():
     """
     Simply grabs a random journey from Mongo.
     """
-    db = get_mongo_interface()
+    mongo_interface = get_mongo_interface()
 
-    res = getattr(db, MONGO_PARSED_JOURNEYS_COLLECTION).find_one()
+    res = getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).find_one()
 
     # Make the ID a string so it's returnable:
     res["_id"] = str(res["_id"])
@@ -135,7 +131,7 @@ async def get_all_journeys(
                 place=place,
             )
         except Exception as ex:
-            logger.error(f"Could not generate geojson: {ex}")
+            logger.error("Could not generate geojson: %s", ex)
         else:
             data = retrieve.get_geojson(
                 "bike",

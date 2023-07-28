@@ -108,12 +108,6 @@ class Journeys(
     def graph(self) -> MultiDiGraph:
         return self.get_graph(use_graph_cache=True)
 
-    @staticmethod
-    def from_files(filepaths):
-        with closing(multiprocessing.Pool(multiprocessing.cpu_count() - 1)) as pool:
-            journeys = list(pool.imap_unordered(Journey.from_file, filepaths))
-        return Journeys(data=journeys)
-
     @property
     def gps_hash(self) -> str:
         """

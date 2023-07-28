@@ -1,12 +1,7 @@
 import datetime
-import os
 import urllib
 from packaging.version import Version
 import dateutil.parser
-
-import boto3
-from botocore import UNSIGNED
-from botocore.client import Config
 
 import shapely
 from networkx.readwrite import json_graph

@@ -33,7 +33,8 @@ quick_build:
 test: build test_requirements quick_test
 
 quick_test:
-	$(IN_ENV) $(TEST_CONTEXT) nose2
+	$(IN_ENV) $(TEST_CONTEXT) coverage run -m pytest
+	$(IN_ENV) coverage report -m --skip-empty --include="src/*"
 
 ci_test: build test_requirements ci_quick_test
 

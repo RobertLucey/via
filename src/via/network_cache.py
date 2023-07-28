@@ -1,8 +1,4 @@
-import datetime
-import logging
-import os
 import pickle
-import threading
 from cachetools.func import ttl_cache
 
 import osmnx as ox
@@ -11,7 +7,7 @@ from networkx.classes.multidigraph import MultiDiGraph
 
 from via import logger
 from via.settings import MONGO_NETWORKS_COLLECTION
-from via.utils import is_within, area_from_coords, get_graph_id, get_mongo_interface
+from via.utils import is_within, get_graph_id, get_mongo_interface
 from via.place_cache import place_cache
 
 
@@ -45,11 +41,11 @@ class NetworkCache:
             if is_within(journey.bbox, network_config["bbox"]):
                 candidates.append((network_config["graph_id"], network_config["bbox"]))
 
-        if candidates != []:
+        if candidates:
             logger.debug(
-                f"{journey.gps_hash}: Using a larger network rather than generating"
+                "%s: Using a larger network rather than generating", journey.gps_hash
             )
-            selection = sorted(candidates, key=lambda x: area_from_coords(x[1]))[0]
+            # selection = sorted(candidates, key=lambda x: area_from_coords(x[1]))[0]
 
             return self.get_from_mongo(candidates[0][0])
 

@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 
 from via.models.point import FramePoint, FramePoints, Context
 
@@ -118,6 +118,44 @@ class FramePointTest(TestCase):
                 "context": {"post": [], "pre": []},
             },
         )
+
+    def test_get_slope_incoming(self):
+        pre_context = [
+            FramePoint.parse(
+                {"time": 10, "gps": {"lat": 1, "lng": 1}, "acc": [1, 2, 3, 4]}
+            )
+        ]
+        post_context = [
+            FramePoint.parse(
+                {"time": 30, "gps": {"lat": 1.3, "lng": 1.5}, "acc": [1, 2, 3, 4]}
+            )
+        ]
+
+        with_context = FramePoint.parse(
+            {"time": 20, "gps": {"lat": 1.1, "lng": 1.1}, "acc": [1, 2, 3, 4]}
+        )
+        with_context.set_context(pre=pre_context, post=post_context)
+
+        self.assertEqual(with_context.get_slope_incoming(), 1)
+
+    def test_get_slope_outgoing(self):
+        pre_context = [
+            FramePoint.parse(
+                {"time": 10, "gps": {"lat": 1, "lng": 1}, "acc": [1, 2, 3, 4]}
+            )
+        ]
+        post_context = [
+            FramePoint.parse(
+                {"time": 30, "gps": {"lat": 1.3, "lng": 1.5}, "acc": [1, 2, 3, 4]}
+            )
+        ]
+
+        with_context = FramePoint.parse(
+            {"time": 20, "gps": {"lat": 1.1, "lng": 1.1}, "acc": [1, 2, 3, 4]}
+        )
+        with_context.set_context(pre=pre_context, post=post_context)
+
+        self.assertEqual(with_context.get_slope_outgoing(), 2)
 
 
 class FramePointsTest(TestCase):

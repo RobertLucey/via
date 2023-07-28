@@ -1,21 +1,14 @@
 import math
-import sys
 import hashlib
 import os
-import glob
-import json
-import time
-from functools import lru_cache
-from numbers import Number
-from functools import wraps
+from functools import lru_cache, cache
 from itertools import islice, chain
 from typing import Any, List, Tuple
 
-from pymongo import MongoClient
+import pymongo
 
 from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
-import fast_json
 
 from via import logger
 from via.settings import (
@@ -28,42 +21,15 @@ from via.constants import METRES_PER_DEGREE
 from via.models.gps import GPSPoint
 
 
+@cache
 def get_mongo_interface():
     """
     Returns the MongoDB DB interface. Here so it can be moved to utils.
     """
     db_url = os.environ.get("MONGODB_URL", "localhost")
-    client = MongoClient(db_url)
+    client = pymongo.MongoClient(db_url)
     interface = client[os.environ.get("MONGODB_DATABASE", "localhost")]
     return interface
-
-
-@lru_cache(maxsize=10000)
-def is_journey_data_file(potential_journey_file: str) -> bool:
-    """
-
-    :param potential_journey_file:
-    :rtype: bool
-    :return: if the file contains journey data
-    """
-    if os.path.splitext(potential_journey_file)[1] != ".json":
-        return False
-
-    try:
-        with open(potential_journey_file, "r") as potential_journey_file_io:
-            data = fast_json.loads(potential_journey_file_io.read())
-    except (json.decoder.JSONDecodeError, ValueError):
-        logger.warning("%s json could not be decoded", potential_journey_file)
-        return False
-    else:
-        if not all(["uuid" in data, "data" in data, "transport_type" in data]):
-            logger.warning(
-                "%s is not a data file as it does not have appropriate data",
-                potential_journey_file,
-            )
-            return False
-
-    return True
 
 
 def get_journeys(
@@ -126,7 +92,7 @@ def iter_journeys(
     """
     from via.models.journey import Journey
 
-    db = get_mongo_interface()
+    mongo_interface = get_mongo_interface()
 
     # TODO: react to the following:
     # journey,
@@ -136,7 +102,7 @@ def iter_journeys(
     # earliest_time=earliest_time,
     # latest_time=latest_time,
 
-    for raw_journey in getattr(db, MONGO_RAW_JOURNEYS_COLLECTION).find():
+    for raw_journey in getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find():
         yield Journey(**raw_journey)
 
 
@@ -174,6 +140,9 @@ def should_include_journey(
     if journey.area > MAX_JOURNEY_METRES_SQUARED:
         return False
 
+    if not journey.has_enough_data:
+        return False
+
     return journey
 
 
@@ -188,21 +157,6 @@ def window(sequence, window_size=2):
     for elem in seq_iterator:
         result = result[1:] + (elem,)
         yield result
-
-
-def get_idx_default(lst: list, idx: int, default: Any) -> Any:
-    """
-    Get the ith elem of a list or a default value if out of range
-
-    :param lst:
-    :param idx:
-    :param default:
-    """
-    assert isinstance(lst, list)
-    try:
-        return lst[idx]
-    except (IndexError, TypeError):
-        return default
 
 
 def get_combined_id(obj: Any, other_obj: Any) -> int:
@@ -263,7 +217,7 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
             try:
                 graph[start][end][0].update(edge_data_map[graph_edge_id])
             except KeyError:
-                logger.error(f"Could not update edge: {start} {end}")
+                logger.error("Could not update edge: %s %s", start, end)
 
     return graph
 
@@ -278,34 +232,21 @@ def get_slope(origin: GPSPoint, dst: GPSPoint) -> float:
     return (origin.lng - dst.lng) / (origin.lat - dst.lat)
 
 
-def get_edge_slope(nodes: list, edge: list) -> float:
-    """
-    Given an edge, get the slope of it
-
-    :param nodes:
-    :param edge:
-    """
-    origin = nodes[edge[0][0][0]]
-    dst = nodes[edge[0][0][1]]
-
-    origin = GPSPoint(origin["y"], origin["x"])
-    dst = GPSPoint(dst["y"], dst["x"])
-
-    return get_slope(origin, dst)
-
-
 def angle_between_slopes(
-    s1: float, s2: float, ensure_positive: bool = False, absolute: bool = False
+    slope_1: float,
+    slope_2: float,
+    ensure_positive: bool = False,
+    absolute: bool = False,
 ) -> float:
     """
 
-    :param s1:
-    :param s2:
+    :param slope_1:
+    :param slope_2:
     :kwargs ensure_positive: Ensure the result is always positive
         Useful in comparisons where you don't care about direction
         and want -45 to also equal 135 for example
     """
-    degrees = math.degrees(math.atan((s2 - s1) / (1 + (s2 * s1))))
+    degrees = math.degrees(math.atan((slope_2 - slope_1) / (1 + (slope_2 * slope_1))))
     if absolute:
         degrees = abs(degrees)
     if ensure_positive:
@@ -342,30 +283,29 @@ def area_from_coords(obj):
 
         return (vert * METRES_PER_DEGREE) * (hori * METRES_PER_DEGREE)
 
-    else:
-        raise NotImplementedError()
-        # TODO: Allow for normal polys. Below is an example of doing it for a bbox
-        # geom = Polygon(
-        #    [
-        #        (obj['north'], obj['west']),
-        #        (obj['north'], obj['east']),
-        #        (obj['south'], obj['east']),
-        #        (obj['south'], obj['west']),
-        #        (obj['north'], obj['west'])
-        #    ]
-        # )
-        # return ops.transform(
-        #    partial(
-        #        pyproj.transform,
-        #        pyproj.Proj('EPSG:4326'),
-        #        pyproj.Proj(
-        #            proj='aea',
-        #            lat_1=geom.bounds[1],
-        #            lat_2=geom.bounds[3]
-        #        )
-        #    ),
-        #    geom
-        # ).area
+    raise NotImplementedError()
+    # TODO: Allow for normal polys. Below is an example of doing it for a bbox
+    # geom = Polygon(
+    #    [
+    #        (obj['north'], obj['west']),
+    #        (obj['north'], obj['east']),
+    #        (obj['south'], obj['east']),
+    #        (obj['south'], obj['west']),
+    #        (obj['north'], obj['west'])
+    #    ]
+    # )
+    # return ops.transform(
+    #    partial(
+    #        pyproj.transform,
+    #        pyproj.Proj('EPSG:4326'),
+    #        pyproj.Proj(
+    #            proj='aea',
+    #            lat_1=geom.bounds[1],
+    #            lat_2=geom.bounds[3]
+    #        )
+    #    ),
+    #    geom
+    # ).area
 
 
 @lru_cache(maxsize=5)
@@ -381,60 +321,3 @@ def get_graph_id(graph: MultiDiGraph, unreliable: bool = False) -> str:
     if unreliable:
         return hash(tuple(graph._node))
     return hashlib.md5(str(tuple(graph._node)).encode()).hexdigest()
-
-
-def get_size(obj, seen=None):
-    """
-    Recursively finds size of objects
-    """
-    size = sys.getsizeof(obj)
-    if seen is None:
-        seen = set()
-    obj_id = id(obj)
-    if obj_id in seen:
-        return 0
-    # Important mark as seen *before* entering recursion to gracefully handle
-    # self-referential objects
-    seen.add(obj_id)
-    if isinstance(obj, dict):
-        size += sum([get_size(v, seen) for v in obj.values()])
-        size += sum([get_size(k, seen) for k in obj.keys()])
-    elif hasattr(obj, "__dict__"):
-        size += get_size(obj.__dict__, seen)
-    elif hasattr(obj, "__iter__") and not isinstance(obj, (str, bytes, bytearray)):
-        size += sum([get_size(i, seen) for i in obj])
-    return size
-
-
-def read_json(fp: str):
-    """
-    Because I hate writing this all the time
-
-    :rtype: something json-ey
-    """
-    data = None
-    with open(fp) as fh:
-        data = fast_json.load(fh)
-    return data
-
-
-def write_json(fp: str, data):
-    """
-    Because I hate writing this all the time
-
-    :param fp:
-    :param data: something json-ey
-    """
-    os.makedirs(os.path.dirname(fp), exist_ok=True)
-    with open(fp, "w") as json_file:
-        fast_json.dump(data, json_file)
-
-
-def string_to_int(input_string):
-    encoded_int = 0
-
-    for char in input_string:
-        encoded_int = (encoded_int << 8) + ord(char)
-        encoded_int %= 1000000000
-
-    return encoded_int
