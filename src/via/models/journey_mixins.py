@@ -10,8 +10,8 @@ from via.utils import (
     update_edge_data,
     get_graph_id,
     area_from_coords,
+    get_combined_id,
 )
-from via.nearest_edge import nearest_edge
 from via.network_cache import network_cache
 
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
@@ -22,27 +22,25 @@ from via.geojson.utils import geojson_from_graph
 class SnappedRouteGraphMixin:
     @property
     def snapped_route_graph(self):
-        """
-        Get the route graph, snapping to the nearest edge
-        """
+        """ """
         bounding_graph = self.graph
 
-        nearest_edge.get(bounding_graph, self.all_points)  # prep the cache
+        # TODO: mappymatch here, or bypass all. Just need to update edge data from edgq quality. Maybe use self.edge_data / self.edge_quality_map
 
-        edges = []
+        # for all journeys in here get the edges used by them from edge_data? Can't get nodes, just get the combined_ids at the mo
+
+        used_combined_edges = []
+        for j in self:
+            used_combined_edges.extend(list(j.edge_data.keys()))
+
+        used_edges = []
         used_node_ids = []
 
-        all_nearest_edges = nearest_edge.get(bounding_graph, self.all_points)
-
-        for our_origin, nearest_edges in list(zip(self.all_points, all_nearest_edges)):
-            edge = our_origin.get_best_edge(
-                nearest_edges, mode=settings.NEAREST_EDGE_METHOD, graph=bounding_graph
-            )
-            if not edge:
-                continue
-
-            edges.append(tuple(edge[0]))
-            used_node_ids.extend([edge[0][0], edge[0][1]])
+        for start, end, _ in bounding_graph.edges:
+            graph_edge_id = get_combined_id(start, end)
+            if graph_edge_id in used_combined_edges:
+                used_node_ids.extend([start, end])
+                used_edges.append(tuple([start, end, 0]))
 
         if bounding_graph_gdfs_cache.get(get_graph_id(bounding_graph)) is None:
             bounding_graph_gdfs_cache.set(
@@ -54,11 +52,9 @@ class SnappedRouteGraphMixin:
             get_graph_id(bounding_graph)
         )
 
-        # Filter only the nodes and edges on the route and ignore the
-        # buffer used to get context
         graph = ox.graph_from_gdfs(
             filter_nodes_from_geodataframe(graph_nodes, used_node_ids),
-            filter_edges_from_geodataframe(graph_edges, edges),
+            filter_edges_from_geodataframe(graph_edges, used_edges),
         )
 
         return update_edge_data(graph, self.edge_quality_map)

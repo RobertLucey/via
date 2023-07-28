@@ -1,6 +1,7 @@
 import datetime
 import statistics
 
+from functools import cache
 from collections import defaultdict
 from packaging import version
 
@@ -14,10 +15,22 @@ from shapely.ops import cascaded_union
 import networkx as nx
 import osmnx as ox
 
+from mappymatch.maps.nx.readers.osm_readers import (
+    NetworkType,
+    nx_graph_from_osmnx,
+    parse_osmnx_graph,
+)
+from mappymatch import package_root
+from mappymatch.constructs.geofence import Geofence
+from mappymatch.constructs.trace import Trace
+from mappymatch.maps.nx.nx_map import NxMap
+from mappymatch.matchers.lcss.lcss import LCSSMatcher
+
+import pandas
+
 from via import settings
 from via import logger
 from via.utils import window, get_combined_id
-from via.nearest_edge import nearest_edge
 from via.constants import (
     POLY_POINT_BUFFER,
     VALID_JOURNEY_MIN_DISTANCE,
@@ -34,6 +47,23 @@ from via.models.journey_mixins import (
     GeoJsonMixin,
     BoundingGraphMixin,
 )
+
+
+@cache
+def get_nxmap(bounding_graph):
+    return NxMap(parse_osmnx_graph(bounding_graph, NetworkType.BIKE))
+
+
+@cache
+def get_matcher_by_graph(bounding_graph):
+    return LCSSMatcher(
+        get_nxmap(bounding_graph),
+        distance_epsilon=50.0,
+        similarity_cutoff=0.5,
+        cutting_threshold=5.0,  # not too sure what this does
+        random_cuts=0,
+        distance_threshold=100,  # default 10000
+    )
 
 
 class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
@@ -76,7 +106,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         self.transport_type = str(kwargs.get("transport_type", "unknown")).lower()
         self.suspension = kwargs.get("suspension", None)
 
-        self.network_type = kwargs.get("network_type", "all")
+        self.network_type = kwargs.get("network_type", "bike")
         self._timestamp = kwargs.get("timestamp", None)
 
         self.last_gps = None
@@ -321,7 +351,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             if d["count"] >= settings.MIN_PER_JOURNEY_USAGE
         }
 
-    @property
+    @cached_property
     def edge_data(self):
         """
         Get all the edges with their associated data for this journey.
@@ -332,42 +362,44 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         :return: {edge_id: [{edge_data}, {edge_data}]}
         """
         data = defaultdict(list)
-        bounding_graph = self.graph
         route_graph = self.route_graph
 
-        nearest_edge.get(bounding_graph, self._data)
+        trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
+        trace = Trace.from_dataframe(pandas.DataFrame(trace), True, 0, 1)
+
+        # This takes a long time, cache it more
+        matcher = get_matcher_by_graph(self.bounding_graph)
+
+        matches = matcher.match_trace(trace)
+
+        match_result = matcher.match_trace(trace)
+
+        # from pathlib import Path
+        # from mappymatch.utils.plot import plot_geofence, plot_matches, plot_trace
+        # mmap_file = Path(f"{self.uuid}_matches_map.html")
+        # mmap = plot_matches(match_result.matches)
+        # mmap.save(str(mmap_file))
 
         raw_edges_list = []
-        for our_origin, our_destination in window(self, window_size=2):
-            nearest_edges = nearest_edge.get(bounding_graph, [our_origin])[0]
+        for (our_origin, our_destination), match_point in zip(
+            window(self, window_size=2), match_result.matches
+        ):
+            if not match_point or not match_point.road:
+                continue
 
-            edge = our_origin.get_best_edge(
-                nearest_edges,
-                mode=settings.NEAREST_EDGE_METHOD,
-                graph=bounding_graph,
-                include_slow=True,
+            edge = (
+                (match_point.road.road_id.start, match_point.road.road_id.end, 0),
+                0,
             )
 
             our_edge_data = get_edge_data(
                 our_origin.uuid, our_destination.uuid, graph=route_graph
             )
 
-            if not edge:
-                logger.warning("Bad edge in %s", self)
-                continue
+            data[get_combined_id(edge[0][0], edge[0][1])].append(our_edge_data)
 
-            raw_edges_list.append(
-                [get_combined_id(edge[0][0], edge[0][1]), our_edge_data]
-            )
-
-        edges_list = []
-        for pre, current, post in window(raw_edges_list, window_size=3):
-            if pre[0] == post[0] and current[0] != pre[0]:
-                current[0] = pre[0]
-            edges_list.append(current)
-
-        for edge in edges_list:
-            data[edge[0]].append(edge[1])
+        if len(data) < 5:  # TODO: to config
+            return defaultdict(list)
 
         return data
 
