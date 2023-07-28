@@ -55,7 +55,7 @@ class JourneysTest(TestCase):
         self.assertEqual(self.test_journeys.most_eastern, -6.2523619)
         self.assertEqual(self.test_journeys.most_western, -6.2661022)
 
-    @skip('Not great from mappymatch')
+    @skip("Not great from mappymatch")
     @skipUnless(not IS_ACTION, "action_mongo")
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
