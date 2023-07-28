@@ -57,7 +57,7 @@ class NetworkCache:
                 bbox["south"],
                 bbox["east"],
                 bbox["west"],
-                network_type="all",
+                network_type=journey.network_type,
                 simplify=True,
             )
 

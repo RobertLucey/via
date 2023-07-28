@@ -12,3 +12,4 @@ fastapi[all]
 pydantic
 pymongo
 cachetools
+mappymatch

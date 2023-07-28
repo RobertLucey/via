@@ -17,7 +17,8 @@ INSTALL_REQUIRES = (
     'fastapi[all]',
     'pydantic',
     'pymongo',
-    'cachetools'
+    'cachetools',
+    'mappymatch'
 )
 
 setup(
