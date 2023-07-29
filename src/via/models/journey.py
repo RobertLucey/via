@@ -368,8 +368,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         # This takes a long time, cache it more
         matcher = get_matcher_by_graph(self.bounding_graph)
 
-        matches = matcher.match_trace(trace)
-
         match_result = matcher.match_trace(trace)
 
         # from pathlib import Path
@@ -380,7 +378,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         data = defaultdict(list)
 
-        raw_edges_list = []
         for (our_origin, our_destination), match_point in zip(
             window(self, window_size=2), match_result.matches
         ):
