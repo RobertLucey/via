@@ -25,10 +25,6 @@ class SnappedRouteGraphMixin:
         """ """
         bounding_graph = self.graph
 
-        # TODO: mappymatch here, or bypass all. Just need to update edge data from edgq quality. Maybe use self.edge_data / self.edge_quality_map
-
-        # for all journeys in here get the edges used by them from edge_data? Can't get nodes, just get the combined_ids at the mo
-
         used_combined_edges = []
         for j in self:
             used_combined_edges.extend(list(j.edge_data.keys()))

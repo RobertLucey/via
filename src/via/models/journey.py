@@ -361,8 +361,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
         """
-        data = defaultdict(list)
-        route_graph = self.route_graph
 
         trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
         trace = Trace.from_dataframe(pandas.DataFrame(trace), True, 0, 1)
@@ -380,6 +378,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         # mmap = plot_matches(match_result.matches)
         # mmap.save(str(mmap_file))
 
+        data = defaultdict(list)
+
         raw_edges_list = []
         for (our_origin, our_destination), match_point in zip(
             window(self, window_size=2), match_result.matches
@@ -393,7 +393,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             )
 
             our_edge_data = get_edge_data(
-                our_origin.uuid, our_destination.uuid, graph=route_graph
+                our_origin.uuid, our_destination.uuid, graph=self.route_graph
             )
 
             data[get_combined_id(edge[0][0], edge[0][1])].append(our_edge_data)

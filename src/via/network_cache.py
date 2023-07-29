@@ -1,4 +1,5 @@
 import pickle
+import datetime
 from cachetools.func import ttl_cache
 
 import osmnx as ox
@@ -29,13 +30,25 @@ class NetworkCache:
 
         # bbox as coords rather than network as network bbox is smaller and wouldn't match when trying to get for a journey
         getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).insert_one(
-            {"graph_id": graph_id, "type": "bbox", "bbox": bbox}
+            {
+                "graph_id": graph_id,
+                "type": "bbox",
+                "bbox": bbox,
+                "insert_time": datetime.datetime.utcnow().timestamp(),
+            }
         )
 
     def get(self, journey) -> MultiDiGraph:
         candidates = []
         network_configs = list(
-            getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find()
+            getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find(
+                {
+                    "insert_time": {
+                        "$gt": datetime.datetime.utcnow().timestamp()
+                        - 60 * 60 * 12  # TODO: to config
+                    }
+                }
+            )
         )
         for network_config in network_configs:
             if is_within(journey.bbox, network_config["bbox"]):
