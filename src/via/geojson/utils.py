@@ -9,7 +9,7 @@ from networkx.readwrite import json_graph
 from via.constants import USELESS_GEOJSON_PROPERTIES
 
 
-def parse_start_date(earliest_date):
+def parse_start_date(earliest_date: str) -> str:
     if earliest_date is None:
         return "2021-01-01"
 
@@ -32,7 +32,7 @@ def parse_start_date(earliest_date):
     return str(earliest_date.date())
 
 
-def parse_end_date(latest_date):
+def parse_end_date(latest_date: str) -> str:
     if latest_date is None:
         return "2023-12-31"
 
@@ -53,30 +53,6 @@ def parse_end_date(latest_date):
             latest_date = datetime.datetime(2023, 12, 31)
 
     return str(latest_date.date())
-
-
-def generate_basename(
-    name=None,
-    version=None,
-    version_op=None,
-    earliest_time=None,
-    latest_time=None,
-    place=None,
-):
-    data = {
-        "transport_type": name,
-        "version": version,
-        "version_op": version_op,
-        "earliest_time": parse_start_date(earliest_time),
-        "latest_time": parse_end_date(latest_time),
-        "place": place,
-    }
-    if data["version"] in {None, False, "0.0.0", Version("0.0.0")}:
-        del data["version"]
-        del data["version_op"]
-    if data["place"] is None:
-        del data["place"]
-    return urllib.parse.urlencode(data)
 
 
 def geojson_from_graph(graph, must_include_props=None):

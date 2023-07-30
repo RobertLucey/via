@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import osmnx as ox
+from networkx.classes.multidigraph import MultiDiGraph
 
 from via import settings
 from via import logger
@@ -13,22 +14,19 @@ from via.utils import (
     get_combined_id,
 )
 from via.network_cache import network_cache
-
 from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
-
 from via.geojson.utils import geojson_from_graph
 
 
 class SnappedRouteGraphMixin:
     @property
-    def snapped_route_graph(self):
+    def snapped_route_graph(self) -> MultiDiGraph:
         """ """
-        bounding_graph = self.graph
-
         used_combined_edges = []
-        for j in self:
-            used_combined_edges.extend(list(j.edge_data.keys()))
+        for journey in self:
+            used_combined_edges.extend(list(journey.edge_data.keys()))
 
+        bounding_graph = self.graph
         used_edges = []
         used_node_ids = []
 
@@ -58,7 +56,7 @@ class SnappedRouteGraphMixin:
 
 class GeoJsonMixin:
     @property
-    def geojson(self):
+    def geojson(self) -> dict:
         """
         Write and return a GeoJSON object string of the graph.
         """
@@ -106,7 +104,7 @@ class GeoJsonMixin:
 
 
 class BoundingGraphMixin:
-    def get_bounding_graph(self, use_graph_cache: bool = True):
+    def get_bounding_graph(self, use_graph_cache: bool = True) -> MultiDiGraph:
         logger.debug(
             "Plotting bounding graph (n,s,e,w) (%s, %s, %s, %s)",
             self.most_northern,

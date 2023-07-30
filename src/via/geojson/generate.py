@@ -12,13 +12,13 @@ from via.models.journeys import Journeys
 
 
 def get_generation_config(
-    transport_type=None,
-    version=None,
-    version_op=None,
-    earliest_time=None,
-    latest_time=None,
-    place=None,
-):
+    transport_type: str = None,
+    version: str = None,
+    version_op: str = None,
+    earliest_time: int = None,
+    latest_time: int = None,
+    place: str = None,
+) -> dict:
     config = []
     if transport_type in {None, "all"}:
         config = [
@@ -76,13 +76,13 @@ def get_generation_config(
 
 
 def generate_geojson(
-    transport_type,
-    version=False,
-    version_op=None,
-    earliest_time=None,
-    latest_time=None,
-    place=None,
-):
+    transport_type: str,
+    version: str = False,
+    version_op: str = None,
+    earliest_time: int = None,
+    latest_time: int = None,
+    place: str = None,
+) -> dict:
     logger.info(
         "Generating geojson: transport_type=%s version=%s version_op=%s earliest_time=%s latest_time=%s place=%s",
         transport_type,
@@ -136,6 +136,8 @@ def generate_geojson(
             }
         )
 
+        data = None
+
         if len(journeys):
             data = journeys.geojson
 
@@ -148,3 +150,5 @@ def generate_geojson(
             data["save_time"] = datetime.datetime.utcnow().timestamp()
 
             getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(data)
+
+        return data

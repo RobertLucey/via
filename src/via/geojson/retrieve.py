@@ -5,13 +5,13 @@ from via.utils import get_mongo_interface
 
 
 def get_geojson(
-    journey_type,
-    earliest_time=None,
-    latest_time=None,
-    place=None,
-    version=None,
-    version_op=None,
-):
+    journey_type: str,
+    earliest_time: int = None,
+    latest_time: int = None,
+    place: str = None,
+    version: str = None,
+    version_op: str = None,
+) -> dict:
     # TODO: react to version/version_op/earliest_time/latest_time
 
     if journey_type is None:

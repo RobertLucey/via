@@ -89,21 +89,6 @@ async def get_raw_journeys(page: int = Query(1, gt=0), page_size: int = Query(5,
     return data
 
 
-@app.get("/get_journey")
-async def get_journey():
-    """
-    Simply grabs a random journey from Mongo.
-    """
-    mongo_interface = get_mongo_interface()
-
-    res = getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).find_one()
-
-    # Make the ID a string so it's returnable:
-    res["_id"] = str(res["_id"])
-
-    return res
-
-
 # TODO: Update this endpoint name and support time ranges/coords
 @app.get("/get_geojson")
 async def get_all_journeys(

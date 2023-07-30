@@ -28,18 +28,17 @@ def get_mongo_interface():
     """
     db_url = os.environ.get("MONGODB_URL", "localhost")
     client = pymongo.MongoClient(db_url)
-    interface = client[os.environ.get("MONGODB_DATABASE", "localhost")]
-    return interface
+    return client[os.environ.get("MONGODB_DATABASE", "localhost")]
 
 
 def get_journeys(
-    transport_type=None,
-    source=None,
-    place=None,
-    version_op=None,
-    version=None,
-    earliest_time=None,
-    latest_time=None,
+    transport_type: str = None,
+    source: str = None,
+    place: str = None,
+    version_op: str = None,
+    version: str = None,
+    earliest_time: int = None,
+    latest_time: int = None,
 ):
     """
     Get local journeys as Journeys
@@ -51,7 +50,9 @@ def get_journeys(
         be returned
     :kwarg version: The version to compare with version_op and the
         journey version
-    :rtype: Journey
+    :kwarg earliest_time:
+    :kwarg latest_time:
+    :rtype: Journeys
     """
     from via.models.journeys import Journeys
 
@@ -89,6 +90,9 @@ def iter_journeys(
         be returned
     :kwarg version: The version to compare with version_op and the
         journey version
+    :kwarg earliest_time:
+    :kwarg latest_time:
+    :rtype: Journey
     """
     from via.models.journey import Journey
 
@@ -108,12 +112,12 @@ def iter_journeys(
 
 def should_include_journey(
     journey,
-    place=None,
-    version_op=None,
-    version=None,
-    earliest_time=None,
-    latest_time=None,
-):
+    place: str = None,
+    version_op: str = None,
+    version: str = None,
+    earliest_time: int = None,
+    latest_time: int = None,
+) -> bool:
     if any(
         [journey.version < MIN_JOURNEY_VERSION, journey.version > MAX_JOURNEY_VERSION]
     ):
@@ -143,10 +147,10 @@ def should_include_journey(
     if not journey.has_enough_data:
         return False
 
-    return journey
+    return True
 
 
-def window(sequence, window_size=2):
+def window(sequence: List[Any], window_size: int = 2) -> List[Any]:
     """
     Returns a sliding window (of width n) over data from the iterable
     """
@@ -273,7 +277,7 @@ def is_within(bbox: dict, potentially_larger_bbox: dict) -> bool:
     )
 
 
-def area_from_coords(obj):
+def area_from_coords(obj: dict) -> float:
     """
     Returns the area of a box in metres per second
     """
