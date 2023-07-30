@@ -55,7 +55,7 @@ def parse_end_date(latest_date: str) -> str:
     return str(latest_date.date())
 
 
-def geojson_from_graph(graph, must_include_props=None):
+def geojson_from_graph(graph, must_include_props: list = None) -> dict:
     json_links = json_graph.node_link_data(graph)["links"]
 
     geojson_features = {"type": "FeatureCollection", "features": []}
@@ -87,7 +87,7 @@ def geojson_from_graph(graph, must_include_props=None):
     return geojson_features
 
 
-def get_point(properties=None, gps=None):
+def get_point(properties: dict = None, gps=None) -> dict:
     return {
         "type": "Feature",
         "properties": properties if isinstance(properties, dict) else {},

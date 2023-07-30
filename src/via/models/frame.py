@@ -26,6 +26,7 @@ class Frame(GenericObject):
             return Frame(obj.get("time", None), obj["gps"], obj["acc"])
         if isinstance(obj, Frame):
             return obj
+        print(obj)
         raise NotImplementedError("Can't parse Frame from type %s" % (type(obj)))
 
     def distance_from(self, point: GPSPoint) -> float:

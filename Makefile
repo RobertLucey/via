@@ -54,7 +54,7 @@ local_setup:
 local_run:
 	$(IN_ENV) $(PYTHON) -m pip install --editable .
 	@echo "Running Make rule local_run..."
-	$(IN_ENV) uvicorn src.via.main:app --reload --log-level trace
+	$(IN_ENV) uvicorn src.via.api.main:app --reload --log-level trace
 
 local_docker_run:
 	docker compose up --build

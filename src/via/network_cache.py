@@ -18,12 +18,23 @@ class NetworkCache:
         self.grid = GridFS(self.mongo_interface)
 
     @ttl_cache(maxsize=50, ttl=360)
-    def get_from_mongo(self, graph_id):
+    def get_from_mongo(self, graph_id: int) -> MultiDiGraph:
+        """
+
+        :param graph_id:
+        :return:
+        :rtype: MultiDiGraph
+        """
         return pickle.loads(
             self.grid.find_one({"filename": f"network_{graph_id}"}).read()
         )
 
-    def put_to_mongo(self, network, bbox):
+    def put_to_mongo(self, network: MultiDiGraph, bbox: dict):
+        """
+
+        :param network:
+        :param bbox:
+        """
         graph_id = get_graph_id(network)
 
         self.grid.put(pickle.dumps(network), filename=f"network_{graph_id}")
@@ -39,6 +50,12 @@ class NetworkCache:
         )
 
     def get(self, journey) -> MultiDiGraph:
+        """
+
+        :param journey:
+        :return:
+        :rtype: MultiDiGraph
+        """
         candidates = []
         network_configs = list(
             getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find(
@@ -81,6 +98,11 @@ class NetworkCache:
         return None
 
     def set(self, network: MultiDiGraph, bbox: dict):
+        """
+
+        :param network:
+        :param bbox:
+        """
         graph_id = get_graph_id(network)
 
         if not getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find_one(

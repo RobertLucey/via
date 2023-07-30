@@ -66,27 +66,24 @@ async def create_journey(raw_journey: RawJourney):
     return {"status": "inserted" if not result else "already exists"}
 
 
-@app.get("/get_raw_journeys")
-async def get_raw_journeys(page: int = Query(1, gt=0), page_size: int = Query(5, gt=0)):
-    """
-    Exposes raw journey data so others running via can
-    get data from many hosts
-    """
-    # TODO: better pagination
+@app.get("/get_raw_journey")
+async def get_raw_journey(journey_uuid: str = None):
+    journey = getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+        {"uuid": journey_uuid}
+    )
+    journey["_id"] = str(journey["_id"])
+    return journey
 
+
+@app.get("/get_journey_uuids")
+async def get_raw_journey_uuids():
     mongo_interface = get_mongo_interface()
 
-    data = list(
-        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION)
-        .find({})
-        .skip((page - 1) * page_size)
-        .limit(page_size)
+    data = getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find(
+        {}, {"uuid": 1, "_id": 0}
     )
 
-    for obj in data:
-        obj["_id"] = str(obj["_id"])
-
-    return data
+    return list([i["uuid"] for i in data])
 
 
 # TODO: Update this endpoint name and support time ranges/coords

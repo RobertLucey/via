@@ -24,7 +24,7 @@ class PlaceCache:
             }
         }
 
-    def get_by_bbox(self, cmp_bbox):
+    def get_by_bbox(self, cmp_bbox: dict) -> dict:
         """
         Given a bbox, return a dict of the place name and bbox of the
         place it is within
@@ -36,7 +36,7 @@ class PlaceCache:
                 return {"name": name, "bbox": bbox}
         return None
 
-    def is_in_place(self, bbox: dict, place_name: str):
+    def is_in_place(self, bbox: dict, place_name: str) -> bool:
         """
         Return if a box is within the confines of a 'place'
 
