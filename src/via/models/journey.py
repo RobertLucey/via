@@ -1,5 +1,6 @@
 import datetime
 import statistics
+from pathlib import Path
 
 from functools import cache
 from collections import defaultdict
@@ -25,6 +26,7 @@ from mappymatch.constructs.geofence import Geofence
 from mappymatch.constructs.trace import Trace
 from mappymatch.maps.nx.nx_map import NxMap
 from mappymatch.matchers.lcss.lcss import LCSSMatcher
+from mappymatch.utils.plot import plot_matches
 
 import pandas
 
@@ -370,12 +372,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         match_result = matcher.match_trace(trace)
 
-        # from pathlib import Path
-        # from mappymatch.utils.plot import plot_geofence, plot_matches, plot_trace
-        # mmap_file = Path(f"{self.uuid}_matches_map.html")
-        # mmap = plot_matches(match_result.matches)
-        # mmap.save(str(mmap_file))
-
         data = defaultdict(list)
 
         for (our_origin, our_destination), match_point in zip(
@@ -399,6 +395,11 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             return defaultdict(list)
 
         return data
+
+    def write_mappy_path(self):
+        mmap_file = Path(f"/tmp/{self.uuid}_matches_map.html")
+        mmap = plot_matches(match_result.matches)
+        mmap.save(str(mmap_file))
 
     @cached_property
     def route_graph(self):
