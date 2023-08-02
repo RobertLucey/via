@@ -43,7 +43,7 @@ services:
 
   test-via-api:
     container_name: "test-via-api"
-    image: conorjf/via-api:latest
+    image: robertlucey/via-api:latest
     restart: unless-stopped
 
     networks:
