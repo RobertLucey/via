@@ -18,6 +18,11 @@ class NetworkCache:
         self.grid = GridFS(self.mongo_interface)
 
     @ttl_cache(maxsize=50, ttl=360)
+    def _get_from_mongo(self, graph_id: int) -> MultiDiGraph:
+        return pickle.loads(
+            self.grid.find_one({"filename": f"network_{graph_id}"}).read()
+        )
+
     def get_from_mongo(self, graph_id: int) -> MultiDiGraph:
         """
 
@@ -25,9 +30,12 @@ class NetworkCache:
         :return:
         :rtype: MultiDiGraph
         """
-        return pickle.loads(
-            self.grid.find_one({"filename": f"network_{graph_id}"}).read()
-        )
+        result = self.grid.find_one({"filename": f"network_{graph_id}"})
+
+        if not result:
+            return None
+
+        return self._get_from_mongo(graph_id)
 
     def put_to_mongo(self, network: MultiDiGraph, bbox: dict):
         """
