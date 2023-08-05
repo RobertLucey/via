@@ -1,17 +1,14 @@
 import hashlib
 from numbers import Number
-from operator import itemgetter
 
 import numpy
 from cached_property import cached_property
-from shapely.geometry import MultiPoint, Point
 
 from via import settings
 from via import logger
 from via.place_cache import place_cache
 from via.models.generic import GenericObject, GenericObjects
 from via.models.gps import GPSPoint
-from via.utils import angle_between_slopes
 
 
 class Context:
@@ -176,17 +173,6 @@ class FramePoint(Context, GenericObject):
         return self.gps.distance_from(point)
 
     @property
-    def is_complete(self) -> bool:
-        """
-        Does the point contain all expected data
-        """
-        return (
-            isinstance(self.time, (float, int))
-            and self.gps.is_populated
-            and self.acceleration != []
-        )
-
-    @property
     def road_quality(self) -> int:
         """
         Get the average quality at this point (and a little before)
@@ -252,15 +238,6 @@ class FramePoints(GenericObjects):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("child_class", FramePoint)
         super().__init__(*args, **kwargs)
-
-    def __del__(self):
-        attrs_to_del = ["country"]
-
-        for attr in attrs_to_del:
-            try:
-                delattr(self, attr)
-            except AttributeError:
-                pass
 
     @property
     def most_northern(self) -> float:
@@ -358,22 +335,6 @@ class FramePoints(GenericObjects):
             for frame in self
         ]
 
-    def get_multi_points(self) -> MultiPoint:
-        """
-        Get a shapely.geometry.MultiPoint of all the points
-        """
-        unique_points = []
-        prev = None
-        for frame in self:
-            if frame.gps.is_populated:
-                if prev is not None:
-                    if prev.gps.lat != frame.gps.lat:
-                        unique_points.append(Point(frame.gps.lng, frame.gps.lat))
-
-            prev = frame
-
-        return MultiPoint(unique_points)
-
     @property
     def gps_hash(self) -> str:
         """
@@ -391,16 +352,6 @@ class FramePoints(GenericObjects):
         return hashlib.md5(
             str([point.content_hash for point in self]).encode()
         ).hexdigest()
-
-    @cached_property
-    def country(self) -> str:
-        """
-        Get what country this journey started in
-
-        :return: a two letter country code
-        :rtype: str
-        """
-        return self.origin.gps.reverse_geo["cc"]
 
     def is_in_place(self, place_name: str) -> bool:
         """

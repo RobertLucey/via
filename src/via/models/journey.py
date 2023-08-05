@@ -9,20 +9,14 @@ from packaging import version
 from dateutil.parser import parse
 
 from cached_property import cached_property
-import geopandas as gpd
-
-from shapely.ops import cascaded_union
 
 import networkx as nx
 import osmnx as ox
 
 from mappymatch.maps.nx.readers.osm_readers import (
     NetworkType,
-    nx_graph_from_osmnx,
     parse_osmnx_graph,
 )
-from mappymatch import package_root
-from mappymatch.constructs.geofence import Geofence
 from mappymatch.constructs.trace import Trace
 from mappymatch.maps.nx.nx_map import NxMap
 from mappymatch.matchers.lcss.lcss import LCSSMatcher
@@ -34,7 +28,6 @@ from via import settings
 from via import logger
 from via.utils import window, get_combined_id
 from via.constants import (
-    POLY_POINT_BUFFER,
     VALID_JOURNEY_MIN_DISTANCE,
     VALID_JOURNEY_MIN_POINTS,
     VALID_JOURNEY_MIN_DURATION,
@@ -477,37 +470,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         }
 
     @property
-    def poly_graph(self):
-        """
-        Get a graph of the journey but excluding nodes far away from the route
-
-        :rtype: networkx.classes.multidigraph.MultiDiGraph
-        """
-
-        if network_cache.get("poly", self) is None:
-            logger.debug("poly > %s not found in cache, generating...", self.gps_hash)
-
-            # TODO: might want to not use polygon for this since we could
-            # get the benefits of using a parent bbox from the cache
-
-            # Maybe use city if possible and then truncate_graph_polygon
-            points = self.get_multi_points()
-
-            buf = points.buffer(POLY_POINT_BUFFER, cap_style=3)
-            boundary = gpd.GeoSeries(cascaded_union(buf))
-
-            network = ox.graph_from_polygon(
-                boundary.geometry[0], network_type=self.network_type, simplify=True
-            )
-
-            # TODO: might want to merge our edge_quality_data with
-            # edge data here
-
-            network_cache.set("poly", self, network)
-
-        return network_cache.get("poly", self)
-
-    @property
     def graph(self):
         """
         Get a graph of the journey but excluding nodes far away from the route
@@ -539,13 +501,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         if isinstance(self._version, version.Version):
             return self._version
         return version.parse(self._version)
-
-    @property
-    def region(self):
-        """
-        Get the region name in which this journey started
-        """
-        return self.origin.gps.reverse_geo["place_2"]
 
     @property
     def has_enough_data(self):

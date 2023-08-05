@@ -8,8 +8,6 @@ LOG_LOCATION = (
     else "/tmp/log/via/via.log"
 )
 
-POLY_POINT_BUFFER = 0.002
-
 USELESS_GEOJSON_PROPERTIES = {
     "oneway",
     "length",

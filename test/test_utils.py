@@ -22,14 +22,10 @@ from via.settings import (
 )
 
 from via.utils import (
-    get_slope,
     should_include_journey,
     window,
     iter_journeys,
-    flatten,
     get_journeys,
-    angle_between_slopes,
-    get_slope,
     filter_edges_from_geodataframe,
     filter_nodes_from_geodataframe,
     get_mongo_interface,
@@ -86,32 +82,6 @@ class UtilTest(TestCase):
         self.assertEqual(
             list(window([1, 2, 3, 4, 5], window_size=3)),
             [(1, 2, 3), (2, 3, 4), (3, 4, 5)],
-        )
-
-    def test_flatten(self):
-        self.assertEqual(flatten([[1, 2, 3], [1, 2]]), [1, 2, 3, 1, 2])
-
-    def test_angle_between_slopes(self):
-        self.assertEqual(angle_between_slopes(0, 1), 45)
-        self.assertEqual(angle_between_slopes(1, 0), -45)
-        self.assertEqual(angle_between_slopes(0, 1, ensure_positive=True), 45)
-        self.assertEqual(angle_between_slopes(1, 0, ensure_positive=True), 135)
-
-    def test_get_slope(self):
-        self.assertEqual(
-            get_slope(
-                GPSPoint(0, 0),
-                GPSPoint(1, 1),
-            ),
-            1,
-        )
-
-        self.assertEqual(
-            get_slope(
-                GPSPoint(1, 1),
-                GPSPoint(0, 0),
-            ),
-            1,
         )
 
     def test_filter_edges_from_geodataframe(self):

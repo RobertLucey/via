@@ -17,7 +17,6 @@ IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class NetworkCacheTest(TestCase):
-
     @skipUnless(not IS_ACTION, "action_mongo")
     def setUp(self):
         mongo_interface = get_mongo_interface()

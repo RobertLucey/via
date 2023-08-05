@@ -1,8 +1,7 @@
-import math
 import hashlib
 import os
 from functools import lru_cache, cache
-from itertools import islice, chain
+from itertools import islice
 from typing import Any, List, Tuple
 
 import pymongo
@@ -174,20 +173,6 @@ def get_combined_id(obj: Any, other_obj: Any) -> int:
     return hash(obj) + hash(other_obj)
 
 
-def flatten(lst: List) -> List[Any]:
-    """
-    Given a nested list, flatten it.
-
-    Usage:
-        >>> flatten([[1, 2, 3], [1, 2]])
-        [1, 2, 3, 1, 2]
-
-    :param lst: list to be flattened
-    :return: Flattened list
-    """
-    return list(chain.from_iterable(lst))
-
-
 def filter_nodes_from_geodataframe(
     nodes_dataframe: GeoDataFrame, nodes_to_keep: List[int]
 ) -> GeoDataFrame:
@@ -224,39 +209,6 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
                 logger.error("Could not update edge: %s %s", start, end)
 
     return graph
-
-
-def get_slope(origin: GPSPoint, dst: GPSPoint) -> float:
-    """
-
-    :param origin: A GPSPoint
-    :param dst: A GPSPoint
-    :rtype: float
-    """
-    return (origin.lng - dst.lng) / (origin.lat - dst.lat)
-
-
-def angle_between_slopes(
-    slope_1: float,
-    slope_2: float,
-    ensure_positive: bool = False,
-    absolute: bool = False,
-) -> float:
-    """
-
-    :param slope_1:
-    :param slope_2:
-    :kwargs ensure_positive: Ensure the result is always positive
-        Useful in comparisons where you don't care about direction
-        and want -45 to also equal 135 for example
-    """
-    degrees = math.degrees(math.atan((slope_2 - slope_1) / (1 + (slope_2 * slope_1))))
-    if absolute:
-        degrees = abs(degrees)
-    elif ensure_positive:
-        if degrees < 0:
-            degrees = 180 + degrees
-    return degrees
 
 
 def is_within(bbox: dict, potentially_larger_bbox: dict) -> bool:

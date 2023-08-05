@@ -1,5 +1,5 @@
 from typing import List, Optional, Union
-from fastapi import FastAPI, Query
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from pydantic import BaseModel

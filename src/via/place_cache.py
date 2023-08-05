@@ -15,6 +15,7 @@ class PlaceCache:
     """
 
     def __init__(self):
+        # TODO: store in mongo so we don't need to graph_from_place every run
         self.data = {
             "dublin ireland": {
                 "north": 53.626487,

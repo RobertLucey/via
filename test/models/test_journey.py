@@ -732,9 +732,6 @@ class JourneyTest(TestCase):
             },
         )
 
-    def test_country(self):
-        self.assertEqual(self.test_journey.country, "IE")
-
     def test_version(self):
         journey = Journey()
         self.assertEqual(journey.version, version.Version("0.0.0"))
@@ -742,24 +739,6 @@ class JourneyTest(TestCase):
         self.assertEqual(journey.version, version.Version("1.0.0"))
         journey._version = "1.0.0"
         self.assertEqual(journey.version, version.Version("1.0.0"))
-
-    def test_region(self):
-        data = [
-            {"time": 0, "acc": 1, "gps": {"lat": None, "lng": None}},
-            {"time": 1, "acc": 1, "gps": {"lat": None, "lng": None}},
-            {"time": 2, "acc": None, "gps": {"lat": 53.3498, "lng": -6.2603}},
-            {"time": 3, "acc": 1, "gps": {"lat": None, "lng": None}},
-            {"time": 4, "acc": 1, "gps": {"lat": None, "lng": None}},
-            {"time": 5, "acc": 1, "gps": {"lat": None, "lng": None}},
-            {"time": 6, "acc": 1, "gps": {"lat": None, "lng": None}},
-            {"time": 7, "acc": None, "gps": {"lat": 53.3498, "lng": -6.2603}},
-        ]
-
-        journey = Journey()
-        for dp in data:
-            journey.append(dp)
-
-        self.assertEqual(journey.region, "Leinster")
 
     def test_append(self):
         test_journey = Journey()

@@ -1,7 +1,5 @@
 import statistics
 import hashlib
-import multiprocessing
-from contextlib import closing
 from collections import defaultdict
 from typing import List
 
@@ -9,7 +7,6 @@ from networkx.classes.multidigraph import MultiDiGraph
 
 from via.models.generic import GenericObjects
 from via.models.journey import Journey
-from via.utils import flatten
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
@@ -43,12 +40,6 @@ class Journeys(
 
         :rtype: dict
         """
-
-        # with multiprocessing.Pool(min([multiprocessing.cpu_count() - 1, 4])) as pool:
-        #    journey_edge_quality_maps = pool.map(
-        #        get_journey_edge_quality_map,
-        #        self
-        #    )
 
         journey_edge_quality_maps = [get_journey_edge_quality_map(i) for i in self]
 

@@ -1,5 +1,4 @@
 import os
-import pkg_resources
 from packaging import version
 
 # TODO: data from DOWNLOAD_JOURNEYS_URL should give back the s3 region
@@ -21,9 +20,6 @@ MAX_JOURNEY_VERSION = version.parse(os.getenv("MAX_JOURNEY_VERSION", "999.999.99
 # Intervals are generally 2 seconds
 GPS_INCLUDE_RATIO = int(os.getenv("GPS_INCLUDE_RATIO", "2"))
 
-NEAREST_EDGE_METHOD = os.getenv("NEAREST_EDGE_METHOD", "angle_nearest")
-CLOSE_ANGLE_TO_ROAD = float(os.getenv("CLOSE_ANGLE_TO_ROAD", 20))
-
 DEFAULT_OVERPASS_API = os.getenv("DEFAULT_OVERPASS_API", "https://overpass-api.de/api")
 CUSTOM_OVERPASS_API = os.getenv("CUSTOM_OVERPASS_API", "http://54.73.95.15/api")
 
@@ -33,25 +29,15 @@ MAX_GEOJSON_AGE = (
     60 * 60
 )  # How long to cache served geojson files before generating again (using new data)
 
-VERSION = pkg_resources.require("via-api")[0].version
-
 if os.getenv("TEST_ENV", "False") == "True":
     MONGO_RAW_JOURNEYS_COLLECTION = "test_raw_journeys"
     MONGO_NETWORKS_COLLECTION = "test_networks"
     MONGO_PARSED_JOURNEYS_COLLECTION = "test_parsed_journeys"
     GRIDFS_NETWORK_FILENAME_PREFIX = "test_network"
     GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = "test_bounding_graph_gdfs_graph"
-    GRIDFS_UTILS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = (
-        "test_utils_bounding_graph_gdfs_graph"
-    )
-
-
 else:  # pragma: nocover
     MONGO_RAW_JOURNEYS_COLLECTION = "raw_journeys"
     MONGO_NETWORKS_COLLECTION = "networks"
     MONGO_PARSED_JOURNEYS_COLLECTION = "parsed_journeys"
     GRIDFS_NETWORK_FILENAME_PREFIX = "network"
     GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = "bounding_graph_gdfs_graph"
-    GRIDFS_UTILS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = (
-        "utils_bounding_graph_gdfs_graph"
-    )
