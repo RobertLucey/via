@@ -23,7 +23,7 @@ INSTALL_REQUIRES = (
 
 setup(
     name='via-api',
-    version='2.3.0',
+    version='2.4.0',
     python_requires='>=3.6',
     description='Analysing and serving crowdsourced road quality data',
     long_description='Analysing and serving crowdsourced road quality data',
