@@ -400,6 +400,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
     def write_mappy_path(self):
         mmap_file = Path(f"/tmp/{self.uuid}_matches_map.html")
+        trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
+        trace = Trace.from_dataframe(pandas.DataFrame(trace), True, 0, 1)
+        matcher = get_matcher_by_graph(self.bounding_graph)
+        match_result = matcher.match_trace(trace)
         mmap = plot_matches(match_result.matches)
         mmap.save(str(mmap_file))
 
