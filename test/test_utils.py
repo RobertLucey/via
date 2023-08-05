@@ -1,9 +1,16 @@
 import os
+import operator
 import time
 import json
+import datetime
+import re
+from packaging import version
 from shutil import copyfile, rmtree
 
 from unittest import TestCase, skip, skipUnless
+
+from networkx.classes.multidigraph import MultiDiGraph
+from gridfs import GridFS
 
 import geopandas
 
@@ -26,6 +33,7 @@ from via.utils import (
     filter_edges_from_geodataframe,
     filter_nodes_from_geodataframe,
     get_mongo_interface,
+    get_graph_id,
 )
 from via.models.gps import GPSPoint
 
@@ -34,6 +42,24 @@ IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class UtilTest(TestCase):
+    def setUp(self):
+        mongo_interface = get_mongo_interface()
+        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).drop()
+        getattr(mongo_interface, MONGO_NETWORKS_COLLECTION).drop()
+        getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).drop()
+        grid = GridFS(mongo_interface)
+        for i in grid.find({"filename": {"$regex": f'^{re.escape("test_")}'}}):
+            grid.delete(i._id)
+
+    def tearDown(self):
+        mongo_interface = get_mongo_interface()
+        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).drop()
+        getattr(mongo_interface, MONGO_NETWORKS_COLLECTION).drop()
+        getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).drop()
+        grid = GridFS(mongo_interface)
+        for i in grid.find({"filename": {"$regex": f'^{re.escape("test_")}'}}):
+            grid.delete(i._id)
+
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_journeys(self):
         with open("test/resources/raw_journey_data/1.json") as json_file:
@@ -62,14 +88,6 @@ class UtilTest(TestCase):
 
     def test_flatten(self):
         self.assertEqual(flatten([[1, 2, 3], [1, 2]]), [1, 2, 3, 1, 2])
-
-    @skip("todo")
-    def test_update_edge_data(self):
-        pass
-
-    @skip("todo")
-    def test_get_edge_angle(self):
-        pass
 
     def test_angle_between_slopes(self):
         self.assertEqual(angle_between_slopes(0, 1), 45)
@@ -168,3 +186,94 @@ class UtilTest(TestCase):
             ),
             [385708, 385713],
         )
+
+    def test_should_include_journey(self):
+        data = []
+        for i in range(1000):
+            if i % 5 == 0:
+                data.append(
+                    {"time": i, "acc": 1, "gps": {"lat": i / 100000, "lng": i / 100000}}
+                )
+            else:
+                data.append({"time": i, "acc": 1, "gps": {"lat": None, "lng": None}})
+
+        journey = Journey()
+        for dp in data:
+            journey.append(dp)
+
+        # control
+        self.assertTrue(should_include_journey(journey))
+
+        # version
+        journey._version = "1000.1.1"
+        self.assertFalse(
+            should_include_journey(
+                journey, version_op=operator.gt, version=version.parse("2.2.2")
+            )
+        )
+
+        # version_op
+        journey._version = "1.1.1"
+        self.assertFalse(
+            should_include_journey(
+                journey, version_op=operator.gt, version=version.parse("2.2.2")
+            )
+        )
+
+        # place
+        self.assertFalse(should_include_journey(journey, place="Paris, France"))
+
+        # earliest_time
+        journey._timestamp = "2023-01-01 00:00:00"
+        self.assertFalse(
+            should_include_journey(journey, earliest_time=datetime.datetime(2024, 1, 1))
+        )
+
+        # latest_time
+        self.assertFalse(
+            should_include_journey(journey, latest_time=datetime.datetime(2022, 1, 1))
+        )
+
+        # area
+        data = []
+        for i in range(1000):
+            if i % 5 == 0:
+                data.append(
+                    {"time": i, "acc": 1, "gps": {"lat": i / 1000, "lng": i / 1000}}
+                )
+            else:
+                data.append({"time": i, "acc": 1, "gps": {"lat": None, "lng": None}})
+
+        journey = Journey()
+        for dp in data:
+            journey.append(dp)
+
+        self.assertFalse(should_include_journey(journey))
+
+        # enough data
+        data = []
+        for i in range(100):
+            if i % 5 == 0:
+                data.append(
+                    {"time": i, "acc": 1, "gps": {"lat": i / 100000, "lng": i / 100000}}
+                )
+            else:
+                data.append({"time": i, "acc": 1, "gps": {"lat": None, "lng": None}})
+
+        journey = Journey()
+        for dp in data:
+            journey.append(dp)
+
+        self.assertFalse(should_include_journey(journey))
+
+    def test_get_graph_id(self):
+        self.assertEqual(
+            get_graph_id(MultiDiGraph()), "bcd8b0c2eb1fce714eab6cef0d771acc"
+        )
+
+        unreliable_id = get_graph_id(MultiDiGraph(), True)
+        self.assertEqual(unreliable_id, get_graph_id(MultiDiGraph(), True))
+
+    @skip("todo")
+    def test_update_edge_data(self):
+        pass

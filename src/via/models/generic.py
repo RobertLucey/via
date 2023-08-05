@@ -46,29 +46,11 @@ class GenericObjects:
             self.append(obj)
 
     def serialize(self) -> Iterable[Mapping[str, Any]]:
-        return [obj.serialize() for obj in self.data]
-
-    def reload(self) -> None:
-        """
-        Reload to get rid of object cached properties. This should be done on
-        any modifications to the data within any of the object's objects.
-        """
-        self._data = [
-            self.child_class(data=obj.data) for obj in self.data if len(obj.data) > 0
-        ]
-
-    def remove(self, obj: Any) -> None:
-        if not isinstance(obj, self.child_class):
-            raise TypeError("Bad type: %s" % (type(obj)))
-        self._data = [o for o in self._data if o.id != obj.id]
+        return [obj.serialize() for obj in self._data]
 
     @staticmethod
     def parse(objs):
         raise NotImplementedError()
-
-    @property
-    def data(self) -> Iterable[Any]:
-        return self._data
 
 
 class GenericObject:

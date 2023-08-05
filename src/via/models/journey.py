@@ -180,7 +180,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         # TODO: warn if not chronological
         if isinstance(obj, FramePoint):
             self._data.append(obj)
-        else:
+        elif isinstance(obj, (dict, Frame)):
             # Most datapoints are only accelerometer so we need to find the
             # closest point with gps in the past to add the accelerometer
             # data to
@@ -196,9 +196,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                     frame.gps = self.last_gps
                 self.gps_inclusion_iter += 1
             else:
-                if not hasattr(self, "last_gps"):
-                    return
-                if self.last_gps is None:
+                if not self.last_gps:
                     return
                 frame.gps = self.last_gps
 
@@ -238,6 +236,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                     self._data.append(
                         FramePoint(frame.time, frame.gps, frame.acceleration)
                     )
+        else:
+            raise NotImplementedError("Cannot append to journey of type: {type(obj)}")
 
     def get_indirect_distance(self, n_seconds: int = 0) -> float:
         """
@@ -317,7 +317,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
     def timestamp(self):
         if self._timestamp is None:
             # FIXME: We shouldn't need to do this but the ui always includes earliest / latest as a filter
-            return datetime.datetime(2021, 1, 1)
+            return datetime.datetime(1970, 1, 1)
         return parse(self._timestamp)
 
     @cached_property
@@ -528,10 +528,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         :rtype: version.Version
         """
+        if not self._version:
+            return version.parse("0.0.0")
         if isinstance(self._version, version.Version):
             return self._version
-        if isinstance(self._version, type(None)):
-            return version.parse("0.0.0")
         return version.parse(self._version)
 
     @property

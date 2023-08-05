@@ -11,46 +11,28 @@ from via.constants import USELESS_GEOJSON_PROPERTIES
 
 def parse_start_date(earliest_date: str) -> str:
     if earliest_date is None:
-        return "2021-01-01"
+        raise ValueError("earliest_date cannot be None")
 
     if isinstance(earliest_date, str):
         earliest_date = dateutil.parser.parse(earliest_date)
-
-    if isinstance(earliest_date, datetime.date):
+    elif isinstance(earliest_date, datetime.date):
         earliest_date = datetime.datetime.combine(
             earliest_date, datetime.datetime.min.time()
         )
-
-    if isinstance(earliest_date, datetime.datetime):
-        earliest_date = datetime.datetime.combine(
-            earliest_date.date(), datetime.datetime.min.time()
-        )
-
-        if earliest_date < datetime.datetime(2021, 1, 1):
-            earliest_date = datetime.datetime(2021, 1, 1)
 
     return str(earliest_date.date())
 
 
 def parse_end_date(latest_date: str) -> str:
     if latest_date is None:
-        return "2023-12-31"
+        raise ValueError("latest_date cannot be None")
 
     if isinstance(latest_date, str):
         latest_date = dateutil.parser.parse(latest_date)
-
-    if isinstance(latest_date, datetime.date):
+    elif isinstance(latest_date, datetime.date):
         latest_date = datetime.datetime.combine(
             latest_date, datetime.datetime.min.time()
         )
-
-    if isinstance(latest_date, datetime.datetime):
-        latest_date = datetime.datetime.combine(
-            latest_date.date(), datetime.datetime.min.time()
-        )
-
-        if latest_date > datetime.datetime(2023, 12, 31):
-            latest_date = datetime.datetime(2023, 12, 31)
 
     return str(latest_date.date())
 
@@ -85,11 +67,3 @@ def geojson_from_graph(graph, must_include_props: list = None) -> dict:
         ]
 
     return geojson_features
-
-
-def get_point(properties: dict = None, gps=None) -> dict:
-    return {
-        "type": "Feature",
-        "properties": properties if isinstance(properties, dict) else {},
-        "geometry": {"type": "Point", "coordinates": [gps.lng, gps.lat]},
-    }

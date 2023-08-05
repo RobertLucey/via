@@ -46,15 +46,14 @@ class FrameTest(TestCase):
 class FramesTest(TestCase):
     def setUp(self):
         self.frames = Frames()
-        self.frames.append(Frame(0.0, {"lat": 0.0, "lng": 1.0}, (1.0, 2.0, 3.0)))
+        self.frames.append(Frame(0.0, {"lat": 1.0, "lng": 1.0}, (1.0, 2.0, 3.0)))
         self.frames.append(Frame(1.0, {"lat": 2.0, "lng": 3.0}, (1.0, 2.0, 3.0)))
 
     def test_most_directional(self):
         self.assertEqual(self.frames.most_northern, 2)
-        self.assertEqual(self.frames.most_southern, 0)
+        self.assertEqual(self.frames.most_southern, 1)
         self.assertEqual(self.frames.most_eastern, 3)
         self.assertEqual(self.frames.most_western, 1)
 
-    @skip("todo")
-    def test_quality(self):
-        pass
+    def test_data_quality(self):
+        self.assertEqual(self.frames.data_quality, 1)

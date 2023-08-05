@@ -39,7 +39,7 @@ logger = logging.Logger("via", logging.DEBUG)
 
 os.makedirs(os.path.dirname(LOG_LOCATION), exist_ok=True)
 
-if os.getenv("LOKI_ENDPOINT"):
+if os.getenv("LOKI_ENDPOINT"):  # pragma: nocover
     handler = logging_loki.LokiHandler(
         url=os.getenv("LOKI_ENDPOINT"),
         tags={"application": "via"},

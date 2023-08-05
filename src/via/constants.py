@@ -10,15 +10,6 @@ LOG_LOCATION = (
 
 POLY_POINT_BUFFER = 0.002
 
-HIGHWAYS_TO_EXCLUDE = {
-    "footway",
-    "steps",
-    "corridor",
-    "sidewalk",
-    "crossing",
-    "driveway",
-}
-
 USELESS_GEOJSON_PROPERTIES = {
     "oneway",
     "length",
@@ -30,22 +21,6 @@ USELESS_GEOJSON_PROPERTIES = {
     "lanes",
     "ref",
     "access",
-}
-
-
-COUNTY_REGION_MAP = {
-    "carlow": "leinster",
-    "dublin": "leinster",
-    "kildare": "leinster",
-    "kilkenny": "leinster",
-    "laois": "leinster",
-    "longford": "leinster",
-    "louth": "leinster",
-    "meath": "leinster",
-    "offaly": "leinster",
-    "westmeath": "leinster",
-    "wexford": "leinster",
-    "wicklow": "leinster",
 }
 
 VALID_JOURNEY_MIN_DISTANCE = 250  # How far the journey must be

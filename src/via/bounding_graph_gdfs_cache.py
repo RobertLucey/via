@@ -6,6 +6,10 @@ from cachetools.func import ttl_cache
 from gridfs import GridFS
 
 from via.utils import get_mongo_interface
+from via.settings import (
+    GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX,
+    GRIDFS_UTILS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX,
+)
 
 
 class UtilsBoundingGraphGDFSGraphs:
@@ -13,15 +17,19 @@ class UtilsBoundingGraphGDFSGraphs:
         self.mongo_interface = get_mongo_interface()
         self.grid = GridFS(self.mongo_interface)
 
+    @staticmethod
+    def get_filename(key):
+        return f"{GRIDFS_UTILS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX}_{key}"
+
     @ttl_cache(maxsize=50, ttl=360)
-    def get_from_gridfs(self, filename):
-        return pickle.loads(self.grid.find_one({"filename": filename}).read())
+    def get_from_gridfs(self, key):
+        return pickle.loads(
+            self.grid.find_one({"filename": self.get_filename(key)}).read()
+        )
 
     def get(self, key: Any):
-        filename = f"utils_bounding_graph_gdfs_graph_{key}"
-
-        if self.grid.find_one({"filename": filename}):
-            return self.get_from_gridfs(filename)
+        if self.grid.find_one({"filename": get_filename(key)}):
+            return self.get_from_gridfs(key)
 
         return None
 
@@ -29,9 +37,7 @@ class UtilsBoundingGraphGDFSGraphs:
         if self.get(key):
             return
 
-        self.grid.put(
-            pickle.dumps(value), filename=f"utils_bounding_graph_gdfs_graph_{key}"
-        )
+        self.grid.put(pickle.dumps(value), filename=self.get_filename(key))
 
 
 class BoundingGraphGDFSGraphs:
@@ -39,15 +45,21 @@ class BoundingGraphGDFSGraphs:
         self.mongo_interface = get_mongo_interface()
         self.grid = GridFS(self.mongo_interface)
 
+    @staticmethod
+    def get_filename(key):
+        return f"{GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX}_{key}"
+
     @ttl_cache(maxsize=50, ttl=360)
-    def get_from_gridfs(self, filename):
-        return pickle.loads(self.grid.find_one({"filename": filename}).read())
+    def get_from_gridfs(self, key):
+        return pickle.loads(
+            self.grid.find_one({"filename": self.get_filename(key)}).read()
+        )
 
     def get(self, key: Any):
         filename = f"bounding_graph_gdfs_graph_{key}"
 
-        if self.grid.find_one({"filename": filename}):
-            return self.get_from_gridfs(filename)
+        if self.grid.find_one({"filename": self.get_filename(key)}):
+            return self.get_from_gridfs(key)
 
         return None
 
@@ -55,7 +67,7 @@ class BoundingGraphGDFSGraphs:
         if self.get(key):
             return
 
-        self.grid.put(pickle.dumps(value), filename=f"bounding_graph_gdfs_graph_{key}")
+        self.grid.put(pickle.dumps(value), filename=self.get_filename(key))
 
 
 bounding_graph_gdfs_cache = BoundingGraphGDFSGraphs()

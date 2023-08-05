@@ -7,7 +7,6 @@ from cached_property import cached_property
 from shapely.geometry import MultiPoint, Point
 
 from via import settings
-from via.constants import HIGHWAYS_TO_EXCLUDE
 from via import logger
 from via.place_cache import place_cache
 from via.models.generic import GenericObject, GenericObjects
@@ -43,18 +42,6 @@ class Context:
         Not all context but at least some on either side
         """
         return self.context_pre != [] and self.context_post != []
-
-    def serialize(self, include_time=True):
-        return {
-            "pre": [
-                p.serialize(include_time=include_time, include_context=False)
-                for p in self.context_pre
-            ],
-            "post": [
-                p.serialize(include_time=include_time, include_context=False)
-                for p in self.context_post
-            ],
-        }
 
 
 class FramePoint(Context, GenericObject):
@@ -136,9 +123,6 @@ class FramePoint(Context, GenericObject):
     def append_acceleration(self, acc):
         if self.slow:
             return
-        if isinstance(acc, list):
-            for item in acc:
-                self.append_acceleration(item)
         elif isinstance(acc, type(None)):
             return
         else:
@@ -197,7 +181,7 @@ class FramePoint(Context, GenericObject):
         Does the point contain all expected data
         """
         return (
-            isinstance(self.time, float)
+            isinstance(self.time, (float, int))
             and self.gps.is_populated
             and self.acceleration != []
         )
@@ -214,14 +198,7 @@ class FramePoint(Context, GenericObject):
             return 0
         if self.acceleration == []:
             return 0
-        try:
-            return int(numpy.mean(self.acceleration) * 100)
-        except TypeError:
-            logger.warning(
-                "Could not calculate road quality from: %s. Defauling to 0",
-                self.acceleration,
-            )
-            return 0
+        return int(numpy.mean(self.acceleration) * 100)
 
     def serialize(
         self, include_time: bool = True, include_context: bool = True

@@ -39,7 +39,19 @@ if os.getenv("TEST_ENV", "False") == "True":
     MONGO_RAW_JOURNEYS_COLLECTION = "test_raw_journeys"
     MONGO_NETWORKS_COLLECTION = "test_networks"
     MONGO_PARSED_JOURNEYS_COLLECTION = "test_parsed_journeys"
-else:
+    GRIDFS_NETWORK_FILENAME_PREFIX = "test_network"
+    GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = "test_bounding_graph_gdfs_graph"
+    GRIDFS_UTILS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = (
+        "test_utils_bounding_graph_gdfs_graph"
+    )
+
+
+else:  # pragma: nocover
     MONGO_RAW_JOURNEYS_COLLECTION = "raw_journeys"
     MONGO_NETWORKS_COLLECTION = "networks"
     MONGO_PARSED_JOURNEYS_COLLECTION = "parsed_journeys"
+    GRIDFS_NETWORK_FILENAME_PREFIX = "network"
+    GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = "bounding_graph_gdfs_graph"
+    GRIDFS_UTILS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = (
+        "utils_bounding_graph_gdfs_graph"
+    )

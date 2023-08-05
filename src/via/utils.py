@@ -253,7 +253,7 @@ def angle_between_slopes(
     degrees = math.degrees(math.atan((slope_2 - slope_1) / (1 + (slope_2 * slope_1))))
     if absolute:
         degrees = abs(degrees)
-    if ensure_positive:
+    elif ensure_positive:
         if degrees < 0:
             degrees = 180 + degrees
     return degrees

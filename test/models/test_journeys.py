@@ -62,3 +62,59 @@ class JourneysTest(TestCase):
     def test_edge_quality_map(self):
         self.assertGreater(len(self.test_journeys_single.edge_quality_map), 60)
         self.assertLess(len(self.test_journeys_single.edge_quality_map), 75)
+
+    def test_content_hash(self):
+        journeys = Journeys()
+
+        for i in range(3):
+            data = []
+            for i in range(1000):
+                if i % 5 == 0:
+                    data.append(
+                        {
+                            "time": i,
+                            "acc": 1,
+                            "gps": {"lat": i / 100000, "lng": i / 100000},
+                        }
+                    )
+                else:
+                    data.append(
+                        {"time": i, "acc": 1, "gps": {"lat": None, "lng": None}}
+                    )
+
+            journey = Journey()
+            for dp in data:
+                journey.append(dp)
+
+        self.assertEqual(journeys.content_hash, "d751713988987e9331980363e24189ce")
+
+    def test_extend(self):
+        journeys = Journeys()
+
+        journey_list = []
+        for i in range(3):
+            data = []
+            for j in range(1000):
+                if j % 5 == 0:
+                    data.append(
+                        {
+                            "time": j + i,
+                            "acc": 1,
+                            "gps": {"lat": j / 100000, "lng": j / 100000},
+                        }
+                    )
+                else:
+                    data.append(
+                        {"time": j, "acc": 1, "gps": {"lat": None, "lng": None}}
+                    )
+
+            journey = Journey()
+            for dp in data:
+                journey.append(dp)
+
+            journey_list.append(journey)
+
+        journeys.extend(journey_list)
+
+        self.assertEqual(len(journeys), 3)
+        self.assertEqual(len(set([j.content_hash for j in journeys])), 3)

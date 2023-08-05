@@ -50,10 +50,6 @@ class Frame(GenericObject):
             and self.acceleration != []
         )
 
-    @property
-    def road_quality(self) -> int:
-        return int(self.acceleration.quality * 100)
-
     def serialize(self, **kwargs) -> dict:
         data = {"gps": self.gps.serialize(), "acc": self.acceleration}
         if kwargs.get("include_time", True):

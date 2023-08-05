@@ -1,10 +1,12 @@
 import json
+from packaging import version
 
 from mock import patch
 from unittest import TestCase, skip
 
 from via.models.journey import Journey
 from via.models.frame import Frame
+from via.models.point import FramePoint
 
 
 class JourneyTest(TestCase):
@@ -732,3 +734,63 @@ class JourneyTest(TestCase):
 
     def test_country(self):
         self.assertEqual(self.test_journey.country, "IE")
+
+    def test_version(self):
+        journey = Journey()
+        self.assertEqual(journey.version, version.Version("0.0.0"))
+        journey._version = version.Version("1.0.0")
+        self.assertEqual(journey.version, version.Version("1.0.0"))
+        journey._version = "1.0.0"
+        self.assertEqual(journey.version, version.Version("1.0.0"))
+
+    def test_region(self):
+        data = [
+            {"time": 0, "acc": 1, "gps": {"lat": None, "lng": None}},
+            {"time": 1, "acc": 1, "gps": {"lat": None, "lng": None}},
+            {"time": 2, "acc": None, "gps": {"lat": 53.3498, "lng": -6.2603}},
+            {"time": 3, "acc": 1, "gps": {"lat": None, "lng": None}},
+            {"time": 4, "acc": 1, "gps": {"lat": None, "lng": None}},
+            {"time": 5, "acc": 1, "gps": {"lat": None, "lng": None}},
+            {"time": 6, "acc": 1, "gps": {"lat": None, "lng": None}},
+            {"time": 7, "acc": None, "gps": {"lat": 53.3498, "lng": -6.2603}},
+        ]
+
+        journey = Journey()
+        for dp in data:
+            journey.append(dp)
+
+        self.assertEqual(journey.region, "Leinster")
+
+    def test_append(self):
+        test_journey = Journey()
+        for d in self.test_data:
+            test_journey.append(
+                FramePoint(
+                    d["time"],
+                    {"lat": d["lat"], "lng": d["lng"]},
+                    1,  # acceleration, don't really care at the mo
+                )
+            )
+
+        self.assertTrue(len(test_journey._data), 78)
+
+    def test_append_weird_obj(self):
+        test_journey = Journey()
+        with self.assertRaises(NotImplementedError):
+            test_journey.append(123)
+
+    @skip("TODO")
+    def test_average_speed(self):
+        pass
+
+    @skip("TODO")
+    def test_timestamp(self):
+        pass
+
+    @skip("TODO")
+    def test_get_indirect_distance(self):
+        pass
+
+    @skip("TODO")
+    def test_write_mappy_path(self):
+        pass

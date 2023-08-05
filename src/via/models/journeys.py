@@ -127,13 +127,6 @@ class Journeys(
         ).hexdigest()
 
     @property
-    def all_points(self) -> List:
-        """
-        Return all the points in this journeys obj
-        """
-        return flatten([journey.all_points for journey in self._data])
-
-    @property
     def bbox(self):
         return {
             "north": self.most_northern,
@@ -141,7 +134,3 @@ class Journeys(
             "east": self.most_eastern,
             "west": self.most_western,
         }
-
-    @property
-    def regions(self):
-        return [journey.region for journey in self]

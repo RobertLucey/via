@@ -94,10 +94,21 @@ class FramePointTest(TestCase):
         pass
 
     def test_is_complete(self):
-        pass
+        frame_point = FramePoint.parse(
+            {"time": 10, "gps": {"lat": 1, "lng": 1}, "acc": [1, 2, 3, 4]}
+        )
+        self.assertTrue(frame_point.is_complete)
 
     def test_road_quality(self):
-        pass
+        frame_point = FramePoint.parse(
+            {"time": 10, "gps": {"lat": 1, "lng": 1}, "acc": [1, 2, 3, 4]}
+        )
+        self.assertEqual(frame_point.road_quality, 250)
+
+        frame_point = FramePoint.parse(
+            {"time": 10, "gps": {"lat": 1, "lng": 1}, "acc": []}
+        )
+        self.assertEqual(frame_point.road_quality, 0)
 
     def test_serialize(self):
         pass

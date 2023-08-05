@@ -7,9 +7,13 @@ from gridfs import GridFS
 from networkx.classes.multidigraph import MultiDiGraph
 
 from via import logger
-from via.settings import MONGO_NETWORKS_COLLECTION
+from via.settings import MONGO_NETWORKS_COLLECTION, GRIDFS_NETWORK_FILENAME_PREFIX
 from via.utils import is_within, get_graph_id, get_mongo_interface
 from via.place_cache import place_cache
+
+
+def get_filename(graph_id):
+    return f"{GRIDFS_NETWORK_FILENAME_PREFIX}_{graph_id}"
 
 
 class NetworkCache:
@@ -20,7 +24,7 @@ class NetworkCache:
     @ttl_cache(maxsize=50, ttl=360)
     def _get_from_mongo(self, graph_id: int) -> MultiDiGraph:
         return pickle.loads(
-            self.grid.find_one({"filename": f"network_{graph_id}"}).read()
+            self.grid.find_one({"filename": get_filename(graph_id)}).read()
         )
 
     def get_from_mongo(self, graph_id: int) -> MultiDiGraph:
@@ -30,7 +34,7 @@ class NetworkCache:
         :return:
         :rtype: MultiDiGraph
         """
-        result = self.grid.find_one({"filename": f"network_{graph_id}"})
+        result = self.grid.find_one({"filename": get_filename(graph_id)})
 
         if not result:
             return None
@@ -45,7 +49,7 @@ class NetworkCache:
         """
         graph_id = get_graph_id(network)
 
-        self.grid.put(pickle.dumps(network), filename=f"network_{graph_id}")
+        self.grid.put(pickle.dumps(network), filename=get_filename(graph_id))
 
         # bbox as coords rather than network as network bbox is smaller and wouldn't match when trying to get for a journey
         getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).insert_one(
@@ -100,7 +104,6 @@ class NetworkCache:
             )
 
             self.put_to_mongo(network, bbox)
-
             return network
 
         return None
