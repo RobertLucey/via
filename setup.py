@@ -34,8 +34,9 @@ setup(
     install_requires=INSTALL_REQUIRES,
     entry_points={
         'console_scripts': [
-            'pull_journeys = via.bin.pull_journeys:main',
-            'generate_geojson = via.bin.generate_geojson:main'
+            'via_pull_journeys = via.bin.pull_external_journeys:main',
+            'via_generate_geojson = via.bin.generate_geojson:main',
+            'via_backup_raw_journeys = via.bin.backup_raw_journeys:main'
         ]
     }
 )
