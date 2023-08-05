@@ -32,11 +32,7 @@ class Journeys(
         kwargs.setdefault("child_class", Journey)
         super().__init__(*args, **kwargs)
 
-        network_types = [journey.network_type for journey in self]
-        if len(set(network_types)) == 0 or len(set(network_types)) > 1:
-            self.network_type = "all"
-        elif len(set(network_types)) == 1:
-            self.network_type = network_types[0]
+        self.network_type = "bike"
 
     @property
     def edge_quality_map(self):

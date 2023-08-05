@@ -62,7 +62,7 @@ class PlaceCache:
         try:
             return self.data[place_name]
         except KeyError:
-            place_graph = ox.graph_from_place(place_name, network_type="all")
+            place_graph = ox.graph_from_place(place_name, network_type="bike")
 
             lats = []
             lngs = []
