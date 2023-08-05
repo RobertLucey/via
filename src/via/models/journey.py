@@ -196,6 +196,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                     frame.gps = self.last_gps
                 self.gps_inclusion_iter += 1
             else:
+                if not hasattr(self, "last_gps"):
+                    return
                 if not self.last_gps:
                     return
                 frame.gps = self.last_gps
