@@ -366,7 +366,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         # This takes a long time, cache it more
         matcher = get_matcher_by_graph(self.bounding_graph)
 
-
         match_result = matcher.match_trace(trace)
 
         data = defaultdict(list)
