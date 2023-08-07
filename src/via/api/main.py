@@ -1,4 +1,6 @@
+import threading
 from typing import List, Optional, Union
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -123,3 +125,17 @@ async def get_all_journeys(
             )
 
     return data
+
+
+def start_geojson_generate(first_run):
+    from via.geojson import generate
+
+    threading.Timer(60 * 60 * 6, start_geojson_generate, False).start()
+    if not first_run:
+        # Don't do on startup
+        generate.generate_geojson(
+            "bike",
+        )
+
+
+threading.Thread(target=start_geojson_generate, args=(True)).start()
