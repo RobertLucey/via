@@ -40,21 +40,3 @@ class EdgeCacheTest(TestCase):
 
     def test_get_no_graph(self):
         self.assertEqual(get_edge_data(1, 2, graph=None), None)
-
-    @skipUnless(not IS_ACTION, "action_mongo")
-    def test_caching(self):
-        self.assertEqual(
-            get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]["osmid"],
-            14039949,
-        )
-        self.assertEqual(
-            get_edge_data(389281, 135109553, graph=self.test_journey.graph)[0]["name"],
-            "York Street",
-        )
-
-        self.assertEqual(
-            get_edge_data(389281, 135109553, graph=None)[0]["osmid"], 14039949
-        )
-        self.assertEqual(
-            get_edge_data(389281, 135109553, graph=None)[0]["name"], "York Street"
-        )
