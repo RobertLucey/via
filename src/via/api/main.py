@@ -130,7 +130,7 @@ async def get_all_journeys(
 def start_geojson_generate(first_run):
     from via.geojson import generate
 
-    threading.Timer(60 * 60 * 6, start_geojson_generate, False).start()
+    threading.Timer(5, start_geojson_generate, (False,)).start()
     if not first_run:
         # Don't do on startup
         generate.generate_geojson(
@@ -138,4 +138,4 @@ def start_geojson_generate(first_run):
         )
 
 
-threading.Thread(target=start_geojson_generate, args=(True)).start()
+threading.Thread(target=start_geojson_generate, args=(True,)).start()
