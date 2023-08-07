@@ -9,7 +9,6 @@ INSTALL_REQUIRES = (
     'reverse_geocoder',
     'haversine',
     'osmnx',
-    'scikit-learn',
     'requests',
     'geopandas',
     'python-logging-loki',
