@@ -37,7 +37,6 @@ from via.models.point import FramePoint, FramePoints
 from via.models.frame import Frame
 from via.edge_cache import get_edge_data
 from via.network_cache import network_cache
-from via.nx_cache import nx_cache
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
