@@ -21,7 +21,7 @@ MAX_JOURNEY_VERSION = version.parse(os.getenv("MAX_JOURNEY_VERSION", "999.999.99
 GPS_INCLUDE_RATIO = int(os.getenv("GPS_INCLUDE_RATIO", "2"))
 
 DEFAULT_OVERPASS_API = os.getenv("DEFAULT_OVERPASS_API", "https://overpass-api.de/api")
-CUSTOM_OVERPASS_API = os.getenv("CUSTOM_OVERPASS_API", "http://54.73.95.15/api")
+CUSTOM_OVERPASS_API = os.getenv("CUSTOM_OVERPASS_API", None)
 
 MAX_JOURNEY_METRES_SQUARED = 5e7  # 50km^2
 
