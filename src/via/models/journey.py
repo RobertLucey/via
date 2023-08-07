@@ -1,13 +1,13 @@
 import datetime
 import statistics
 from pathlib import Path
-
 from functools import cache
 from collections import defaultdict
 from packaging import version
 
 from dateutil.parser import parse
 
+from cachetools.func import ttl_cache
 from cached_property import cached_property
 
 import networkx as nx
@@ -26,7 +26,7 @@ import pandas
 
 from via import settings
 from via import logger
-from via.utils import window, get_combined_id
+from via.utils import window, get_combined_id, get_graph_id
 from via.constants import (
     VALID_JOURNEY_MIN_DISTANCE,
     VALID_JOURNEY_MIN_POINTS,
@@ -37,6 +37,7 @@ from via.models.point import FramePoint, FramePoints
 from via.models.frame import Frame
 from via.edge_cache import get_edge_data
 from via.network_cache import network_cache
+from via.nx_cache import nx_cache
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     GeoJsonMixin,
@@ -44,15 +45,16 @@ from via.models.journey_mixins import (
 )
 
 
-@cache
+@ttl_cache(maxsize=25, ttl=60 * 60)
 def get_nxmap(bounding_graph):
     return NxMap(parse_osmnx_graph(bounding_graph, NetworkType.BIKE))
 
 
-@cache
+@ttl_cache(maxsize=25, ttl=60 * 60)
 def get_matcher_by_graph(bounding_graph):
+    nx_map = get_nxmap(bounding_graph)
     return LCSSMatcher(
-        get_nxmap(bounding_graph),
+        nx_map,
         distance_epsilon=50.0,
         similarity_cutoff=0.5,
         cutting_threshold=5.0,  # not too sure what this does
@@ -365,6 +367,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         # This takes a long time, cache it more
         matcher = get_matcher_by_graph(self.bounding_graph)
 
+
         match_result = matcher.match_trace(trace)
 
         data = defaultdict(list)
@@ -391,14 +394,21 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         return data
 
-    def write_mappy_path(self):
-        mmap_file = Path(f"/tmp/{self.uuid}_matches_map.html")
+    def write_mappy_path(self, filepath=None):
+        """
+        Save the mappymatch path. Useful for debugging weird paths.
+
+        :kwarg filepath: Optional filepath to save to, /tmp/{self.uuid}_matches_map.html if not specified
+        """
+        filepath = f"/tmp/{self.uuid}_matches_map.html" if not filepath else filepath
+        mmap_file = Path(filepath)
         trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
         trace = Trace.from_dataframe(pandas.DataFrame(trace), True, 0, 1)
         matcher = get_matcher_by_graph(self.bounding_graph)
         match_result = matcher.match_trace(trace)
         mmap = plot_matches(match_result.matches)
         mmap.save(str(mmap_file))
+        logger.debug("Saved mappymatch path to: %s", filepath)
 
     @cached_property
     def route_graph(self):

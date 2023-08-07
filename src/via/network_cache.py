@@ -21,7 +21,7 @@ class NetworkCache:
         self.mongo_interface = get_mongo_interface()
         self.grid = GridFS(self.mongo_interface)
 
-    @ttl_cache(maxsize=50, ttl=360)
+    @ttl_cache(maxsize=50, ttl=60 * 60)
     def _get_from_mongo(self, graph_id: int) -> MultiDiGraph:
         return pickle.loads(
             self.grid.find_one({"filename": get_filename(graph_id)}).read()
@@ -87,8 +87,6 @@ class NetworkCache:
             logger.debug(
                 "%s: Using a larger network rather than generating", journey.gps_hash
             )
-            # selection = sorted(candidates, key=lambda x: area_from_coords(x[1]))[0]
-
             return self.get_from_mongo(candidates[0][0])
 
         if place_cache.get_by_bbox(journey.bbox) is not None:

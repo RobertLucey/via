@@ -18,7 +18,7 @@ class BoundingGraphGDFSGraphs:
     def get_filename(key):
         return f"{GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX}_{key}"
 
-    @ttl_cache(maxsize=50, ttl=360)
+    @ttl_cache(maxsize=50, ttl=60 * 60)
     def get_from_gridfs(self, key):
         return pickle.loads(
             self.grid.find_one({"filename": self.get_filename(key)}).read()
