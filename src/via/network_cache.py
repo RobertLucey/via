@@ -117,7 +117,13 @@ class NetworkCache:
         graph_id = get_graph_id(network)
 
         if not getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find_one(
-            {"graph_id": graph_id}
+            {
+                "graph_id": graph_id,
+                "insert_time": {
+                    "$gt": datetime.datetime.utcnow().timestamp()
+                    - 60 * 60 * 12  # TODO: to config
+                },
+            }
         ):
             self.put_to_mongo(network, bbox)
 
