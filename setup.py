@@ -12,7 +12,6 @@ INSTALL_REQUIRES = (
     'requests',
     'geopandas',
     'python-logging-loki',
-    'rtree',
     'fastapi[all]',
     'pydantic',
     'pymongo',
