@@ -1,8 +1,6 @@
 import os
 from packaging import version
 
-# TODO: data from DOWNLOAD_JOURNEYS_URL should give back the s3 region
-
 MIN_ACC_SCORE = float(os.getenv("MIN_ACC_SCORE", "0.001"))
 MIN_PER_JOURNEY_USAGE = float(os.getenv("MIN_PER_JOURNEY_USAGE", "1"))
 MIN_METRES_PER_SECOND = float(
