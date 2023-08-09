@@ -10,6 +10,9 @@ MAX_METRES_PER_SECOND = float(
     os.getenv("MAX_METRES_PER_SECOND", "10000")
 )  # Arbitrarily high, will figure out a reasonable number at some point
 
+# The minimum number of edges to a valid journey
+MIN_EDGES_PER_JOURNEY = 5
+
 MIN_JOURNEY_VERSION = version.parse(os.getenv("MIN_JOURNEY_VERSION", "0.0.0"))
 MAX_JOURNEY_VERSION = version.parse(os.getenv("MAX_JOURNEY_VERSION", "999.999.999"))
 

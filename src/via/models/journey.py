@@ -387,7 +387,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
             data[get_combined_id(edge[0][0], edge[0][1])].append(our_edge_data)
 
-        if len(data) < 5:  # TODO: to config
+        if len(data) < settings.MIN_EDGES_PER_JOURNEY:
             return defaultdict(list)
 
         return data
