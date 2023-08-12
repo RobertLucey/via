@@ -54,11 +54,6 @@ def get_matcher_by_graph(bounding_graph):
     nx_map = get_nxmap(bounding_graph)
     return LCSSMatcher(
         nx_map,
-        distance_epsilon=50.0,
-        similarity_cutoff=0.5,
-        cutting_threshold=5.0,  # not too sure what this does
-        random_cuts=0,
-        distance_threshold=100,  # default 10000
     )
 
 
