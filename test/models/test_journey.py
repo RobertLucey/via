@@ -13,6 +13,8 @@ from via.models.point import FramePoint
 
 from ..utils import wipe_mongo
 
+IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
+
 
 class JourneyTest(TestCase):
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
@@ -812,6 +814,7 @@ class JourneyTest(TestCase):
             },
         )
 
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_write_mappy_path(self):
         test_data = None
         with open("test/resources/just_route.json") as json_file:
@@ -860,6 +863,7 @@ class JourneyTest(TestCase):
         )
         self.assertEqual(int(test_journey.get_indirect_distance()), int(3145))
 
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_geojson(self):
         geo = self.test_journey.geojson
         streets = set(
