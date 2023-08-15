@@ -19,7 +19,7 @@ MAX_JOURNEY_VERSION = version.parse(os.getenv("MAX_JOURNEY_VERSION", "999.999.99
 # How often to skip gps points, smooths things out a bit more
 # 1 includes all, 3 includes every 3rd etc
 # Intervals are generally 2 seconds
-GPS_INCLUDE_RATIO = int(os.getenv("GPS_INCLUDE_RATIO", "2"))
+GPS_INCLUDE_RATIO = int(os.getenv("GPS_INCLUDE_RATIO", "1"))
 
 DEFAULT_OVERPASS_API = os.getenv("DEFAULT_OVERPASS_API", "https://overpass-api.de/api")
 CUSTOM_OVERPASS_API = os.getenv("CUSTOM_OVERPASS_API", None)

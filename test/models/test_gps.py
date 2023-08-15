@@ -1,9 +1,17 @@
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 
 from via.models.gps import GPSPoint
 
+from ..utils import wipe_mongo
+
 
 class GPSPointTest(TestCase):
+    def setUp(self):
+        wipe_mongo()
+
+    def tearDown(self):
+        wipe_mongo()
+
     def test_parse(self):
         self.assertEqual(
             GPSPoint.parse([1, 2]).serialize(), {"lat": 1, "lng": 2, "elevation": None}

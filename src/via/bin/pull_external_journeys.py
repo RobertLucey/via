@@ -33,7 +33,6 @@ def main():
             Journey(
                 uuid=journey_data["uuid"],
                 data=journey_data["data"],
-                is_culled=True,
                 transport_type=journey_data["transport_type"],
                 suspension=journey_data["suspension"],
                 version=journey_data["version"],

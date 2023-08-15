@@ -1,23 +1,62 @@
 import os
+import datetime
 
 from unittest import TestCase, skip, skipUnless
 
+from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
 from via.geojson.retrieve import get_geojson
+from via.utils import get_mongo_interface
 
+from ..utils import wipe_mongo
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class GeoJsonRetrieveTest(TestCase):
+    def setUp(self):
+        wipe_mongo()
+
+    def tearDown(self):
+        wipe_mongo()
+
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_not_exist(self):
         with self.assertRaises(FileNotFoundError):
             get_geojson("blahblah")
 
-    @skip("todo")
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_does_exist_too_old(self):
-        pass
+        with self.assertRaises(FileNotFoundError):
+            data = {
+                "journey_type": "bike",
+                "geojson_version": "0.1.1",
+                "geojson_version_op": None,
+                "geojson_earliest_time": "2020-01-01",
+                "geojson_latest_time": "2023-01-01",
+                "geojson_place": None,
+                "save_time": (
+                    datetime.datetime.utcnow() - datetime.timedelta(days=365 * 10)
+                ).timestamp(),
+            }
+            getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(
+                data
+            )
+            get_geojson("bike")
 
-    @skip("todo")
+    @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_does_exist_good_age(self):
-        pass
+        data = {
+            "journey_type": "bike",
+            "geojson_version": "0.1.1",
+            "geojson_version_op": None,
+            "geojson_earliest_time": "2020-01-01",
+            "geojson_latest_time": "2023-01-01",
+            "geojson_place": None,
+            "save_time": (
+                datetime.datetime.utcnow() - datetime.timedelta(minutes=10)
+            ).timestamp(),
+        }
+        getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(
+            data
+        )
+        self.assertIsNotNone(get_geojson("bike"))

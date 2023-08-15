@@ -1,9 +1,17 @@
-from unittest import TestCase, skip
+from unittest import TestCase, skip, skipUnless
 
 from via.models.frame import Frame
 
+from ..utils import wipe_mongo
+
 
 class FrameTest(TestCase):
+    def setUp(self):
+        wipe_mongo()
+
+    def tearDown(self):
+        wipe_mongo()
+
     def test_lat(self):
         self.assertEqual(Frame(0.0, {"lat": 0.0, "lng": 1.0}, 1.0).gps.lat, 0)
 

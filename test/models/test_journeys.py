@@ -8,6 +8,7 @@ from via.models.journey import Journey
 from via.models.journeys import Journeys
 from via.models.frame import Frame
 
+from ..utils import wipe_mongo
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
@@ -16,6 +17,8 @@ class JourneysTest(TestCase):
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
     def setUp(self):
+        wipe_mongo()
+
         with open("test/resources/just_route.json") as json_file:
             self.test_data = json.load(json_file)
 
@@ -49,19 +52,21 @@ class JourneysTest(TestCase):
         self.test_journeys.append(self.test_journey)
         self.test_journeys.append(self.test_journey)
 
+    def tearDown(self):
+        wipe_mongo()
+
     def test_most_whatever(self):
         self.assertEqual(self.test_journeys.most_northern, 53.3588887)
         self.assertEqual(self.test_journeys.most_southern, 53.332599)
         self.assertEqual(self.test_journeys.most_eastern, -6.2523619)
         self.assertEqual(self.test_journeys.most_western, -6.2661022)
 
-    @skip("Not great from mappymatch")
     @skipUnless(not IS_ACTION, "action_mongo")
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
     def test_edge_quality_map(self):
-        self.assertGreater(len(self.test_journeys_single.edge_quality_map), 60)
-        self.assertLess(len(self.test_journeys_single.edge_quality_map), 75)
+        self.assertGreater(len(self.test_journeys_single.edge_quality_map), 55)
+        self.assertLess(len(self.test_journeys_single.edge_quality_map), 70)
 
     def test_content_hash(self):
         journeys = Journeys()

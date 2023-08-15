@@ -3,7 +3,7 @@
 
 from typing import Mapping
 
-import osmnx as ox
+import osmnx
 
 from via.utils import is_within
 
@@ -63,7 +63,7 @@ class PlaceCache:
         try:
             return self.data[place_name]
         except KeyError:
-            place_graph = ox.graph_from_place(place_name, network_type="bike")
+            place_graph = osmnx.graph_from_place(place_name, network_type="bike")
 
             lats = []
             lngs = []

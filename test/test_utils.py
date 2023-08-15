@@ -3,23 +3,18 @@ import operator
 import time
 import json
 import datetime
-import re
+import pickle
 from packaging import version
 from shutil import copyfile, rmtree
 
 from unittest import TestCase, skip, skipUnless
 
 from networkx.classes.multidigraph import MultiDiGraph
-from gridfs import GridFS
 
 import geopandas
 
 from via.models.journey import Journey
-from via.settings import (
-    MONGO_RAW_JOURNEYS_COLLECTION,
-    MONGO_NETWORKS_COLLECTION,
-    MONGO_PARSED_JOURNEYS_COLLECTION,
-)
+from via.settings import MONGO_RAW_JOURNEYS_COLLECTION
 
 from via.utils import (
     should_include_journey,
@@ -30,33 +25,23 @@ from via.utils import (
     filter_nodes_from_geodataframe,
     get_mongo_interface,
     get_graph_id,
+    get_combined_id,
+    update_edge_data,
 )
 from via.models.gps import GPSPoint
+
+from .utils import wipe_mongo
 
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class UtilTest(TestCase):
-    @skipUnless(not IS_ACTION, "action_mongo")
     def setUp(self):
-        mongo_interface = get_mongo_interface()
-        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).drop()
-        getattr(mongo_interface, MONGO_NETWORKS_COLLECTION).drop()
-        getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).drop()
-        grid = GridFS(mongo_interface)
-        for i in grid.find({"filename": {"$regex": f'^{re.escape("test_")}'}}):
-            grid.delete(i._id)
+        wipe_mongo()
 
-    @skipUnless(not IS_ACTION, "action_mongo")
     def tearDown(self):
-        mongo_interface = get_mongo_interface()
-        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).drop()
-        getattr(mongo_interface, MONGO_NETWORKS_COLLECTION).drop()
-        getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).drop()
-        grid = GridFS(mongo_interface)
-        for i in grid.find({"filename": {"$regex": f'^{re.escape("test_")}'}}):
-            grid.delete(i._id)
+        wipe_mongo()
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_journeys(self):
@@ -65,9 +50,6 @@ class UtilTest(TestCase):
                 json.loads(json_file.read())
             )
         self.assertEqual(len(get_journeys()), 1)
-        getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).drop()
-        getattr(get_mongo_interface(), MONGO_NETWORKS_COLLECTION).drop()
-        getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).drop()
 
     def test_window(self):
         self.assertEqual(
@@ -246,6 +228,32 @@ class UtilTest(TestCase):
         unreliable_id = get_graph_id(MultiDiGraph(), True)
         self.assertEqual(unreliable_id, get_graph_id(MultiDiGraph(), True))
 
-    @skip("todo")
     def test_update_edge_data(self):
-        pass
+        cork = None
+        with open("test/resources/cork_graph.pickle", "rb") as f:
+            cork = pickle.load(f)
+
+        # for start, end, _ in cork.edges:
+        #    print(get_combined_id(start, end))
+
+        edge_data_map = {
+            "combined_edge_id": {"some": "data"},
+            16262647295: {"custom1": 1},
+            16262647192: {"custom1": 2},
+        }
+
+        update_edge_data(cork, edge_data_map)
+
+        vals = []
+        for start, end, _ in cork.edges:
+            if set(edge_data_map.keys()).intersection(
+                set([get_combined_id(start, end)])
+            ):
+                self.assertTrue("custom1" in cork.get_edge_data(start, end)[0])
+                vals.append(cork.get_edge_data(start, end)[0]["custom1"])
+            else:
+                self.assertFalse("custom1" in cork.get_edge_data(start, end)[0])
+                self.assertFalse("custom1" in cork.get_edge_data(start, end)[0])
+                self.assertFalse("custom1" in cork.get_edge_data(start, end)[0])
+
+        self.assertEqual(sorted(vals), [1, 1, 2, 2])

@@ -1,18 +1,25 @@
+import datetime
 import json
+import os
 from packaging import version
 
 from mock import patch
-from unittest import TestCase, skip
+from unittest import TestCase, skip, skipUnless
 
+from via.utils import get_combined_id
 from via.models.journey import Journey
 from via.models.frame import Frame
 from via.models.point import FramePoint
+
+from ..utils import wipe_mongo
 
 
 class JourneyTest(TestCase):
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
     def setUp(self):
+        wipe_mongo()
+
         with open("test/resources/just_route.json") as json_file:
             self.test_data = json.load(json_file)
 
@@ -26,6 +33,9 @@ class JourneyTest(TestCase):
                 )
             )
         self.test_journey.set_contexts()
+
+    def tearDown(self):
+        wipe_mongo()
 
     def test_set_contexts(self):
         self.assertEqual(
@@ -618,9 +628,10 @@ class JourneyTest(TestCase):
         #    0.0
         # )
 
+    @patch("via.models.journey.Journey.__len__", return_value=100)
     @patch("via.models.journey.Journey.get_indirect_distance", return_value=1000)
     @patch("via.models.journey.Journey.duration", 10)
-    def test_get_avg_speed(self, mock_get_indirect_distance):
+    def test_get_avg_speed(self, mock_get_indirect_distance, mock_journey_len):
         journey = Journey()
         self.assertEqual(journey.get_avg_speed(), 100)
 
@@ -665,11 +676,6 @@ class JourneyTest(TestCase):
 
         with self.assertRaises(NotImplementedError):
             Journey.parse(None)
-
-    @skip("todo")
-    def test_edge_quality_map(self):
-        # TODO: need to have real data / not random data for the road quality
-        pass
 
     @patch("via.settings.MIN_METRES_PER_SECOND", 0)
     @patch("via.settings.GPS_INCLUDE_RATIO", 1)
@@ -717,8 +723,6 @@ class JourneyTest(TestCase):
                 ],
                 "transport_type": "unknown",
                 "suspension": None,
-                "is_culled": False,
-                "is_sent": False,
                 "direct_distance": 24860.633301979688,
                 "indirect_distance": {
                     1: 24860.633301979688,
@@ -758,18 +762,113 @@ class JourneyTest(TestCase):
         with self.assertRaises(NotImplementedError):
             test_journey.append(123)
 
-    @skip("TODO")
-    def test_average_speed(self):
-        pass
+    def test_average_speed_too_little_data(self):
+        test_journey = Journey()
+        with self.assertRaises(ValueError):
+            test_journey.get_avg_speed()
 
-    @skip("TODO")
-    def test_timestamp(self):
-        pass
+    def test_average_speed_good(self):
+        test_journey = Journey()
 
-    @skip("TODO")
-    def test_get_indirect_distance(self):
-        pass
+        for i in range(10):
+            test_journey.append(
+                FramePoint(
+                    i * 20,
+                    {"lat": i, "lng": 0},
+                    1,  # acceleration, don't really care at the mo
+                )
+            )
+        self.assertEqual(int(test_journey.get_avg_speed()), 4942)
 
-    @skip("TODO")
+    def test_timestamp_none(self):
+        test_journey = Journey()
+        self.assertEqual(test_journey.timestamp, None)
+
+    def test_timestamp_valid_str(self):
+        test_journey = Journey(timestamp="2023-01-01")
+        self.assertEqual(test_journey.timestamp, datetime.datetime(2023, 1, 1, 0, 0))
+
+    def test_timestamp_valid_dt(self):
+        test_journey = Journey(timestamp=datetime.datetime(2023, 1, 1, 0, 0))
+        self.assertEqual(test_journey.timestamp, datetime.datetime(2023, 1, 1, 0, 0))
+
+    @patch(
+        "via.models.journey.Journey.edge_data",
+        {
+            get_combined_id(1, 2): [
+                {"avg_road_quality": 1, "speed": 1},
+                {"avg_road_quality": 3, "speed": 1},
+            ],
+            get_combined_id(2, 2): [{"avg_road_quality": 1, "speed": 1}],
+        },
+    )
+    def test_edge_quality_map(self):
+        test_journey = Journey()
+        self.assertEqual(
+            test_journey.edge_quality_map,
+            {
+                3: {"avg": 2, "count": 2, "speed": 1},
+                4: {"avg": 1, "count": 1, "speed": 1},
+            },
+        )
+
     def test_write_mappy_path(self):
-        pass
+        test_data = None
+        with open("test/resources/just_route.json") as json_file:
+            test_data = json.load(json_file)
+
+        test_journey = Journey()
+        for d in self.test_data:
+            test_journey.append(
+                Frame(
+                    d["time"] / 20,
+                    {"lat": d["lat"], "lng": d["lng"]},
+                    1,  # acceleration, don't really care at the mo
+                )
+            )
+
+        mappy_path = "/tmp/test_mappy.html"
+
+        test_journey.write_mappy_path(mappy_path)
+        self.assertTrue(os.path.exists(mappy_path))
+        self.assertGreater(os.path.getsize(mappy_path), 0)
+        # TODO: better checks
+
+    def test_get_indirect_distance(self):
+        # go somewhere and back, istance should be 2 times the going over
+        test_journey = Journey()
+        test_journey.append(
+            Frame(
+                0,
+                {"lat": 0.01, "lng": 0.01},
+                1,
+            )
+        )
+        test_journey.append(
+            Frame(
+                10,
+                {"lat": 0.02, "lng": 0.02},
+                1,
+            )
+        )
+        test_journey.append(
+            Frame(
+                20,
+                {"lat": 0.01, "lng": 0.01},
+                1,
+            )
+        )
+        self.assertEqual(int(test_journey.get_indirect_distance()), int(3145))
+
+    def test_geojson(self):
+        geo = self.test_journey.geojson
+        streets = set(
+            [
+                d["properties"].get("name", None)
+                for d in geo["features"]
+                if isinstance(d["properties"].get("name", None), str)
+            ]
+        )
+        self.assertTrue("O'Connell Bridge" in streets)
+
+        # Additional ones   {'Digges Street Upper', 'Mountjoy Square East', 'Cope Street', 'Charlotte Way', 'Crampton Quay', 'Cuffe Street', 'Crown Alley', 'Mountjoy Square South', "South Great George's Street", 'Wexford Street', 'Redmonds Hill', 'Great Charles Street', "Asdill's Row", 'Temple Bar', 'Parnell Street', 'Camden Street Lower', 'Aston Quay', 'Aungier Street', "O'Connell Street Upper", 'Gardiner Street Middle', "O'Connell Street Lower", 'Fownes Street Upper', 'Dame Street', "Saint Margaret's Avenue"}

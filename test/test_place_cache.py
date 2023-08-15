@@ -1,9 +1,11 @@
 import pickle
 
-from unittest import TestCase
+from unittest import TestCase, skipUnless
 from mock import patch
 
 from via.place_cache import PlaceCache
+
+from .utils import wipe_mongo
 
 
 def get_cork(*args, **kwargs):
@@ -12,6 +14,12 @@ def get_cork(*args, **kwargs):
 
 
 class PlaceCacheTest(TestCase):
+    def setUp(self):
+        wipe_mongo()
+
+    def tearDown(self):
+        wipe_mongo()
+
     @patch("osmnx.graph_from_place", get_cork)
     def test_get(self):
         # might want to mock ox.graph_from_place to get from wherever in test resources

@@ -199,7 +199,6 @@ def update_edge_data(graph: MultiDiGraph, edge_data_map: dict) -> MultiDiGraph:
 
     # TODO: if fewer items in edge_data_map loop over that
     # rather than graph.edges
-
     for start, end, _ in graph.edges:
         graph_edge_id = get_combined_id(start, end)
         if graph_edge_id in edge_data_map:

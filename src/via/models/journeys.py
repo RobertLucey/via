@@ -5,11 +5,12 @@ from typing import List
 
 from networkx.classes.multidigraph import MultiDiGraph
 
+from via import logger
+from via.geojson.utils import geojson_from_graph
 from via.models.generic import GenericObjects
 from via.models.journey import Journey
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
-    GeoJsonMixin,
     BoundingGraphMixin,
 )
 
@@ -22,9 +23,7 @@ def get_journey_edge_quality_map(journey):
     return dict(edge_quality_map)
 
 
-class Journeys(
-    GenericObjects, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin
-):
+class Journeys(GenericObjects, SnappedRouteGraphMixin, BoundingGraphMixin):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("child_class", Journey)
         super().__init__(*args, **kwargs)
@@ -114,6 +113,14 @@ class Journeys(
         ).hexdigest()
 
     @property
+    def used_combined_edges(self):
+        # used for getting snapped journey route graph
+        used_combined_edges = []
+        for journey in self:
+            used_combined_edges.extend(list(journey.edge_data.keys()))
+        return used_combined_edges
+
+    @property
     def bbox(self):
         return {
             "north": self.most_northern,
@@ -121,3 +128,33 @@ class Journeys(
             "east": self.most_eastern,
             "west": self.most_western,
         }
+
+    @property
+    def geojson(self):
+        region_map = defaultdict(Journeys)
+
+        for journey in self:
+            # use place_2 as place_1 is too specific and a journey that
+            # starts in a place_1 could share roads with a journey that
+            # starts in a different area nearby
+            # This is also a possible issue with place_2 but will happen
+            # much less, still a FIXME
+            # {'cc': 'IE', 'place_1': 'Rathgar', 'place_2': 'Leinster', 'place_3': 'Dublin City'}
+            region_name = journey.origin.gps.reverse_geo["place_2"]
+            region_map[region_name].append(journey)
+
+        if len(region_map) > 1:
+            geo_features = []
+            for region_name, journeys in region_map.items():
+                logger.debug(
+                    "Getting geojson features of journeys group in region: %s",
+                    region_name,
+                )
+                geo_features.extend(journeys.geojson["features"])
+
+            geo_features = {"type": "FeatureCollection", "features": geo_features}
+            return geo_features
+
+        return geojson_from_graph(
+            self.snapped_route_graph, must_include_props=["count", "avg", "edge_id"]
+        )

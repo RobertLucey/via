@@ -1,9 +1,17 @@
-from unittest import TestCase, skip
+from unittest import TestCase, skip, skipUnless
 
 from via.models.point import FramePoint, FramePoints, Context
 
+from ..utils import wipe_mongo
+
 
 class FramePointTest(TestCase):
+    def setUp(self):
+        wipe_mongo()
+
+    def tearDown(self):
+        wipe_mongo()
+
     def test_parse(self):
         self.assertEqual(
             FramePoint.parse(

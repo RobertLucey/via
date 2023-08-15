@@ -56,7 +56,6 @@ async def create_journey(raw_journey: RawJourney):
         # Validate
         Journey(
             data=raw_journey.dict()["data"],
-            is_culled=True,
             transport_type=raw_journey.transport_type,
             suspension=raw_journey.suspension,
             version=raw_journey.version,

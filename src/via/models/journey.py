@@ -11,7 +11,6 @@ from cachetools.func import ttl_cache
 from cached_property import cached_property
 
 import networkx as nx
-import osmnx as ox
 
 from mappymatch.maps.nx.readers.osm_readers import (
     NetworkType,
@@ -32,14 +31,13 @@ from via.constants import (
     VALID_JOURNEY_MIN_POINTS,
     VALID_JOURNEY_MIN_DURATION,
 )
-
+from via.geojson.utils import geojson_from_graph
 from via.models.point import FramePoint, FramePoints
 from via.models.frame import Frame
 from via.edge_cache import get_edge_data
 from via.network_cache import network_cache
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
-    GeoJsonMixin,
     BoundingGraphMixin,
 )
 
@@ -57,7 +55,7 @@ def get_matcher_by_graph(bounding_graph):
     )
 
 
-class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMixin):
+class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
     """
     A single journey (or patial journey)
 
@@ -68,7 +66,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         """
 
         :kwarg data:
-        :kwarg is_culled: If the journey is culled or not
         :kwarg transport_type: What transport type being used, defaults
             to settings.TRANSPORT_TYPE
         :kwarg suspension: If using suspension or not, defaults
@@ -90,9 +87,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         self.extend(data)
 
         self._version = kwargs.get("version", None)
-
-        self.is_culled = kwargs.get("is_culled", False)
-        self.is_sent = kwargs.get("is_sent", False)
 
         self.transport_type = str(kwargs.get("transport_type", "unknown")).lower()
         self.suspension = kwargs.get("suspension", None)
@@ -264,6 +258,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         :rtype: float
         :return: avg speed in metres per second
         """
+        if len(self) < 2:
+            raise ValueError(f"Cannot get avg speed of journey with {len(self)} points")
         if self.duration is None or self.duration == 0:
             return None
         return self.get_indirect_distance(n_seconds=n_seconds) / self.duration
@@ -282,8 +278,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
             ),
             "transport_type": self.transport_type,
             "suspension": self.suspension,
-            "is_culled": self.is_culled,
-            "is_sent": self.is_sent,
         }
 
         if minimal is False:
@@ -307,8 +301,9 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
     @property
     def timestamp(self):
         if self._timestamp is None:
-            # FIXME: We shouldn't need to do this but the ui always includes earliest / latest as a filter
-            return datetime.datetime(1970, 1, 1)
+            return None
+        if isinstance(self._timestamp, datetime.datetime):
+            return self._timestamp
         return parse(self._timestamp)
 
     @cached_property
@@ -320,7 +315,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
 
         :rtype: dict
         """
-
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
             qualities = [edge["avg_road_quality"] for edge in single_edge_data]
@@ -354,7 +348,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
         """
-
         trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
         trace = Trace.from_dataframe(pandas.DataFrame(trace), True, 0, 1)
 
@@ -520,3 +513,19 @@ class Journey(FramePoints, SnappedRouteGraphMixin, GeoJsonMixin, BoundingGraphMi
                 else True,
             ]
         )
+
+    @property
+    def geojson(self):
+        # TODO: Does this *need* to return edge_id (or any other props)?
+        # edge_id not used in front end seemingly and other nullables can be
+        # handled wherever... edge_id wasn't being returned for any data I
+        # tried so this is a hack for now.
+        return geojson_from_graph(
+            self.snapped_route_graph,
+            must_include_props=None,
+        )
+
+    @property
+    def used_combined_edges(self):
+        # used for getting snapped journey route graph
+        return list(self.edge_data.keys())

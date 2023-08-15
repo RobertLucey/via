@@ -5,15 +5,23 @@ from unittest import TestCase, skip, skipUnless
 
 from via.models.journey import Journey
 from via.models.frame import Frame
+from via.utils import get_mongo_interface
 
 from via.edge_cache import get_edge_data
+
+from .utils import wipe_mongo
 
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class EdgeCacheTest(TestCase):
+    def tearDown(self):
+        wipe_mongo()
+
     def setUp(self):
+        wipe_mongo()
+
         with open("test/resources/just_route.json") as json_file:
             self.test_data = json.load(json_file)
 

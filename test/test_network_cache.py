@@ -1,37 +1,26 @@
 import os
 import json
-import re
 from shutil import copyfile, rmtree
 
 from unittest import TestCase, skip, skipUnless
 
-from gridfs import GridFS
 from networkx.classes.multidigraph import MultiDiGraph
 
-from via.settings import MONGO_NETWORKS_COLLECTION
-from via.utils import get_graph_id, get_mongo_interface
+from via.utils import get_graph_id
 from via.models.journey import Journey
 from via.network_cache import NetworkCache
+
+from .utils import wipe_mongo
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class NetworkCacheTest(TestCase):
-    @skipUnless(not IS_ACTION, "action_mongo")
     def setUp(self):
-        mongo_interface = get_mongo_interface()
-        getattr(mongo_interface, MONGO_NETWORKS_COLLECTION).drop()
-        grid = GridFS(mongo_interface)
-        for i in grid.find({"filename": {"$regex": f'^{re.escape("test_")}'}}):
-            grid.delete(i._id)
+        wipe_mongo()
 
-    @skipUnless(not IS_ACTION, "action_mongo")
     def tearDown(self):
-        mongo_interface = get_mongo_interface()
-        getattr(mongo_interface, MONGO_NETWORKS_COLLECTION).drop()
-        grid = GridFS(mongo_interface)
-        for i in grid.find({"filename": {"$regex": f'^{re.escape("test_")}'}}):
-            grid.delete(i._id)
+        wipe_mongo()
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_none(self):

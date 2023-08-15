@@ -49,7 +49,7 @@ class GenericObjects:
         return [obj.serialize() for obj in self._data]
 
     @staticmethod
-    def parse(objs):
+    def parse(objs):  # pragma: nocover
         raise NotImplementedError()
 
 
@@ -71,8 +71,8 @@ class GenericObject:
         return str("%s(%s)" % (type(self).__name__, self.uuid))
 
     @staticmethod
-    def parse(obj):
+    def parse(obj):  # pragma: nocover
         raise NotImplementedError()
 
-    def serialize(self):
+    def serialize(self):  # pragma: nocover
         raise NotImplementedError()

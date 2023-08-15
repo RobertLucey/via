@@ -14,21 +14,24 @@ from via.settings import (
 
 from via.utils import get_mongo_interface
 
+from ..utils import wipe_mongo
+
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 
 
 class GeoJsonGenerateTest(TestCase):
     def setUp(self):
-        with open("test/resources/raw_journey_data/1.json") as json_file:
-            getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
-                json.loads(json_file.read())
-            )
+        wipe_mongo()
+
+        if not IS_ACTION:
+            with open("test/resources/raw_journey_data/1.json") as json_file:
+                getattr(
+                    get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION
+                ).insert_one(json.loads(json_file.read()))
 
     def tearDown(self):
-        getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).drop()
-        getattr(get_mongo_interface(), MONGO_NETWORKS_COLLECTION).drop()
-        getattr(get_mongo_interface(), MONGO_PARSED_JOURNEYS_COLLECTION).drop()
+        wipe_mongo()
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_generate_geojson(self):

@@ -1,10 +1,18 @@
 import shapely
 from networkx.readwrite import json_graph
+from networkx.classes.multidigraph import MultiDiGraph
 
 from via.constants import USELESS_GEOJSON_PROPERTIES
 
 
-def geojson_from_graph(graph, must_include_props: list = None) -> dict:
+def geojson_from_graph(graph: MultiDiGraph, must_include_props: list = None) -> dict:
+    """
+
+    :param graph:
+    :kwarg must_include_props:
+    :return:
+    :rtype: {type: str, features: [{...}, {...}]}
+    """
     json_links = json_graph.node_link_data(graph)["links"]
 
     geojson_features = {"type": "FeatureCollection", "features": []}
