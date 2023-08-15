@@ -10,7 +10,7 @@ warnings.filterwarnings(
 )
 warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
 
-import osmnx as ox
+import osmnx
 
 from via import settings
 from via.log import logger
@@ -18,7 +18,7 @@ from via.log import logger
 
 # overpass api clone for this so we can disable rate limiting and not feel bad
 
-try:
+try:  # pragma: nocover
     if CUSTOM_OVERPASS_API:
         CUSTOM_AVAILABLE = (
             "www.openstreetmap.org"
@@ -29,13 +29,11 @@ try:
 except:
     CUSTOM_AVAILABLE = False
 
-if CUSTOM_AVAILABLE:
-    overpass_endpoint = settings.CUSTOM_OVERPASS_API
-    overpass_rate_limit = False
+if CUSTOM_AVAILABLE:  # pragma: nocover
     logger.info("Using custom overpass api")
+    osmnx.settings.overpass_endpoint = settings.CUSTOM_OVERPASS_API
+    osmnx.settings.overpass_rate_limit = False
 else:
-    overpass_endpoint = settings.DEFAULT_OVERPASS_API
-    overpass_rate_limit = True
+    osmnx.settings.overpass_endpoint = settings.DEFAULT_OVERPASS_API
+    osmnx.settings.overpass_rate_limit = True
     logger.info("Using default overpass api")
-
-ox.config(overpass_endpoint=overpass_endpoint, overpass_rate_limit=overpass_rate_limit)
