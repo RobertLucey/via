@@ -36,9 +36,11 @@ if os.getenv("TEST_ENV", "False") == "True":
     MONGO_PARSED_JOURNEYS_COLLECTION = "test_parsed_journeys"
     GRIDFS_NETWORK_FILENAME_PREFIX = "test_network"
     GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = "test_bounding_graph_gdfs_graph"
+    NXMAP_FILENAME_PREFIX = "test_nxmap"
 else:  # pragma: nocover
     MONGO_RAW_JOURNEYS_COLLECTION = "raw_journeys"
     MONGO_NETWORKS_COLLECTION = "networks"
     MONGO_PARSED_JOURNEYS_COLLECTION = "parsed_journeys"
     GRIDFS_NETWORK_FILENAME_PREFIX = "network"
     GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX = "bounding_graph_gdfs_graph"
+    NXMAP_FILENAME_PREFIX = "nxmap"

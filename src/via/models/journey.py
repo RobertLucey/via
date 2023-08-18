@@ -41,6 +41,7 @@ from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     BoundingGraphMixin,
 )
+from via.nxmap_cache import nxmap_cache
 
 
 @ttl_cache(maxsize=25, ttl=60 * 60)
@@ -50,7 +51,11 @@ def get_nxmap(bounding_graph):
 
 @ttl_cache(maxsize=25, ttl=60 * 60)
 def get_matcher_by_graph(bounding_graph):
-    nx_map = get_nxmap(bounding_graph)
+    graph_id = get_graph_id(bounding_graph)
+    nx_map = nxmap_cache.get(graph_id)
+    if not nx_map:
+        nx_map = get_nxmap(bounding_graph)
+        nxmap_cache.set(graph_id, nx_map)
     return LCSSMatcher(
         nx_map,
     )
