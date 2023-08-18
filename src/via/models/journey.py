@@ -1,4 +1,5 @@
 import datetime
+import time
 import statistics
 from pathlib import Path
 from functools import cache
@@ -315,6 +316,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
 
         :rtype: dict
         """
+        start = time.monotonic()
+
         data = {}
         for edge_id, single_edge_data in self.edge_data.items():
             qualities = [edge["avg_road_quality"] for edge in single_edge_data]
@@ -332,11 +335,19 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
                     "speed": speed,
                 }
 
-        return {
+        data = {
             edge_id: d
             for edge_id, d in data.items()
             if d["count"] >= settings.MIN_PER_JOURNEY_USAGE
         }
+
+        logger.debug(
+            "Got edge quality map for Journey %s took %s",
+            self.uuid,
+            time.monotonic() - start,
+        )
+
+        return data
 
     @cached_property
     def edge_data(self):
@@ -348,6 +359,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
         """
+        start = time.monotonic()
+
         trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
         trace = Trace.from_dataframe(pandas.DataFrame(trace), True, 0, 1)
 
@@ -375,6 +388,10 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
 
             data[get_combined_id(edge[0][0], edge[0][1])].append(our_edge_data)
 
+        logger.debug(
+            "Got edge data for Journey %s took %s", self.uuid, time.monotonic() - start
+        )
+
         if len(data) < settings.MIN_EDGES_PER_JOURNEY:
             return defaultdict(list)
 
@@ -401,6 +418,8 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         """
         Get a graph of the journey without snapping to closest node / edge
         """
+        start = time.monotonic()
+
         graph = nx.Graph()
 
         combined_edge_data = defaultdict(list)
@@ -453,6 +472,12 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
                 max_road_quality=values["max_road_quality"],
                 speed=values["speed"],
             )
+
+        logger.debug(
+            "Got route graph for Journey %s took %s",
+            self.uuid,
+            time.monotonic() - start,
+        )
 
         return graph
 
@@ -520,10 +545,15 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         # edge_id not used in front end seemingly and other nullables can be
         # handled wherever... edge_id wasn't being returned for any data I
         # tried so this is a hack for now.
-        return geojson_from_graph(
+        start = time.monotonic()
+        data = geojson_from_graph(
             self.snapped_route_graph,
             must_include_props=None,
         )
+        logger.debug(
+            "Got GeoJson for Journey %s took %s", self.uuid, time.monotonic() - start
+        )
+        return data
 
     @property
     def used_combined_edges(self):

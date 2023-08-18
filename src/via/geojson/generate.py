@@ -1,5 +1,6 @@
 import operator
 import datetime
+import time
 
 from via import logger
 from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
@@ -22,6 +23,8 @@ def generate_geojson(
     latest_time: int = None,
     place: str = None,
 ) -> dict:
+    start = time.monotonic()
+
     logger.info(
         "Generating geojson: transport_type=%s version=%s version_op=%s earliest_time=%s latest_time=%s place=%s",
         transport_type,
@@ -101,5 +104,16 @@ def generate_geojson(
 
     finally:
         GENERATING.remove(config)
+
+    logger.info(
+        "Generated geojson in %s seconds: transport_type=%s version=%s version_op=%s earliest_time=%s latest_time=%s place=%s",
+        time.monotonic() - start,
+        transport_type,
+        version,
+        version_op,
+        earliest_time,
+        latest_time,
+        place,
+    )
 
     return data

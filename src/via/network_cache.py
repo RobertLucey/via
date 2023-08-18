@@ -1,5 +1,6 @@
 import pickle
 import datetime
+import time
 from cachetools.func import ttl_cache
 
 import osmnx
@@ -23,9 +24,12 @@ class NetworkCache:
 
     @ttl_cache(maxsize=50, ttl=60 * 60)
     def _get_from_mongo(self, graph_id: int) -> MultiDiGraph:
-        return pickle.loads(
+        start = time.monotonic()
+        network = pickle.loads(
             self.grid.find_one({"filename": get_filename(graph_id)}).read()
         )
+        logger.debug("Getting network from mongo took: %s", time.monotonic() - start)
+        return network
 
     def get_from_mongo(self, graph_id: int) -> MultiDiGraph:
         """
@@ -68,6 +72,10 @@ class NetworkCache:
         :return:
         :rtype: MultiDiGraph
         """
+        start = time.monotonic()
+
+        network = None
+
         candidates = []
         network_configs = list(
             getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find(
@@ -87,32 +95,39 @@ class NetworkCache:
             logger.debug(
                 "%s: Using a larger network rather than generating", journey.gps_hash
             )
-            return self.get_from_mongo(candidates[0][0])
+            logger.debug("Getting network took: %s", time.monotonic() - start)
+            network = self.get_from_mongo(candidates[0][0])
 
-        # See if we can find a bbox smaller than the place cache bbox. If within bbox but less than 1/3rd the size, generate a personal one (or something)
-        # TODO: make sure we already have the place cache if we're going to use it. Maybe load these in background on startup
-        # TODO: optionally disable place cache
-        place_cache_result = place_cache.get_by_bbox(journey.bbox)
-        if place_cache_result:
-            if (
-                area_from_coords(journey.bbox)
-                > area_from_coords(place_cache_result["bbox"]) * 0.33  # TODO: to config
-            ):
-                bbox = place_cache.get_by_bbox(journey.bbox)["bbox"]
+        if not network:
+            # See if we can find a bbox smaller than the place cache bbox. If within bbox but less than 1/3rd the size, generate a personal one (or something)
+            # TODO: make sure we already have the place cache if we're going to use it. Maybe load these in background on startup
+            # TODO: optionally disable place cache
+            place_cache_result = place_cache.get_by_bbox(journey.bbox)
+            if place_cache_result:
+                if (
+                    area_from_coords(journey.bbox)
+                    > area_from_coords(place_cache_result["bbox"])
+                    * 0.33  # TODO: to config
+                ):
+                    bbox = place_cache.get_by_bbox(journey.bbox)["bbox"]
 
-                network = osmnx.graph_from_bbox(
-                    bbox["north"],
-                    bbox["south"],
-                    bbox["east"],
-                    bbox["west"],
-                    network_type=journey.network_type,
-                    simplify=True,
-                )
+                    network = osmnx.graph_from_bbox(
+                        bbox["north"],
+                        bbox["south"],
+                        bbox["east"],
+                        bbox["west"],
+                        network_type=journey.network_type,
+                        simplify=True,
+                    )
 
-                self.put_to_mongo(network, bbox)
-                return network
+                    self.put_to_mongo(network, bbox)
 
-        return None
+        logger.debug(
+            "Getting network %s took: %s",
+            get_graph_id(network) if network else None,
+            time.monotonic() - start,
+        )
+        return network
 
     def set(self, network: MultiDiGraph, bbox: dict):
         """
