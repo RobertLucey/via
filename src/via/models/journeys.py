@@ -134,15 +134,7 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, BoundingGraphMixin):
         region_map = defaultdict(Journeys)
 
         for journey in self:
-            # use place_2 as place_1 is too specific and a journey that
-            # starts in a place_1 could share roads with a journey that
-            # starts in a different area nearby
-            # This is also a possible issue with place_2 but will happen
-            # much less, still a FIXME
-            # {'cc': 'IE', 'place_1': 'Rathgar', 'place_2': 'Leinster', 'place_3': 'Dublin City'}
-            region_name = journey.origin.gps.reverse_geo["place_2"]
-            if not region_name:
-                region_name = journey.destination.gps.reverse_geo["place_2"]
+            region_name = journey.region
 
             if region_name:
                 region_map[region_name].append(journey)

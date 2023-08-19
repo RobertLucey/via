@@ -564,3 +564,17 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
     def used_combined_edges(self):
         # used for getting snapped journey route graph
         return list(self.edge_data.keys())
+
+    @property
+    def region(self):
+        # use place_2 as place_1 is too specific and a journey that
+        # starts in a place_1 could share roads with a journey that
+        # starts in a different area nearby
+        # This is also a possible issue with place_2 but will happen
+        # much less, still a FIXME
+        # {'cc': 'IE', 'place_1': 'Rathgar', 'place_2': 'Leinster', 'place_3': 'Dublin City'}
+        region_name = self.origin.gps.reverse_geo["place_2"]
+        if not region_name:
+            region_name = self.destination.gps.reverse_geo["place_2"]
+
+        return region_name
