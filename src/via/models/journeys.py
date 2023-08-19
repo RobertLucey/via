@@ -141,7 +141,13 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, BoundingGraphMixin):
             # much less, still a FIXME
             # {'cc': 'IE', 'place_1': 'Rathgar', 'place_2': 'Leinster', 'place_3': 'Dublin City'}
             region_name = journey.origin.gps.reverse_geo["place_2"]
-            region_map[region_name].append(journey)
+            if not region_name:
+                region_name = journey.destination.gps.reverse_geo["place_2"]
+
+            if region_name:
+                region_map[region_name].append(journey)
+            else:
+                logger.warning(f'Journey {journey.uuid} has no place_2 region. Excluding form results')
 
         if len(region_map) > 1:
             geo_features = []
