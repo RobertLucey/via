@@ -147,7 +147,9 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, BoundingGraphMixin):
             if region_name:
                 region_map[region_name].append(journey)
             else:
-                logger.warning(f'Journey {journey.uuid} has no place_2 region. Excluding form results')
+                logger.warning(
+                    f"Journey {journey.uuid} has no place_2 region. Excluding form results"
+                )
 
         if len(region_map) > 1:
             geo_features = []
