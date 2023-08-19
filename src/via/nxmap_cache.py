@@ -68,15 +68,18 @@ class NXMapCache:
 
     @ttl_cache(maxsize=10, ttl=60 * 60)
     def get_from_gridfs(self, key):
-        print("get from grid")
         return json.loads(
             self.grid.find_one({"filename": self.get_filename(key)}).read()
         )
 
     def get(self, key: Any):
         if self.grid.find_one({"filename": self.get_filename(key)}):
-            NxMap.from_dict = from_dict
-            return NxMap.from_dict(self.get_from_gridfs(key))
+            try:
+                NxMap.from_dict = from_dict
+            except:
+                return None
+            else:
+                return NxMap.from_dict(self.get_from_gridfs(key))
 
         return None
 
