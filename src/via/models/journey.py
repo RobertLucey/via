@@ -577,4 +577,6 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         if not region_name:
             region_name = self.destination.gps.reverse_geo["place_2"]
 
+        # if region is not populated, could use a somewhat rounded lat/lng so we can still include the journey
+
         return region_name
