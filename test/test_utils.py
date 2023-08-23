@@ -23,12 +23,12 @@ from via.utils import (
     get_journeys,
     filter_edges_from_geodataframe,
     filter_nodes_from_geodataframe,
-    get_mongo_interface,
     get_graph_id,
     get_combined_id,
     update_edge_data,
 )
 from via.models.gps import GPSPoint
+from via.db import db
 
 from .utils import wipe_mongo
 
@@ -46,9 +46,7 @@ class UtilTest(TestCase):
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_journeys(self):
         with open("test/resources/raw_journey_data/1.json") as json_file:
-            getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
-                json.loads(json_file.read())
-            )
+            db.raw_journeys.insert_one(json.loads(json_file.read()))
         self.assertEqual(len(get_journeys()), 1)
 
     def test_window(self):

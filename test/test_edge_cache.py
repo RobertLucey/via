@@ -5,7 +5,6 @@ from unittest import TestCase, skip, skipUnless
 
 from via.models.journey import Journey
 from via.models.frame import Frame
-from via.utils import get_mongo_interface
 
 from via.caches.edge_cache import get_edge_data
 
