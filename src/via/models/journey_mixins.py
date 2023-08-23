@@ -14,8 +14,8 @@ from via.utils import (
     area_from_coords,
     get_combined_id,
 )
-from via.network_cache import network_cache
-from via.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
+from via.caches.network_cache import network_cache
+from via.caches.bounding_graph_gdfs_cache import bounding_graph_gdfs_cache
 
 
 class SnappedRouteGraphMixin:

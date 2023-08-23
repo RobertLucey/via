@@ -10,7 +10,7 @@ from networkx.classes.multidigraph import MultiDiGraph
 from via import logger
 from via.settings import MONGO_NETWORKS_COLLECTION, GRIDFS_NETWORK_FILENAME_PREFIX
 from via.utils import is_within, get_graph_id, get_mongo_interface, area_from_coords
-from via.place_cache import place_cache
+from via.caches.place_cache import place_cache
 
 
 def get_filename(graph_id):

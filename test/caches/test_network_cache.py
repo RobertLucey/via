@@ -10,7 +10,7 @@ from via.utils import get_graph_id
 from via.models.journey import Journey
 from via.caches.network_cache import NetworkCache
 
-from .utils import wipe_mongo
+from ..utils import wipe_mongo
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 

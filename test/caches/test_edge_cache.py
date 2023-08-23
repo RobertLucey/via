@@ -9,7 +9,7 @@ from via.utils import get_mongo_interface
 
 from via.caches.edge_cache import get_edge_data
 
-from .utils import wipe_mongo
+from ..utils import wipe_mongo
 
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"

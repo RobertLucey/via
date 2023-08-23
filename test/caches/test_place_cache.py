@@ -5,7 +5,7 @@ from mock import patch
 
 from via.caches.place_cache import PlaceCache
 
-from .utils import wipe_mongo
+from ..utils import wipe_mongo
 
 
 def get_cork(*args, **kwargs):

@@ -6,18 +6,19 @@ from cachetools.func import ttl_cache
 from gridfs import GridFS
 
 from via.utils import get_mongo_interface
+from via.settings import NXMAP_FILENAME_PREFIX
 
 
-class NXCache:
+class NXMapCache:
     def __init__(self):
         self.mongo_interface = get_mongo_interface()
         self.grid = GridFS(self.mongo_interface)
 
     @staticmethod
     def get_filename(key):
-        return f"NX_CACHE_{key}"
+        return f"{NXMAP_FILENAME_PREFIX}_{key}"
 
-    @ttl_cache(maxsize=50, ttl=60 * 60)
+    @ttl_cache(maxsize=10, ttl=60 * 60)
     def get_from_gridfs(self, key):
         return pickle.loads(
             self.grid.find_one({"filename": self.get_filename(key)}).read()
@@ -31,9 +32,9 @@ class NXCache:
 
     def set(self, key: Any, value: Any):
         if self.get(key):
-            return
+            return None
 
         self.grid.put(pickle.dumps(value), filename=self.get_filename(key))
 
 
-nx_cache = NXCache()
+nxmap_cache = NXMapCache()

@@ -35,13 +35,13 @@ from via.constants import (
 from via.geojson.utils import geojson_from_graph
 from via.models.point import FramePoint, FramePoints
 from via.models.frame import Frame
-from via.edge_cache import get_edge_data
-from via.network_cache import network_cache
+from via.caches.edge_cache import get_edge_data
+from via.caches.network_cache import network_cache
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     BoundingGraphMixin,
 )
-from via.nxmap_cache import nxmap_cache
+from via.caches.nxmap_cache import nxmap_cache
 
 
 @ttl_cache(maxsize=25, ttl=60 * 60)

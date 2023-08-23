@@ -18,9 +18,11 @@ from via.settings import NXMAP_FILENAME_PREFIX
 DEFAULT_CRS_KEY = "crs"
 DEFAULT_GEOMETRY_KEY = "geometry"
 
+# from_dict and to_dict are taken from the master version from mappymap. Once they update should be able to remove them
+
 
 @classmethod
-def from_dict(cls, d: Dict[str, Any]) -> NxMap:
+def from_dict(cls, d: Dict[str, Any]) -> NxMap:  # pragma: nocover
     """
     Build a NxMap instance from a dictionary
     """
@@ -39,7 +41,7 @@ def from_dict(cls, d: Dict[str, Any]) -> NxMap:
     return NxMap(g)
 
 
-def to_dict(self) -> Dict[str, Any]:
+def to_dict(self) -> Dict[str, Any]:  # pragma: nocover
     """
     Convert the map to a dictionary
     """
