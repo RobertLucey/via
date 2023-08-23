@@ -45,9 +45,7 @@ async def create_journey(raw_journey: RawJourney):
     """
     Simply dumps this journey into Mongo for now.
     """
-    result = db.raw_journeys.find_one(
-        {"uuid": raw_journey.uuid}
-    )
+    result = db.raw_journeys.find_one({"uuid": raw_journey.uuid})
 
     if not result:
         # Validate
@@ -58,26 +56,20 @@ async def create_journey(raw_journey: RawJourney):
             version=raw_journey.version,
         )
 
-        db.raw_journeys.insert_one(
-            raw_journey.dict()
-        )
+        db.raw_journeys.insert_one(raw_journey.dict())
     return {"status": "inserted" if not result else "already exists"}
 
 
 @app.get("/get_raw_journey")
 async def get_raw_journey(journey_uuid: str = None):
-    journey = db.raw_journeys.find_one(
-        {"uuid": journey_uuid}
-    )
+    journey = db.raw_journeys.find_one({"uuid": journey_uuid})
     journey["_id"] = str(journey["_id"])
     return journey
 
 
 @app.get("/get_journey_uuids")
 async def get_raw_journey_uuids():
-    data = db.raw_journeys.find(
-        {}, {"uuid": 1, "_id": 0}
-    )
+    data = db.raw_journeys.find({}, {"uuid": 1, "_id": 0})
 
     return list([i["uuid"] for i in data])
 

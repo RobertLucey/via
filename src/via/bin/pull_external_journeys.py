@@ -37,14 +37,10 @@ def main():
                 version=journey_data["version"],
             )
 
-            result = db.raw_journeys.find_one(
-                {"uuid": journey_data["uuid"]}
-            )
+            result = db.raw_journeys.find_one({"uuid": journey_data["uuid"]})
 
             if not result:
-                db.raw_journeys.insert_one(
-                    journey_data
-                )
+                db.raw_journeys.insert_one(journey_data)
             else:
                 print(f'already exists: {journey_data["uuid"]}')
 
