@@ -1,8 +1,8 @@
 import os
 
-from cached_property import cached_property
-
 import pymongo
+from gridfs import GridFS
+from cached_property import cached_property
 
 from via.settings import (
     MONGO_RAW_JOURNEYS_COLLECTION,
@@ -13,14 +13,18 @@ from via.settings import (
 
 class DB:
     def __init__(self, *args, **kwargs):
-        self.db_url = kwargs.get("db_url", os.environ.get("MONGODB_URL", "localhost"))
+        self.url = kwargs.get("url", os.environ.get("MONGODB_URL", "localhost"))
         self.database = kwargs.get(
             "database", os.environ.get("MONGODB_DATABASE", "localhost")
         )
 
     @cached_property
     def client(self):
-        return pymongo.MongoClient(self.db_url)[self.database]
+        return pymongo.MongoClient(self.url)[self.database]
+
+    @cached_property
+    def gridfs(self):
+        return GridFS(self.client)
 
     @property
     def raw_journeys(self):
