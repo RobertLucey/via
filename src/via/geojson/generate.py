@@ -3,13 +3,12 @@ import datetime
 import time
 
 from via import logger
-from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
 from via.utils import (
     get_journeys,
     should_include_journey,
-    get_mongo_interface,
 )
 from via.models.journeys import Journeys
+from via.db import db
 
 
 GENERATING = []
@@ -74,9 +73,7 @@ def generate_geojson(
             ]
         )
 
-        mongo_interface = get_mongo_interface()
-
-        getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).delete_many(
+        db.parsed_journeys.delete_many(
             {
                 "journey_type": config["name"],
                 "geojson_version": config["version"],
@@ -100,7 +97,7 @@ def generate_geojson(
             data["geojson_place"] = config["place"]
             data["save_time"] = datetime.datetime.utcnow().timestamp()
 
-            getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).insert_one(data)
+            db.parsed_journeys.insert_one(data)
 
     finally:
         GENERATING.remove(config)

@@ -12,7 +12,7 @@ from mappymatch.maps.nx.nx_map import NxMap
 from mappymatch.utils.crs import CRS
 import shapely.wkt as wkt
 
-from via.utils import get_mongo_interface
+from via.db import db
 from via.settings import NXMAP_FILENAME_PREFIX
 
 DEFAULT_CRS_KEY = "crs"
@@ -61,8 +61,7 @@ def to_dict(self) -> Dict[str, Any]:  # pragma: nocover
 
 class NXMapCache:
     def __init__(self):
-        self.mongo_interface = get_mongo_interface()
-        self.grid = GridFS(self.mongo_interface)
+        self.grid = GridFS(db.client)
 
     @staticmethod
     def get_filename(key):

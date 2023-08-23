@@ -8,9 +8,10 @@ from gridfs import GridFS
 from networkx.classes.multidigraph import MultiDiGraph
 
 from via import logger
-from via.settings import MONGO_NETWORKS_COLLECTION, GRIDFS_NETWORK_FILENAME_PREFIX
-from via.utils import is_within, get_graph_id, get_mongo_interface, area_from_coords
+from via.settings import GRIDFS_NETWORK_FILENAME_PREFIX
+from via.utils import is_within, get_graph_id, area_from_coords
 from via.caches.place_cache import place_cache
+from via.db import db
 
 
 def get_filename(graph_id):
@@ -19,8 +20,7 @@ def get_filename(graph_id):
 
 class NetworkCache:
     def __init__(self):
-        self.mongo_interface = get_mongo_interface()
-        self.grid = GridFS(self.mongo_interface)
+        self.grid = GridFS(db.client)
 
     @ttl_cache(maxsize=50, ttl=60 * 60)
     def _get_from_mongo(self, graph_id: int) -> MultiDiGraph:
@@ -56,7 +56,7 @@ class NetworkCache:
         self.grid.put(pickle.dumps(network), filename=get_filename(graph_id))
 
         # bbox as coords rather than network as network bbox is smaller and wouldn't match when trying to get for a journey
-        getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).insert_one(
+        db.networks.insert_one(
             {
                 "graph_id": graph_id,
                 "type": "bbox",
@@ -78,7 +78,7 @@ class NetworkCache:
 
         candidates = []
         network_configs = list(
-            getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find(
+            db.networks.find(
                 {
                     "insert_time": {
                         "$gt": datetime.datetime.utcnow().timestamp()
@@ -137,7 +137,7 @@ class NetworkCache:
         """
         graph_id = get_graph_id(network)
 
-        if not getattr(self.mongo_interface, MONGO_NETWORKS_COLLECTION).find_one(
+        if not db.networks.find_one(
             {
                 "graph_id": graph_id,
                 "insert_time": {

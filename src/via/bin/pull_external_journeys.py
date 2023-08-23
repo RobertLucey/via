@@ -3,8 +3,7 @@ from collections import OrderedDict
 
 import requests
 
-from via.utils import get_mongo_interface
-from via.settings import MONGO_RAW_JOURNEYS_COLLECTION
+from via.db import db
 from via.models.journey import Journey
 
 
@@ -38,13 +37,12 @@ def main():
                 version=journey_data["version"],
             )
 
-            mongo_interface = get_mongo_interface()
-            result = getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+            result = db.raw_journeys.find_one(
                 {"uuid": journey_data["uuid"]}
             )
 
             if not result:
-                getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
+                db.raw_journeys.insert_one(
                     journey_data
                 )
             else:

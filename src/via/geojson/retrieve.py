@@ -1,7 +1,7 @@
 import datetime
 
-from via.settings import MAX_GEOJSON_AGE, MONGO_PARSED_JOURNEYS_COLLECTION
-from via.utils import get_mongo_interface
+from via.settings import MAX_GEOJSON_AGE
+from via.db import db
 
 
 def get_geojson(
@@ -17,8 +17,7 @@ def get_geojson(
     if journey_type is None:
         journey_type = "all"
 
-    mongo_interface = get_mongo_interface()
-    data = getattr(mongo_interface, MONGO_PARSED_JOURNEYS_COLLECTION).find_one(
+    data = db.parsed_journeys.find_one(
         {
             "journey_type": journey_type,
             "save_time": {

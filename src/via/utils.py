@@ -4,8 +4,6 @@ from functools import lru_cache, cache
 from itertools import islice
 from typing import Any, List, Tuple
 
-import pymongo
-
 from geopandas.geodataframe import GeoDataFrame
 from networkx.classes.multidigraph import MultiDiGraph
 
@@ -14,20 +12,10 @@ from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION,
     MAX_JOURNEY_METRES_SQUARED,
-    MONGO_RAW_JOURNEYS_COLLECTION,
 )
 from via.constants import METRES_PER_DEGREE
 from via.models.gps import GPSPoint
-
-
-@cache
-def get_mongo_interface():
-    """
-    Returns the MongoDB DB interface. Here so it can be moved to utils.
-    """
-    db_url = os.environ.get("MONGODB_URL", "localhost")
-    client = pymongo.MongoClient(db_url)
-    return client[os.environ.get("MONGODB_DATABASE", "localhost")]
+from via.db import db
 
 
 def get_journeys(
@@ -95,8 +83,6 @@ def iter_journeys(
     """
     from via.models.journey import Journey
 
-    mongo_interface = get_mongo_interface()
-
     # TODO: react to the following:
     # journey,
     # place=place,
@@ -105,7 +91,7 @@ def iter_journeys(
     # earliest_time=earliest_time,
     # latest_time=latest_time,
 
-    for raw_journey in getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find():
+    for raw_journey in db.raw_journeys.find():
         yield Journey(**raw_journey)
 
 

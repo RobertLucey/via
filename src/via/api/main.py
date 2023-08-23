@@ -7,9 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from via import logger
-from via.settings import MONGO_RAW_JOURNEYS_COLLECTION, MONGO_PARSED_JOURNEYS_COLLECTION
 from via.models.journey import Journey
-from via.utils import get_mongo_interface
+from via.db import db
 
 
 app = FastAPI()
@@ -46,9 +45,7 @@ async def create_journey(raw_journey: RawJourney):
     """
     Simply dumps this journey into Mongo for now.
     """
-    mongo_interface = get_mongo_interface()
-
-    result = getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+    result = db.raw_journeys.find_one(
         {"uuid": raw_journey.uuid}
     )
 
@@ -61,7 +58,7 @@ async def create_journey(raw_journey: RawJourney):
             version=raw_journey.version,
         )
 
-        getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).insert_one(
+        db.raw_journeys.insert_one(
             raw_journey.dict()
         )
     return {"status": "inserted" if not result else "already exists"}
@@ -69,7 +66,7 @@ async def create_journey(raw_journey: RawJourney):
 
 @app.get("/get_raw_journey")
 async def get_raw_journey(journey_uuid: str = None):
-    journey = getattr(get_mongo_interface(), MONGO_RAW_JOURNEYS_COLLECTION).find_one(
+    journey = db.raw_journeys.find_one(
         {"uuid": journey_uuid}
     )
     journey["_id"] = str(journey["_id"])
@@ -78,9 +75,7 @@ async def get_raw_journey(journey_uuid: str = None):
 
 @app.get("/get_journey_uuids")
 async def get_raw_journey_uuids():
-    mongo_interface = get_mongo_interface()
-
-    data = getattr(mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION).find(
+    data = db.raw_journeys.find(
         {}, {"uuid": 1, "_id": 0}
     )
 

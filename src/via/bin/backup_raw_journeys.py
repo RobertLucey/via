@@ -18,18 +18,14 @@ def main():
     if not args.backup_file.endswith(".json"):
         raise ValueError("backup file must be a .json file")
 
-    from via.utils import get_mongo_interface
-    from via.settings import MONGO_RAW_JOURNEYS_COLLECTION
+    from via.db import db
 
-    mongo_interface = get_mongo_interface()
     with open(args.backup_file, "w") as fh:
         fh.write(
             json.dumps(
                 [
                     rm_obj_id(journey_data)
-                    for journey_data in getattr(
-                        mongo_interface, MONGO_RAW_JOURNEYS_COLLECTION
-                    ).find()
+                    for journey_data in db.raw_journeys.find()
                 ]
             )
         )
