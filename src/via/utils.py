@@ -12,6 +12,7 @@ from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION,
     MAX_JOURNEY_METRES_SQUARED,
+    MAX_CACHE_SIZE
 )
 from via.constants import METRES_PER_DEGREE
 from via.models.gps import GPSPoint
@@ -249,7 +250,7 @@ def area_from_coords(obj: dict) -> float:
     # ).area
 
 
-@lru_cache(maxsize=5)
+@lru_cache(maxsize=MAX_CACHE_SIZE)
 def get_graph_id(graph: MultiDiGraph, unreliable: bool = False) -> str:
     """
 

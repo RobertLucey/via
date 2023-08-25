@@ -8,7 +8,7 @@ from gridfs import GridFS
 from networkx.classes.multidigraph import MultiDiGraph
 
 from via import logger
-from via.settings import GRIDFS_NETWORK_FILENAME_PREFIX
+from via.settings import GRIDFS_NETWORK_FILENAME_PREFIX, MAX_CACHE_SIZE
 from via.utils import is_within, get_graph_id, area_from_coords
 from via.caches.place_cache import place_cache
 from via.db import db
@@ -22,7 +22,7 @@ class NetworkCache:
     def __init__(self):
         self.grid = GridFS(db.client)
 
-    @ttl_cache(maxsize=50, ttl=60 * 60)
+    @ttl_cache(maxsize=MAX_CACHE_SIZE, ttl=60 * 60)
     def _get_from_mongo(self, graph_id: int) -> MultiDiGraph:
         start = time.monotonic()
         network = pickle.loads(

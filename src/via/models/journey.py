@@ -44,12 +44,12 @@ from via.models.journey_mixins import (
 from via.caches.nxmap_cache import nxmap_cache
 
 
-@ttl_cache(maxsize=25, ttl=60 * 60)
+@ttl_cache(maxsize=settings.MAX_CACHE_SIZE, ttl=60 * 60)
 def get_nxmap(bounding_graph):
     return NxMap(parse_osmnx_graph(bounding_graph, NetworkType.BIKE))
 
 
-@ttl_cache(maxsize=25, ttl=60 * 60)
+@ttl_cache(maxsize=settings.MAX_CACHE_SIZE, ttl=60 * 60)
 def get_matcher_by_graph(bounding_graph):
     graph_id = get_graph_id(bounding_graph)
     nx_map = nxmap_cache.get(graph_id)

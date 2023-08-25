@@ -4,8 +4,6 @@ from typing import Any, Dict
 
 from cachetools.func import ttl_cache
 
-from gridfs import GridFS
-
 import networkx as nx
 
 from mappymatch.maps.nx.nx_map import NxMap
@@ -13,7 +11,7 @@ from mappymatch.utils.crs import CRS
 import shapely.wkt as wkt
 
 from via.db import db
-from via.settings import NXMAP_FILENAME_PREFIX
+from via.settings import NXMAP_FILENAME_PREFIX, MAX_CACHE_SIZE
 
 DEFAULT_CRS_KEY = "crs"
 DEFAULT_GEOMETRY_KEY = "geometry"
@@ -60,21 +58,18 @@ def to_dict(self) -> Dict[str, Any]:  # pragma: nocover
 
 
 class NXMapCache:
-    def __init__(self):
-        self.grid = GridFS(db.client)
-
     @staticmethod
     def get_filename(key):
         return f"{NXMAP_FILENAME_PREFIX}_{key}"
 
-    @ttl_cache(maxsize=10, ttl=60 * 60)
+    @ttl_cache(maxsize=MAX_CACHE_SIZE, ttl=60 * 60)
     def get_from_gridfs(self, key):
         return json.loads(
-            self.grid.find_one({"filename": self.get_filename(key)}).read()
+            db.gridfs.find_one({"filename": self.get_filename(key)}).read()
         )
 
     def get(self, key: Any):
-        if self.grid.find_one({"filename": self.get_filename(key)}):
+        if db.gridfs.find_one({"filename": self.get_filename(key)}):
             try:
                 NxMap.from_dict = from_dict
             except:
@@ -88,7 +83,7 @@ class NXMapCache:
         if self.get(key):
             return None
 
-        self.grid.put(
+        db.gridfs.put(
             json.dumps(to_dict(value)).encode("utf8"), filename=self.get_filename(key)
         )
 

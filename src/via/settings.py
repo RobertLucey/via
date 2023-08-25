@@ -10,6 +10,9 @@ MAX_METRES_PER_SECOND = float(
     os.getenv("MAX_METRES_PER_SECOND", "10000")
 )  # Arbitrarily high, will figure out a reasonable number at some point
 
+# Raise to use more memory for faster processing, lower if memory is an issue
+MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", 100))
+
 # The minimum number of edges to a valid journey
 MIN_EDGES_PER_JOURNEY = 5
 
