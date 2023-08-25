@@ -51,21 +51,12 @@ class SnappedRouteGraphMixin:
 
         data = update_edge_data(graph, self.edge_quality_map)
 
-        from via.models.journeys import Journeys
-
-        if isinstance(self, Journeys):
-            region = self[0].origin.gps.reverse_geo["place_2"]
-            logger.debug(
-                "Got snapped route graph for region %s took %s",
-                region,
-                time.monotonic() - start_time,
-            )
-        else:
-            logger.debug(
-                "Got snapped route graph for journey %s took %s",
-                self.uuid,
-                time.monotonic() - start_time,
-            )
+        logger.debug(
+            "Got snapped route graph for %s %s took %s",
+            type(self),
+            self.uuid,
+            time.monotonic() - start_time,
+        )
 
         return data
 
