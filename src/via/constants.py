@@ -24,3 +24,5 @@ USELESS_GEOJSON_PROPERTIES = {
 VALID_JOURNEY_MIN_DISTANCE = 250  # How far the journey must be
 VALID_JOURNEY_MIN_POINTS = 10  # How many gps points required in a journey
 VALID_JOURNEY_MIN_DURATION = 60  # Only if time is included
+
+EMPTY_GEOJSON = {"type": "FeatureCollection", "features": []}

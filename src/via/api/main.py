@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from via import logger
 from via.models.journey import Journey
 from via.db import db
+from via.constants import EMPTY_GEOJSON
 
 
 app = FastAPI()
@@ -103,12 +104,16 @@ async def get_all_journeys(
         except Exception as ex:
             logger.error("Could not generate geojson: %s", ex)
         else:
-            data = retrieve.get_geojson(
-                "bike",
-                earliest_time=earliest_time,
-                latest_time=latest_time,
-                place=place,
-            )
+            try:
+                data = retrieve.get_geojson(
+                    "bike",
+                    earliest_time=earliest_time,
+                    latest_time=latest_time,
+                    place=place,
+                )
+            except FileNotFoundError:
+                # Likely no data
+                return EMPTY_GEOJSON
 
     return data
 
