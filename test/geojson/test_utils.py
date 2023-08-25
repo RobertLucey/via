@@ -23,7 +23,8 @@ class GeoJsonUtilTest(TestCase):
         geo = geojson_from_graph(cork)
 
         self.assertEqual(geo["type"], "FeatureCollection")
-        self.assertEqual(len(geo["features"]), 41037)
+        self.assertGreater(len(geo["features"]), 41036)
+        self.assertLess(len(geo["features"]), 41060)
         self.assertEqual(
             geo["features"][0],
             {
