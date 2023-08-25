@@ -3,12 +3,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /app
 
-RUN apt -y update && apt -y install make build-essential python3.10 python3-pip vim
+RUN apt -y update && apt -y install make build-essential python3.11 python3-pip vim
 
-RUN python3.10 -m pip install --upgrade pip
+RUN python3.11 -m pip install --upgrade pip
 
 COPY requirements.txt requirements.txt
-RUN python3.10 -m pip install --upgrade -r requirements.txt
+RUN python3.11 -m pip install --upgrade -r requirements.txt
 
 COPY Makefile .
 COPY src/ .

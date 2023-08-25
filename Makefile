@@ -1,4 +1,4 @@
-PYTHON=python3.10
+PYTHON=python3.11
 
 # TODO: might be nice to have a non threading setting
 TEST_CONTEXT=export TEST_ENV=True &&
