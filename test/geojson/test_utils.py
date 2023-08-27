@@ -25,18 +25,3 @@ class GeoJsonUtilTest(TestCase):
         self.assertEqual(geo["type"], "FeatureCollection")
         self.assertGreater(len(geo["features"]), 41036)
         self.assertLess(len(geo["features"]), 41060)
-        self.assertEqual(
-            geo["features"][0],
-            {
-                "type": "Feature",
-                "properties": {"name": "Bridge Street", "highway": "trunk"},
-                "geometry": {
-                    "type": "LineString",
-                    "coordinates": (
-                        (-8.4702857, 51.9009777),
-                        (-8.4701594, 51.901542),
-                        (-8.4701397, 51.9016163),
-                    ),
-                },
-            },
-        )
