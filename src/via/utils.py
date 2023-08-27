@@ -12,7 +12,7 @@ from via.settings import (
     MIN_JOURNEY_VERSION,
     MAX_JOURNEY_VERSION,
     MAX_JOURNEY_METRES_SQUARED,
-    MAX_CACHE_SIZE
+    MAX_CACHE_SIZE,
 )
 from via.constants import METRES_PER_DEGREE
 from via.models.gps import GPSPoint
