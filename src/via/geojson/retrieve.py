@@ -30,7 +30,7 @@ def get_geojson(
         }
     )
     if not data:
-        raise FileNotFoundError()  # Quick hack
+        raise LookupError()
 
     data["_id"] = str(data["_id"])
 

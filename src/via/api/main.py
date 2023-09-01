@@ -1,4 +1,5 @@
 import threading
+import traceback
 from typing import List, Optional, Union
 
 from fastapi import FastAPI
@@ -46,6 +47,7 @@ async def create_journey(raw_journey: RawJourney):
     """
     Simply dumps this journey into Mongo for now.
     """
+
     result = db.raw_journeys.find_one({"uuid": raw_journey.uuid})
 
     if not result:
@@ -92,7 +94,7 @@ async def get_all_journeys(
         data = retrieve.get_geojson(
             "bike", earliest_time=earliest_time, latest_time=latest_time, place=place
         )
-    except FileNotFoundError:
+    except LookupError:
         logger.info("geojson not found, generating")
         try:
             generate.generate_geojson(
@@ -103,6 +105,10 @@ async def get_all_journeys(
             )
         except Exception as ex:
             logger.error("Could not generate geojson: %s", ex)
+            return {
+                "message": f"Could not generate geojson: {ex}",
+                "traceback": traceback.format_exc(),
+            }
         else:
             try:
                 data = retrieve.get_geojson(
@@ -111,7 +117,7 @@ async def get_all_journeys(
                     latest_time=latest_time,
                     place=place,
                 )
-            except FileNotFoundError:
+            except LookupError:
                 # Likely no data
                 return EMPTY_GEOJSON
 
@@ -121,7 +127,7 @@ async def get_all_journeys(
 def start_geojson_generate(first_run):
     from via.geojson import generate
 
-    threading.Timer(60 * 60 * 6, start_geojson_generate, (False,)).start()
+    threading.Timer(60 * 60, start_geojson_generate, (False,)).start()
     if not first_run:
         # Don't do on startup
         generate.generate_geojson(
