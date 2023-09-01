@@ -9,6 +9,8 @@ LOG_LOCATION = (
 )
 
 USELESS_GEOJSON_PROPERTIES = {
+    "highway",
+    "reversed",
     "oneway",
     "length",
     "osmid",
