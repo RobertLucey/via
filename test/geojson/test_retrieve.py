@@ -21,12 +21,12 @@ class GeoJsonRetrieveTest(TestCase):
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_not_exist(self):
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(LookupError):
             get_geojson("blahblah")
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_does_exist_too_old(self):
-        with self.assertRaises(FileNotFoundError):
+        with self.assertRaises(LookupError):
             data = {
                 "journey_type": "bike",
                 "geojson_version": "0.1.1",
