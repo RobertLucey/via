@@ -1,12 +1,14 @@
 import operator
 import datetime
 import time
+import json
 
 from via import logger
 from via.utils import (
     get_journeys,
     should_include_journey,
 )
+from via.settings import GEOJSON_FILENAME_PREFIX
 from via.models.journeys import Journeys
 from via.db import db
 
@@ -73,14 +75,14 @@ def generate_geojson(
             ]
         )
 
-        db.parsed_journeys.delete_many(
+        db.gridfs.delete(
             {
-                "journey_type": config["name"],
-                "geojson_version": config["version"],
-                "geojson_version_op": config["version_op"],
-                "geojson_earliest_time": config["earliest_time"],
-                "geojson_latest_time": config["latest_time"],
-                "geojson_place": config["place"],
+                "metadata.journey_type": config["name"],
+                "metadata.geojson_version": config["version"],
+                "metadata.geojson_version_op": config["version_op"],
+                "metadata.geojson_earliest_time": config["earliest_time"],
+                "metadata.geojson_latest_time": config["latest_time"],
+                "metadata.geojson_place": config["place"],
             }
         )
 
@@ -89,15 +91,20 @@ def generate_geojson(
         if len(journeys):
             data = journeys.geojson
 
-            data["journey_type"] = config["name"]
-            data["geojson_version"] = config["version"]
-            data["geojson_version_op"] = config["version_op"]
-            data["geojson_earliest_time"] = config["earliest_time"]
-            data["geojson_latest_time"] = config["latest_time"]
-            data["geojson_place"] = config["place"]
-            data["save_time"] = datetime.datetime.utcnow().timestamp()
+            meta = {}
+            meta["journey_type"] = config["name"]
+            meta["geojson_version"] = config["version"]
+            meta["geojson_version_op"] = config["version_op"]
+            meta["geojson_earliest_time"] = config["earliest_time"]
+            meta["geojson_latest_time"] = config["latest_time"]
+            meta["geojson_place"] = config["place"]
+            meta["save_time"] = datetime.datetime.utcnow().timestamp()
 
-            db.parsed_journeys.insert_one(data)
+            db.gridfs.put(
+                json.dumps(data).encode("utf8"),
+                metadata=meta,
+                filename=GEOJSON_FILENAME_PREFIX + "_" + json.dumps(meta),
+            )
 
     finally:
         GENERATING.remove(config)

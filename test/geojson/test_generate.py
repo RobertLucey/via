@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from shutil import copyfile, rmtree
 
 from unittest import TestCase, skip, skipUnless
@@ -29,11 +30,12 @@ class GeoJsonGenerateTest(TestCase):
     def test_generate_geojson(self):
         generate_geojson("bike")
 
-        data = list(db.parsed_journeys.find())
+        filename_pattern = re.compile("^test_")
 
-        self.assertEqual(len(data), 1)
-
-        data = data[0]
+        data = db.gridfs.find_one(
+            {"metadata.journey_type": "bike", "filename": filename_pattern}
+        )
+        data = json.loads(data.read())
 
         self.assertGreater(len(data["features"]), 10)
         self.assertLess(len(data["features"]), 50)

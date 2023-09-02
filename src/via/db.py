@@ -6,7 +6,6 @@ from cached_property import cached_property
 
 from via.settings import (
     MONGO_RAW_JOURNEYS_COLLECTION,
-    MONGO_PARSED_JOURNEYS_COLLECTION,
     MONGO_NETWORKS_COLLECTION,
 )
 
@@ -29,10 +28,6 @@ class DB:
     @property
     def raw_journeys(self):
         return getattr(self.client, MONGO_RAW_JOURNEYS_COLLECTION)
-
-    @property
-    def parsed_journeys(self):
-        return getattr(self.client, MONGO_PARSED_JOURNEYS_COLLECTION)
 
     @property
     def networks(self):

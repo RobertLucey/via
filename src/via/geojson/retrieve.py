@@ -1,6 +1,8 @@
 import datetime
+import re
+import json
 
-from via.settings import MAX_GEOJSON_AGE
+from via.settings import MAX_GEOJSON_AGE, GEOJSON_FILENAME_PREFIX
 from via.db import db
 
 
@@ -17,21 +19,24 @@ def get_geojson(
     if journey_type is None:
         journey_type = "all"
 
-    data = db.parsed_journeys.find_one(
+    filename_pattern = re.compile(f"^{GEOJSON_FILENAME_PREFIX}")
+
+    data = db.gridfs.find_one(
         {
-            "journey_type": journey_type,
-            "save_time": {
+            "filename": filename_pattern,
+            "metadata.journey_type": journey_type,
+            "metadata.save_time": {
                 "$gt": (
                     datetime.datetime.utcnow()
                     - datetime.timedelta(seconds=MAX_GEOJSON_AGE)
                 ).timestamp()
             },
-            "place": place,
+            "metadata.place": place,
         }
     )
-    if not data:
+    if data is None:
         raise LookupError()
 
-    data["_id"] = str(data["_id"])
+    data = json.loads(data.read())
 
     return data

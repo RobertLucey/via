@@ -3,7 +3,7 @@ import datetime
 
 from unittest import TestCase, skip, skipUnless
 
-from via.settings import MONGO_PARSED_JOURNEYS_COLLECTION
+from via.settings import GEOJSON_FILENAME_PREFIX
 from via.geojson.retrieve import get_geojson
 from via.db import db
 
@@ -38,8 +38,15 @@ class GeoJsonRetrieveTest(TestCase):
                     datetime.datetime.utcnow() - datetime.timedelta(days=365 * 10)
                 ).timestamp(),
             }
-            db.parsed_journeys.insert_one(data)
-            get_geojson("bike")
+
+            db.gridfs.put(
+                "".encode("utf8"),
+                metadata=data,
+                filename=GEOJSON_FILENAME_PREFIX + "_something",
+            )
+            geojson = get_geojson("bike")
+
+            raise Exception(geojson)
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_get_geojson_does_exist_good_age(self):
@@ -54,5 +61,9 @@ class GeoJsonRetrieveTest(TestCase):
                 datetime.datetime.utcnow() - datetime.timedelta(minutes=10)
             ).timestamp(),
         }
-        db.parsed_journeys.insert_one(data)
+        db.gridfs.put(
+            "{}".encode("utf8"),
+            metadata=data,
+            filename=GEOJSON_FILENAME_PREFIX + "_something",
+        )
         self.assertIsNotNone(get_geojson("bike"))
