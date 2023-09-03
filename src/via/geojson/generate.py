@@ -75,21 +75,24 @@ def generate_geojson(
             ]
         )
 
-        db.gridfs.delete(
-            {
-                "metadata.journey_type": config["name"],
-                "metadata.geojson_version": config["version"],
-                "metadata.geojson_version_op": config["version_op"],
-                "metadata.geojson_earliest_time": config["earliest_time"],
-                "metadata.geojson_latest_time": config["latest_time"],
-                "metadata.geojson_place": config["place"],
-            }
-        )
-
         data = None
 
         if len(journeys):
             data = journeys.geojson
+
+            present = db.gridfs.find(
+                {
+                    "metadata.journey_type": config["name"],
+                    "metadata.geojson_version": config["version"],
+                    "metadata.geojson_version_op": config["version_op"],
+                    "metadata.geojson_earliest_time": config["earliest_time"],
+                    "metadata.geojson_latest_time": config["latest_time"],
+                    "metadata.geojson_place": config["place"],
+                }
+            )
+
+            for obj in list(present):
+                db.gridfs.delete(obj._id)
 
             meta = {}
             meta["journey_type"] = config["name"]
