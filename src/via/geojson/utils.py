@@ -1,3 +1,4 @@
+import copy
 import shapely
 from networkx.readwrite import json_graph
 from networkx.classes.multidigraph import MultiDiGraph
@@ -15,7 +16,7 @@ def geojson_from_graph(graph: MultiDiGraph, must_include_props: list = None) -> 
     """
     json_links = json_graph.node_link_data(graph)["links"]
 
-    geojson_features = EMPTY_GEOJSON
+    geojson_features = copy.deepcopy(EMPTY_GEOJSON)
 
     for link in json_links:
         if "geometry" not in link:
