@@ -150,7 +150,18 @@ class Journeys(GenericObjects, SnappedRouteGraphMixin, BoundingGraphMixin):
                     "Getting geojson features of journeys group in region: %s",
                     region_name,
                 )
-                geo_features.extend(journeys.geojson["features"])
+
+                geojson = journeys.geojson
+
+                deduped = [
+                    i
+                    for n, i in enumerate(geojson["features"])
+                    if i not in geojson["features"][n + 1 :]
+                ]
+
+                # TODO: dedup by edge_id. Also find out why dups in the first place
+
+                geo_features.extend(geojson["features"])
 
             geo_features = {"type": "FeatureCollection", "features": geo_features}
             return geo_features
