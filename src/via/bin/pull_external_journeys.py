@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 import requests
 
+from via import logger
 from via.db import db
 from via.models.journey import Journey
 
@@ -14,15 +15,15 @@ def main():
     for base_url in URLS:
         query_url = f"{base_url}/get_journey_uuids"
 
-        print(query_url)
+        logger.info(f"Getting journeys from: {query_url}")
 
         journeys_uuids = requests.get(query_url).json()
 
         for journey_uuid in journeys_uuids:
-            result = db.raw_journeys.find_one({"uuid": journey_uuid})
+            result_count = db.raw_journeys.count_documents({"uuid": journey_uuid})
 
-            if not result:
-                print(journey_uuid)
+            if result_count == 0:
+                logger.info(f"Inserting: {journey_uuid}")
 
                 query_string = urlencode(OrderedDict(journey_uuid=journey_uuid))
                 url = f"{base_url}/get_raw_journey?{query_string}"
@@ -40,7 +41,7 @@ def main():
 
                 db.raw_journeys.insert_one(journey_data)
             else:
-                print(f"already exists: {journey_uuid}")
+                logger.debug(f"Already exists: {journey_uuid}")
 
 
 if __name__ == "__main__":
