@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from pydantic import BaseModel
 
@@ -60,7 +61,9 @@ async def create_journey(raw_journey: RawJourney):
         )
 
         db.raw_journeys.insert_one(raw_journey.dict())
-    return {"status": "inserted" if not result else "already exists"}
+        return JSONResponse(status_code=201, content={"message": "created"})
+    else:
+        return JSONResponse(status_code=409, content={"message": "already exists"})
 
 
 @app.get("/get_raw_journey")
