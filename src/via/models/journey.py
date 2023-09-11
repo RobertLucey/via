@@ -81,7 +81,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         :kwarg timestamp: The timestamp of the journey
         """
         self.gps_inclusion_iter = 0
-        self.too_slow = False
+        self.bad_speed = False
 
         data = []
         if "data" in kwargs:
@@ -208,18 +208,15 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
                             metres_per_second > settings.MAX_METRES_PER_SECOND,
                         ]
                     ):
-                        self.too_slow = True
+                        self.bad_speed = True
                     else:
-                        self.too_slow = False
+                        self.bad_speed = False
 
-            if self.too_slow:
-                # Annotate as slow so we don't use it to get paths or use
-                # it for accelerometer data
-                # A bit more testing to do before putting in
-                pass
-                # self._data.append(
-                #    FramePoint(frame.time, frame.gps, frame.acceleration, slow=True)
-                # )
+            if self.bad_speed:
+                if self._data[-1].gps != frame.gps:
+                    self._data.append(
+                        FramePoint(frame.time, frame.gps, None, slow=True)
+                    )
             else:
                 if self._data[-1].gps == frame.gps:
                     self._data[-1].append_acceleration(frame.acceleration)
@@ -364,6 +361,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         :rtype: dict
         :return: {edge_id: [{edge_data}, {edge_data}]}
         """
+
         start = time.monotonic()
 
         trace = [(p.gps.lat, p.gps.lng) for p in self.all_points]
@@ -580,3 +578,4 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         # if region is not populated, could use a somewhat rounded lat/lng so we can still include the journey
 
         return region_name
+

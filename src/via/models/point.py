@@ -112,7 +112,10 @@ class FramePoint(Context, GenericObject):
             distance = origin.distance_from(dst.gps)
             if distance != 0:
                 time_diff = dst.time - origin.time
-                metres_per_second = distance / time_diff
+                try:
+                    metres_per_second = distance / time_diff
+                except ZeroDivisionError:
+                    metres_per_second = 0
             return round(metres_per_second, 2)
 
         return None
