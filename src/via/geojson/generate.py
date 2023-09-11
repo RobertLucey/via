@@ -1,7 +1,8 @@
 import operator
 import datetime
 import time
-import json
+
+import ujson
 
 from via import logger
 from via.utils import (
@@ -104,9 +105,9 @@ def generate_geojson(
             meta["save_time"] = datetime.datetime.utcnow().timestamp()
 
             db.gridfs.put(
-                json.dumps(data).encode("utf8"),
+                ujson.dumps(data).encode("utf8"),
                 metadata=meta,
-                filename=GEOJSON_FILENAME_PREFIX + "_" + json.dumps(meta),
+                filename=GEOJSON_FILENAME_PREFIX + "_" + ujson.dumps(meta),
             )
 
     finally:

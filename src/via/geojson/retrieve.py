@@ -1,6 +1,7 @@
 import datetime
 import re
-import json
+
+import ujson
 
 from via.settings import MAX_GEOJSON_AGE, GEOJSON_FILENAME_PREFIX
 from via.db import db
@@ -37,6 +38,6 @@ def get_geojson(
     if data is None:
         raise LookupError()
 
-    data = json.loads(data.read())
+    data = ujson.loads(data.read())
 
     return data

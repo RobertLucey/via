@@ -1,7 +1,7 @@
-import json
 import pickle
 from typing import Any, Dict
 
+import ujson
 from cachetools.func import ttl_cache
 
 import networkx as nx
@@ -64,7 +64,7 @@ class NXMapCache:
 
     @ttl_cache(maxsize=MAX_CACHE_SIZE, ttl=60 * 60)
     def get_from_gridfs(self, key):
-        return json.loads(
+        return ujson.loads(
             db.gridfs.find_one({"filename": self.get_filename(key)}).read()
         )
 
@@ -84,7 +84,7 @@ class NXMapCache:
             return None
 
         db.gridfs.put(
-            json.dumps(to_dict(value)).encode("utf8"), filename=self.get_filename(key)
+            ujson.dumps(to_dict(value)).encode("utf8"), filename=self.get_filename(key)
         )
 
 

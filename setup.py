@@ -4,6 +4,7 @@ from setuptools import (
 )
 
 INSTALL_REQUIRES = (
+    'ujson',
     'cached_property',
     'packaging',
     'reverse_geocoder',

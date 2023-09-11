@@ -1,5 +1,5 @@
 import argparse
-import json
+
 import requests
 
 from via.db import db

@@ -1,5 +1,6 @@
 import argparse
-import json
+
+import ujson
 
 
 def rm_obj_id(journey_data):
@@ -22,7 +23,7 @@ def main():
 
     with open(args.backup_file, "w") as fh:
         fh.write(
-            json.dumps(
+            ujson.dumps(
                 [rm_obj_id(journey_data) for journey_data in db.raw_journeys.find()]
             )
         )
