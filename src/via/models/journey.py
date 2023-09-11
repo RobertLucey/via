@@ -578,4 +578,3 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
         # if region is not populated, could use a somewhat rounded lat/lng so we can still include the journey
 
         return region_name
-
