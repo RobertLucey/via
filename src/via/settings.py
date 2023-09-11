@@ -4,11 +4,11 @@ from packaging import version
 MIN_ACC_SCORE = float(os.getenv("MIN_ACC_SCORE", "0.001"))
 MIN_PER_JOURNEY_USAGE = float(os.getenv("MIN_PER_JOURNEY_USAGE", "1"))
 MIN_METRES_PER_SECOND = float(
-    os.getenv("MIN_METRES_PER_SECOND", "1.4")
+    os.getenv("MIN_METRES_PER_SECOND", "1")
 )  # 1.4 mps is average walking speed apparently
 MAX_METRES_PER_SECOND = float(
-    os.getenv("MAX_METRES_PER_SECOND", "10000")
-)  # Arbitrarily high, will figure out a reasonable number at some point
+    os.getenv("MAX_METRES_PER_SECOND", "40")
+)  # is the world record
 
 # Raise to use more memory for faster processing, lower if memory is an issue
 MAX_CACHE_SIZE = int(os.getenv("MAX_CACHE_SIZE", 100))
