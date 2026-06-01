@@ -1,6 +1,5 @@
 import hashlib
-import os
-from functools import lru_cache, cache
+from functools import lru_cache
 from itertools import islice
 from typing import Any, List, Tuple
 
@@ -15,7 +14,6 @@ from via.settings import (
     MAX_CACHE_SIZE,
 )
 from via.constants import METRES_PER_DEGREE
-from via.models.gps import GPSPoint
 from via.db import db
 
 

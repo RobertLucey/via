@@ -1,6 +1,6 @@
 import pickle
 
-from unittest import TestCase, skipUnless
+from unittest import TestCase
 from mock import patch
 
 from via.caches.place_cache import PlaceCache

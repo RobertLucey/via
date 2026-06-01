@@ -1,9 +1,8 @@
 import os
 import json
 import re
-from shutil import copyfile, rmtree
 
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase, skipUnless
 
 from via.geojson.generate import generate_geojson
 

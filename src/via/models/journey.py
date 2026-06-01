@@ -2,7 +2,6 @@ import datetime
 import time
 import statistics
 from pathlib import Path
-from functools import cache
 from collections import defaultdict
 from packaging import version
 
@@ -36,7 +35,6 @@ from via.geojson.utils import geojson_from_graph
 from via.models.point import FramePoint, FramePoints
 from via.models.frame import Frame
 from via.caches.edge_cache import get_edge_data
-from via.caches.network_cache import network_cache
 from via.models.journey_mixins import (
     SnappedRouteGraphMixin,
     BoundingGraphMixin,

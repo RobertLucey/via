@@ -1,7 +1,6 @@
 import statistics
 import hashlib
 from collections import defaultdict
-from typing import List
 
 from networkx.classes.multidigraph import MultiDiGraph
 

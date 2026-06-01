@@ -3,7 +3,6 @@ import pickle
 
 from cachetools.func import ttl_cache
 
-from gridfs import GridFS
 
 from via.settings import GRIDFS_BOUNDING_GRAPH_GDFS_GRAPH_FILENAME_PREFIX
 from via.db import db

@@ -1,10 +1,8 @@
 import re
 import os
 
-from gridfs import GridFS
 
 from via.db import db
-from via.settings import MONGO_NETWORKS_COLLECTION, MONGO_RAW_JOURNEYS_COLLECTION
 
 IS_ACTION = os.environ.get("IS_ACTION", "False") == "True"
 

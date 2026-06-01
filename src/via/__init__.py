@@ -1,8 +1,11 @@
-import requests
-
-from shapely.errors import ShapelyDeprecationWarning
-
 import warnings
+
+import requests
+from shapely.errors import ShapelyDeprecationWarning
+import osmnx
+
+from via import settings
+from via.log import logger
 
 warnings.filterwarnings(
     "ignore",
@@ -10,16 +13,11 @@ warnings.filterwarnings(
 )
 warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
 
-import osmnx
-
-from via import settings
-from via.log import logger
-
 
 # overpass api clone for this so we can disable rate limiting and not feel bad
 
 try:  # pragma: nocover
-    if CUSTOM_OVERPASS_API:
+    if settings.CUSTOM_OVERPASS_API:
         CUSTOM_AVAILABLE = (
             "www.openstreetmap.org"
             in requests.get(settings.CUSTOM_OVERPASS_API, timeout=1).text

@@ -1,8 +1,6 @@
 import os
-import json
-from shutil import copyfile, rmtree
 
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase, skipUnless
 
 from networkx.classes.multidigraph import MultiDiGraph
 

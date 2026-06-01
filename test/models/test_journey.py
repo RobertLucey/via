@@ -4,7 +4,7 @@ import os
 from packaging import version
 
 from mock import patch
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase, skipUnless
 
 from via.utils import get_combined_id
 from via.models.journey import Journey
@@ -816,10 +816,6 @@ class JourneyTest(TestCase):
 
     @skipUnless(not IS_ACTION, "action_mongo")
     def test_write_mappy_path(self):
-        test_data = None
-        with open("test/resources/just_route.json") as json_file:
-            test_data = json.load(json_file)
-
         test_journey = Journey()
         for d in self.test_data:
             test_journey.append(

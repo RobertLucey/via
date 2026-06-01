@@ -1,25 +1,21 @@
 import os
 import operator
-import time
 import json
 import datetime
 import pickle
 from packaging import version
-from shutil import copyfile, rmtree
 
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase, skipUnless
 
 from networkx.classes.multidigraph import MultiDiGraph
 
 import geopandas
 
 from via.models.journey import Journey
-from via.settings import MONGO_RAW_JOURNEYS_COLLECTION
 
 from via.utils import (
     should_include_journey,
     window,
-    iter_journeys,
     get_journeys,
     filter_edges_from_geodataframe,
     filter_nodes_from_geodataframe,
@@ -27,7 +23,6 @@ from via.utils import (
     get_combined_id,
     update_edge_data,
 )
-from via.models.gps import GPSPoint
 from via.db import db
 
 from .utils import wipe_mongo

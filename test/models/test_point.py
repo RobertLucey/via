@@ -1,6 +1,6 @@
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase
 
-from via.models.point import FramePoint, FramePoints, Context
+from via.models.point import FramePoint, FramePoints
 
 from ..utils import wipe_mongo
 

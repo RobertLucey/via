@@ -1,7 +1,6 @@
-import datetime
 import pickle
 
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase
 
 from via.geojson.utils import geojson_from_graph
 

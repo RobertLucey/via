@@ -1,7 +1,7 @@
 import json
 import os
 
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase, skipUnless
 
 from via.models.journey import Journey
 from via.models.frame import Frame

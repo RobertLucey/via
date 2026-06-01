@@ -1,7 +1,7 @@
 import os
 import datetime
 
-from unittest import TestCase, skip, skipUnless
+from unittest import TestCase, skipUnless
 
 from via.settings import GEOJSON_FILENAME_PREFIX
 from via.geojson.retrieve import get_geojson

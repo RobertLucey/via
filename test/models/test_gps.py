@@ -1,4 +1,4 @@
-from unittest import TestCase, skipUnless
+from unittest import TestCase
 
 from via.models.gps import GPSPoint
 

@@ -1,4 +1,4 @@
-from via.models.generic import GenericObject, GenericObjects
+from via.models.generic import GenericObject
 from via.models.gps import GPSPoint
 
 

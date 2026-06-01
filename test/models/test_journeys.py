@@ -2,7 +2,7 @@ import json
 import os
 
 from mock import patch
-from unittest import TestCase, skipUnless, skip
+from unittest import TestCase, skipUnless
 
 from via.models.journey import Journey
 from via.models.journeys import Journeys

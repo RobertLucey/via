@@ -5,7 +5,6 @@ import numpy
 from cached_property import cached_property
 
 from via import settings
-from via import logger
 from via.caches.place_cache import place_cache
 from via.models.generic import GenericObject, GenericObjects
 from via.models.gps import GPSPoint

@@ -1,10 +1,8 @@
 import time
-from collections import defaultdict
 
 import osmnx
 from networkx.classes.multidigraph import MultiDiGraph
 
-from via import settings
 from via import logger
 from via.utils import (
     filter_nodes_from_geodataframe,
