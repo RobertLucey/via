@@ -9,7 +9,7 @@ INSTALL_REQUIRES = (
     'packaging',
     'reverse_geocoder',
     'haversine',
-    'osmnx',
+    'osmnx<2',
     'requests',
     'geopandas',
     'python-logging-loki',
@@ -22,7 +22,7 @@ INSTALL_REQUIRES = (
 
 setup(
     name='via-api',
-    version='2.17.0',
+    version='2.18.0',
     python_requires='>=3.9',
     description='Analysing and serving crowdsourced road quality data',
     long_description='Analysing and serving crowdsourced road quality data',
