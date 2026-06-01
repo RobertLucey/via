@@ -18,9 +18,9 @@ def main():
             args.url + "/push_journey", json=remove_id(journey_data)
         )
         if response.status_code == 201:
-            logger.info(f'Created: {journey_data["uuid"]}')
+            logger.info(f"Created: {journey_data['uuid']}")
         elif response.status_code == 409:
-            logger.debug(f'Already exists: {journey_data["uuid"]}')
+            logger.debug(f"Already exists: {journey_data['uuid']}")
 
 
 if __name__ == "__main__":

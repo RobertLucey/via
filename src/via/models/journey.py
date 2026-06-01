@@ -444,7 +444,7 @@ class Journey(FramePoints, SnappedRouteGraphMixin, BoundingGraphMixin):
                     "road_quality": origin.road_quality,
                     "speed": (origin.speed + destination.speed) / 2
                     if (origin.speed is not None and destination.speed is not None)
-                    else None
+                    else None,
                     # TODO: other bits, speed / elevation maybe?
                 }
             )
